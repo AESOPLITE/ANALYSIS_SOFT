@@ -6,12 +6,13 @@
 
 
 
-INSTALLDIR = /home/sarah/AESOPLITE/ANALYSIS_SOFT
+INSTALLDIR = $(PWD)
+SRCDIR     = $(INSTALLDIR)/src
 PROGRAMNAME = Main
 
 SRCS          = Main.$(SrcSuf) \
-				$(INSTALLDIR)/src/ALKalman/ALKalman.$(SrcSuf) \
-				$(INSTALLDIR)/src/ALPatternRecognition/ALPatternRecognition.$(SrcSuf) \
+				$(SRCDIR)/ALKalman/ALKalman.$(SrcSuf) \
+				$(SRCDIR)/ALPatternRecognition/ALPatternRecognition.$(SrcSuf) \
 
 
 OBJS	      =	$(subst .$(SrcSuf),.$(ObjSuf),$(SRCS)) \

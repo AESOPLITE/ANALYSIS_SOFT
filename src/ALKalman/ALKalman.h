@@ -24,10 +24,9 @@
 class ALKalman {
 
 public:
-ALKalman () {
-   cout << "Object is being created" << endl;
-}
+     ALKalman() {} ; 
 	 virtual ~ALKalman() {};
+	 void InitialBackwardFit(TObjArray &kalhits, THelicalTrack &Hel_1st,TKalMatrix &C_1st);
 	 void Reconstruct();
 	
 	ClassDef (ALKalman, 1)

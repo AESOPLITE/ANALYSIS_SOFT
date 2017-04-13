@@ -53,7 +53,6 @@ public:
    virtual TKalMatrix XvToMv   (const TVTrackHit &ht,
                                 const TVector3   &xv, Bool_t isbending) const = 0;
    virtual TVector3   HitToXv  (const TVTrackHit &ht) const = 0;
-   virtual TVector3   HitToXv  (const TVTrackHit &ht, Bool_t isbending) const = 0;
    virtual TVector3   RawHitToXv (const TVTrackHit &ht) const = 0;
 
    virtual void       CalcDhDa (const TVTrackHit &ht,
