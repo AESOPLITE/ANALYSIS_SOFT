@@ -13,28 +13,41 @@ GEOBEGIN                   0.1                                        COMBINAT
                          AESOP-lite tracking
 *2345678901234567890123456789012345678901234567890123456789012345678901234567890
 * Bodies
+* Scintillator T1
   RCC    1      +0.0      0.0      33.0       0.0       0.0     0.5E0   
                 13.0
+* Old CK top endcap body: Keep it to keep old body ID numbers
+* Material must be air
   RCC    2      +0.0      0.0      31.0       0.0       0.0    1.2E-2   
                 12.0
-  TRC    3      +0.0      0.0      2.0        0.0       0.0      28.0
+* Outside of CK
+  TRC    3      +0.0      0.0       2.0       0.0       0.0      28.0
                 +7.5     14.0
-  TRC    4      +0.0      0.0      2.0        0.0       0.0     28.0
+* Thickness of CK endcap measured to be 22/1000 inch the Dec. 08,2016                
+* Inside of CK
+  TRC    4      +0.0      0.0   2.05588       0.0       0.0   27.8824
                 +6.5     13.0
-  RCC    5      +0.0      0.0      2.0        0.0       0.0    1.2E-2   
+* Old CK bottom endcap body: Keep it to keep old body ID numbers
+* Material must be air
+  RCC    5      +0.0      0.0       2.0       0.0       0.0   -1.2E-2   
                 +6.5
-  RCC    6      +0.0      0.0      2.0        0.0       0.0     2.00   
+* Platform of the CK                
+  RCC    6      +0.0      0.0       2.0       0.0       0.0      2.00   
                +15.5
+* Scintillator T3               
   RCC    7      +0.0      0.0       0.0       0.0       0.0     0.5E0   
                  3.5
+* Scintillator T3+guard                 
   RCC    8      +0.0      0.0       0.0       0.0       0.0     0.5E0   
                 13.5
+* Magnets                
   RCC    9      +0.0      0.0      -8.6       0.0       0.0     4.0E0   
                 15.0
   RCC   10      +0.0      0.0     -14.6       0.0       0.0     4.0E0   
                 15.0
   RCC   11      +0.0      0.0     -14.6       0.0       0.0    10.0E0   
                6.703
+* 7 Trackers
   RPP   12      -9.0     +9.0      -9.0      +9.0      -1.5    -1.46
   RPP   13      -9.0     +9.0      -9.0      +9.0      -3.5    -3.46
   RPP   14      -9.0     +9.0      -9.0      +9.0      -9.5    -9.46
@@ -42,26 +55,41 @@ GEOBEGIN                   0.1                                        COMBINAT
   RPP   16      -9.0     +9.0      -9.0      +9.0     -17.5   -17.46
   RPP   17      -9.0     +9.0      -9.0      +9.0     -19.5   -19.46
   RPP   18      -9.0     +9.0      -9.0      +9.0     -21.5   -21.46
+* Scintillator T3               
   RCC   19      +0.0      0.0     -24.0       0.0       0.0     1.0E0   
                 18.0
+* Air cylinder                
   RCC   20      +0.0      0.0    -100.0       0.0       0.0    200.0E0   
                 50.0
+* Vacuum cylinder
   RCC   21      +0.0      0.0    -200.0       0.0       0.0    400.0E0   
                100.0
+* Blackhole cylinder               
   RCC   22      +0.0      0.0    -201.0       0.0       0.0    402.0E0   
                101.0
   END
 * Regions
+* T1
   001          +1
+* Old CK top endcap: must be Air 
   002          +2
+* CK  
   003          +3     -4
+* Old CK bottom endcap: must be Air 
   004          +5
-  005          +6     -4
+* Platform of the CK                 
+  005          +6     -3
+* T3  
   006          +7
+* Guard
   007          +8     -7
-  008          +9    -11  
-  009         +10    -11  
+* Top Magnet  
+  008          +9    -11
+* Bottom Magnet  
+  009         +10    -11 
+* Inner cylinder of magnets: Air   
   010         +11    -14
+* Tracker 7 Layers  
   011         +12
   012         +13
   013         +14
@@ -69,27 +97,35 @@ GEOBEGIN                   0.1                                        COMBINAT
   015         +16
   016         +17
   017         +18
+* T4
   018         +19
+* Air  
   019         +20     -1     -2     -3     -5     -6     -8     -9    -10
               -11    -12    -13    -14    -15    -16    -17    -18    -19
+* Vacuum
   020         +21    -20
+* Blackhole  
   021         +22    -21
-  022          +4  
+* CK gas region  
+  022          +4
   END
 GEOEND
 *2345678901234567890123456789012345678901234567890123456789012345678901234567890
-MATERIAL                            0.94        26                    POLY-CH2
-COMPOUND         2.0       3.0       1.0       6.0                    POLY-CH2
+*MATERIAL                            0.94        26                    POLY-CH2
+*COMPOUND         2.0       3.0       1.0       6.0                    POLY-CH2
+*...+....1....+....2....+....3....+....4....+....5....+....6....+....7....+....
+MATERIAL                            1.03        26                    Polyviny  
+COMPOUND        10.0       3.0       9.0       6.0                    Polyviny  
 *-------------------------------------------------------------------------------
 *scale temp by 7%
 *MAT-PROP        1.07      72.0      293.       3.0     47.0           LOWNTEMP
 *-------------------------------------------------------------------------------
 *2345678901234567890123456789012345678901234567890123456789012345678901234567890
 ASSIGNMAT  26.0     1.0
-ASSIGNMAT  11.0     2.0
-ASSIGNMAT   7.0     3.0
-ASSIGNMAT  11.0     4.0
-ASSIGNMAT   7.0     5.0
+ASSIGNMAT   7.0     2.0
+ASSIGNMAT  10.0     3.0
+ASSIGNMAT   7.0     4.0
+ASSIGNMAT  10.0     5.0
 ASSIGNMAT  26.0     6.0
 ASSIGNMAT  26.0     7.0
 ASSIGNMAT  11.0     8.0
@@ -113,5 +149,5 @@ MGNFIELD        30.0      0.01    0.0001      0.00      0.0        0.0
 USERDUMP         100                   0
 RANDOMIZ    1.0
 SOURCE           
-START        10000.         
+START        100000.         
 STOP
