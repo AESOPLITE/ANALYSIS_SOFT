@@ -86,7 +86,7 @@ class ALEvent:public TObject
    //Hits information
    std::vector<ALTckhit*> hits;  
    
-   //Triggers
+   //External Triggers
    bool T1;
    bool T2;
    bool T3;
@@ -102,11 +102,21 @@ class ALEvent:public TObject
    std::vector<double> timeT3;
    std::vector<double> timeT4;
    std::vector<double> timeg;     
+   //Internal Triggers 
+   //Tracker layer for 0 to 6. top layer is 0
+   //integer value coded with 7 bits values
+   //\Sum\Limits_{k=0}^{6} 2^k
+   int Ti=0;
+   
  public: 
    //Constructors
    ALEvent();// Default
    //Destructor
    ~ALEvent(){};   
+   ///////////////////////////////
+   // Methods
+   ///////////////////////////////
+   void Copy(ALEvent*);
    ////////////////////////////////
    //"setting" member methods
    ////////////////////////////////
@@ -147,6 +157,7 @@ class ALEvent:public TObject
    void add_timeT3(double a){timeT3.push_back(a);}
    void add_timeT4(double a){timeT4.push_back(a);}
    void add_timeg(double a){timeg.push_back(a);}   
+   void set_Ti(int a){Ti=a;}
    
    ////////////////////////////////
    //"Getting" member methods
@@ -188,6 +199,7 @@ class ALEvent:public TObject
    std::vector<double>  get_timeT3(){return timeT3;}
    std::vector<double>  get_timeT4(){return timeT4;}
    std::vector<double>  get_timeg(){return timeg;}
+   int get_Ti(){return Ti;}
 
    ////////////////////////////////
    ClassDef(ALEvent,1)
