@@ -107,6 +107,7 @@ bool TBField::SetMagField() {
 	for(int ientry=0; ientry < nentries ;ientry++) {
 		ntuple->GetEntry(ientry);
 	//	cout<< x <<" ,"<<y <<" ,"<< z <<" ,"<<bx << " ," << by << " ," << bz << endl;
+
 			    fieldmapX->SetBinContent(
 				fieldmapX->GetXaxis()->FindBin(x),
 				fieldmapX->GetYaxis()->FindBin(y),
@@ -122,9 +123,9 @@ bool TBField::SetMagField() {
 				fieldmapZ->GetYaxis()->FindBin(y),
 				fieldmapZ->GetZaxis()->FindBin(z),
 				bz);
+
 	}
 	file_map->Close();
-	cout << "Field Map INTERFACED WOOO" << endl;
 	return true;
 }
 
@@ -140,21 +141,21 @@ void TBField::Get(const double&x, const double&y, const double&z, double& Bx, do
 	 By = (fieldmapY->GetBinContent(binx, biny, binz))/(10000);
      Bz = (fieldmapZ->GetBinContent(binx, biny, binz))/(10000);
 	
-//cout<<"DEBUG: "<<__LINE__<<": "<<x <<","<< y <<","<<binx<<" ,"<<biny<<": "<<Bx<<","<<By<< " ," << Bz <<"\n";
+cout<<"DEBUG: "<<__LINE__<<": "<<x <<","<< y <<","<<binx<<" ,"<<biny<<": "<<Bx<<","<<By<< " ," << Bz <<"\n";
 
 }
 
 
 TVector3 TBField::Get(const TVector3& v) {
-  double x = v.x();
-  double y = v.y();
-  double z = v.z();
+  double x = v.x() * 10;
+  double y = (v.y()+ 9.5) * 10;
+  double z = v.z() * 10;
   double Bx;
   double By;
   double Bz;
   Get(x,y,z,Bx,By,Bz);
- // cout << "Get function x=" << x << "  , y=" << y << " , z=" << z << endl;
-//  cout << "Get function Bx=" << Bx << " , By=" << By << " , Bz=" << Bz << endl;
+  cout << "Get function x=" << x << "  , y=" << y << " , z=" << z << endl;
+  cout << "Get function Bx=" << Bx << " , By=" << By << " , Bz=" << Bz << endl;
   return TVector3(Bx, By, Bz);
 }
 
