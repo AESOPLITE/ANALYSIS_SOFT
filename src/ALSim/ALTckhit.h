@@ -136,7 +136,7 @@ class ALTckhit:public TObject
    float get_yin( ){return yin;}
    float get_zin( ){return zin;}
    float get_xout( ){return xout;}
-   float get_youtn( ){return yout;}
+   float get_yout( ){return yout;}
    float get_zout( ){return zout;}
    float get_cx( ){return cx;}
    float get_cy( ){return cy;}
