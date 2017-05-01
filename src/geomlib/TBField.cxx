@@ -37,8 +37,8 @@ ClassImp(TBField)
 
 TEveMagField* TBField::fField = 0;
 
-Bool_t   TBField::fUseUniformBfield = kFALSE;
-//Bool_t   TBField::fUseUniformBfield = kTRUE;
+//Bool_t   TBField::fUseUniformBfield = kFALSE;
+Bool_t   TBField::fUseUniformBfield = kTRUE;
 Double_t TBField::fFieldCoeff       = 1.;
 
 TH3D* TBField::fieldmapX = new TH3D("field map Bx" , "Bx [kG]; x[cm]; y[cm]; z[cm]", 80 , -200, 200, 80, -200, 200, 10, -25, 25);
@@ -141,12 +141,13 @@ void TBField::Get(const double&x, const double&y, const double&z, double& Bx, do
 	 By = (fieldmapY->GetBinContent(binx, biny, binz))/(10000);
      Bz = (fieldmapZ->GetBinContent(binx, biny, binz))/(10000);
 	
-cout<<"DEBUG: "<<__LINE__<<": "<<x <<","<< y <<","<<binx<<" ,"<<biny<<": "<<Bx<<","<<By<< " ," << Bz <<"\n";
+//cout<<"DEBUG: "<<"x = "<<x <<", y = "<< y <<", z = "<< z << " , Bx = " <<Bx<<", By = "<<By<< " , Bz = " << Bz <<"\n";
 
 }
 
 
 TVector3 TBField::Get(const TVector3& v) {
+//  cout << "In Get function: v.x=" << v.X() << "  , v.y=" << v.Y() << " , v.z=" << v.Z() << endl;
   double x = v.x() * 10;
   double y = (v.y()+ 9.5) * 10;
   double z = v.z() * 10;
@@ -154,8 +155,8 @@ TVector3 TBField::Get(const TVector3& v) {
   double By;
   double Bz;
   Get(x,y,z,Bx,By,Bz);
-  cout << "Get function x=" << x << "  , y=" << y << " , z=" << z << endl;
-  cout << "Get function Bx=" << Bx << " , By=" << By << " , Bz=" << Bz << endl;
+  //cout << "Get function x=" << x << "  , y=" << y << " , z=" << z << endl;
+  //cout << "Get function Bx=" << Bx << " , By=" << By << " , Bz=" << Bz << endl;
   return TVector3(Bx, By, Bz);
 }
 
@@ -169,8 +170,8 @@ TVector3 TBField::GetGlobalBfield(const TVector3& globalPosition)
 		return bfield;
 	}
 
-	// ILD uniform magnetic field
-	Double_t B0   = 0.35; 
+	// AESOPLITE average magnetic field
+	Double_t B0   = 3.0; 
 
 	if(fUseUniformBfield)
 	{
@@ -182,7 +183,7 @@ TVector3 TBField::GetGlobalBfield(const TVector3& globalPosition)
     const Double_t zmax    = 3000.;
     const Double_t rmax    = 3000.;
     const Double_t coeffxy = fFieldCoeff / (zmax * rmax);
-    const Double_t bmax    = 0.35; // B at the origin
+    const Double_t bmax    = 3.0; // B at the origin
 
     if(fUseUniformBfield)
     {
