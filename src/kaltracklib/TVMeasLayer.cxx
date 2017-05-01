@@ -32,6 +32,8 @@
 #include "TKalTrack.h"    // from KalTrackLib
 #include "TVTrack.h"      // from KalTrackLib
 
+using namespace std;
+
 ClassImp(TVMeasLayer)
 
 //_________________________________________________________________________
@@ -82,11 +84,12 @@ Double_t TVMeasLayer::GetEnergyLoss(      Bool_t    isoutgoing,
 
    TKalTrack *ktp  = static_cast<TKalTrack *>(TVKalSystem::GetCurInstancePtr());
    Double_t   mass = ktp ? ktp->GetMass() : kMpi;
-
+ //  cout << "mass is " << mass << " MeV " << endl;
    const TMaterial &mat = GetMaterial(isoutgoing);
    Double_t dnsty = mat.GetDensity();		// density
    Double_t A     = mat.GetA();                 // atomic mass
    Double_t Z     = mat.GetZ();                 // atomic number
+  // cout << "The atomic number Z = " << Z << endl;
    //Double_t I    = Z * 1.e-8;			// mean excitation energy [GeV]
    //Double_t I    = (2.4 +Z) * 1.e-8;		// mean excitation energy [GeV]
    Double_t I    = (9.76 * Z + 58.8 * TMath::Power(Z, -0.19)) * 1.e-9;
@@ -108,12 +111,12 @@ Double_t TVMeasLayer::GetEnergyLoss(      Bool_t    isoutgoing,
    Double_t path = hel.IsInB()
                  ? TMath::Abs(hel.GetRho()*df)*cslinv
                  : TMath::Abs(df)*cslinv;
-
+   //cout << "GetEnergyLoss:  path crossed in material with Z = " << Z << "  is l = " << path << " cm" << endl;
    //fg: switched from using cm to mm in KalTest - material (density) and energy still in GeV and cm
-   path /= 10. ; 
+ // path /= 10. ; 
 
    Double_t edep = dedx * dnsty * path;
-
+  // cout << "Energy deposited Edep = " << edep << " GeV" << endl;
    if(!hel.IsInB()) return edep;
 
    Double_t cpaa = TMath::Sqrt(tnl21 / (mom2 + edep
@@ -149,11 +152,13 @@ void TVMeasLayer::CalcQms(      Bool_t       isoutgoing,
 
    static const Double_t kMpi = 0.13957018; // pion mass [GeV]
    TKalTrack *ktp  = static_cast<TKalTrack *>(TVKalSystem::GetCurInstancePtr());
-   Double_t   mass = ktp ? ktp->GetMass() : kMpi;
+   Double_t   mass = ktp ? ktp->GetMass() : kMpi;	
    Double_t   beta = mom / TMath::Sqrt(mom * mom + mass * mass);
 
    const TMaterial &mat = GetMaterial(isoutgoing);
-   Double_t x0inv = 1. / mat.GetRadLength();  // radiation length inverse
+	Double_t radlength = mat.GetRadLength();
+	Double_t Z		   = mat.GetZ();
+	Double_t x0inv = 1. / mat.GetRadLength();  // radiation length inverse
 
    // *Calculate sigma_ms0 =============================================
    static const Double_t kMS1  = 0.0136;
@@ -163,9 +168,10 @@ void TVMeasLayer::CalcQms(      Bool_t       isoutgoing,
    Double_t path = hel.IsInB()
                  ? TMath::Abs(hel.GetRho()*df)*cslinv
                  : TMath::Abs(df)*cslinv;
+  // cout << "CalcQMS: path crossed in material with Z = " << Z << "  is l = " << path << " cm" << endl;
 
    //fg: switched from using cm to mm in KalTest - material (density) and energy still in GeV and cm
-   path /= 10. ; 
+   //path /= 10. ; 
 
    Double_t xl   = path * x0inv;
    // ------------------------------------------------------------------
