@@ -35,11 +35,11 @@ class ALKalDetector : public TVKalDetector {
 public:
    // Ctor and Dtor
     //ALKalDetector() {};			//default constructor
-   ALKalDetector(Int_t m = 10); //m is the maximum number of measurement layers
+   ALKalDetector(Int_t m = 100); //m is the maximum number of measurement layers
    ~ALKalDetector();
 
    // Utility methods
-   static Double_t GetBfield (const TVector3 &xx = TVector3(0., 0., 0.))
+   static Double_t GetBfield (const TVector3 &xx)
                                { return  TBField::GetGlobalBfield(xx).Mag(); }
 
 
