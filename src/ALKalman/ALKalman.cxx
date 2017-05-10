@@ -500,7 +500,7 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
      {
       Float_t X=((re->get_hits().at(j))->get_xin()+(re->get_hits().at(j))->get_xout())/2;//Mean of xin and xout
       Float_t Z=((re->get_hits().at(j))->get_zin()+(re->get_hits().at(j))->get_zout())/2;
-      Float_t Y=((re->get_hits().at(j))->get_yin()+(re->get_hits().at(j))->get_youtn())/2;
+      Float_t Y=((re->get_hits().at(j))->get_yin()+(re->get_hits().at(j))->get_yout())/2;
       TVector3 xx;                      						
       xx.SetXYZ(X,Y,Z);	
       cout << "Hitxx " << j << " x = "<< xx.Y() << "   y= "<< xx.Z()<< "   z= "<< xx.X() << endl;
