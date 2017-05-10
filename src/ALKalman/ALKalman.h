@@ -29,8 +29,12 @@ public:
 	 void InitialBackwardFit(TObjArray &kalhits, THelicalTrack &Hel_1st,TKalMatrix &C_1st);
 	 void Reconstruct();
 	 void Plot();
+     void MakeRecoEvent(TBField *bfield, ALEvent *re);
+	//void Tree_Init();	
+
 	
 	ClassDef (ALKalman, 1)
+		
 };
 
 #endif
