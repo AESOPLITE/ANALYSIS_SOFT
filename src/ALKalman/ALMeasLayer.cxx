@@ -208,7 +208,7 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	meas[1] = y;
 	dmeas[0] = dx;
 	dmeas[1] = dy;
-	Double_t b = ALKalDetector::GetBfield();
+	Double_t b = ALKalDetector::GetBfield(xv);
 	ALHit *aHit = new ALHit(*this, meas, dmeas, xx, b, m);
 	aHit->SetRawXv(xv);
 	hits.Add(aHit);
@@ -235,7 +235,7 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	meas[1] = z;
 	dmeas[0] = dy;
 	dmeas[1] = dz;	
-	Double_t b = ALKalDetector::GetBfield();		//won't be used for non-uniform mag field 
+	Double_t b = ALKalDetector::GetBfield(xv);		//won't be used for non-uniform mag field 
 	ALHit *aHit = new ALHit(*this, meas, dmeas, xx, b,m);
 	aHit->SetRawXv(xv);
 	hits.Add(aHit);
@@ -269,7 +269,7 @@ void ALMeasLayer::ProcessRawHit(const TVector3 &xx, TObjArray &hits, Bool_t isbe
 	meas[1] = y;
 	dmeas[0] = dx;
 	dmeas[1] = dy;
-	Double_t b = ALKalDetector::GetBfield();
+	Double_t b = ALKalDetector::GetBfield(xv);
 	ALHit *RawHit = new ALHit(*this, meas, dmeas, xx, b, m);
     RawHit->SetRawXv(xv);
     hits.Add(RawHit);
@@ -282,7 +282,7 @@ void ALMeasLayer::ProcessRawHit(const TVector3 &xx, TObjArray &hits, Bool_t isbe
 	meas[1] = z;
 	dmeas[0] = dy;
 	dmeas[1] = dz;
-	Double_t b =ALKalDetector::GetBfield();
+	Double_t b =ALKalDetector::GetBfield(xv);
 	ALHit *RawHit = new ALHit(*this, meas, dmeas, xx, b, m);
     RawHit->SetRawXv(xv);
 	hits.Add(RawHit);
