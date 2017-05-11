@@ -44,7 +44,7 @@ void ALPatternRecognition::FindPattern()
      for(int j=0;j<nnhits;j++) {
       	Float_t X=((e->get_hits().at(j))->get_xin()+(e->get_hits().at(j))->get_xout())/2;   //Mean of xin and xout
         Float_t Z=((e->get_hits().at(j))->get_zin()+(e->get_hits().at(j))->get_zout())/2;
-        Float_t Y=((e->get_hits().at(j))->get_yin()+(e->get_hits().at(j))->get_youtn())/2;
+        Float_t Y=((e->get_hits().at(j))->get_yin()+(e->get_hits().at(j))->get_yout())/2;
         TVector3 *xx = new TVector3;                      					//measurement vector
         xx->SetXYZ(X,Y,Z);	
 		    hits->Add(xx);	
