@@ -100,9 +100,9 @@ Bool_t TVKalSite::Filter()
    fResVec = fM - h;
    TKalMatrix curResVect = TKalMatrix(TKalMatrix::kTransposed, fResVec);
    fDeltaChi2 = (curResVect * G * fResVec + Kpullt * preCinv * Kpull)(0,0);
-   fM.DebugPrint("measurement vector fM");
-   h.DebugPrint("expected measurement vector h");
-   cout << "deltachi = " << fDeltaChi2 << endl;
+   //fM.DebugPrint("measurement vector fM");
+ //  h.DebugPrint("expected measurement vector h");
+ //  cout << "deltachi = " << fDeltaChi2 << endl;
 
    if (IsAccepted()) return kTRUE;
    else              return kFALSE;
