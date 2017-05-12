@@ -21,6 +21,10 @@ ALEvent::ALEvent()// Default
  Ekreco=-999;   //kinetic energy of the particle
  X0reco=Y0reco=Z0reco=0;//Coordinates of the partcle at the injection point 
  CX0reco=CY0reco=CZ0reco=0; //Incidence cosines of the partcle at the injection point 
+ ndf=0;
+ chi2=cl=0;
+ d0=phi0=cpa=dz=tanl=0;
+ d0err2=phi0err2=cpaerr2=dzerr2=tanlerr2=0;
  //Triggers: default is false
  T1=false;
  T2=false;
@@ -39,7 +43,7 @@ void ALEvent::Copy(ALEvent* e)
    ncase =e->get_ncase();
    typeMC =e->get_typeMC();
    EkMC =e->get_EkMC();
-   X0MC =e->get_X0MC(); 
+   X0MC =e->get_X0MC();
    Y0MC =e->get_Y0MC();
    Z0MC =e->get_Z0MC();
    CX0MC =e->get_CX0MC();
@@ -48,12 +52,27 @@ void ALEvent::Copy(ALEvent* e)
    Nhits =e->get_Nhits();
    typereco =e->get_typereco();
    Ekreco =e->get_Ekreco();
+   p0 =e->get_p0reco();
    X0reco =e->get_X0reco();
    Y0reco =e->get_Y0reco();
    Z0reco =e->get_Z0reco();
    CX0reco =e->get_CX0reco();
    CY0reco =e->get_CY0reco();
    CZ0reco =e->get_CZ0reco();
+   ndf =e->get_ndf();
+   chi2 =e->get_chi2();
+   cl =e->get_cl();
+   d0 =e->get_d0();
+   phi0 =e->get_phi0();
+   cpa =e->get_cpa();
+   dz =e->get_dz();
+   tanl =e->get_tanl();
+   d0err2 =e->get_d0err2();
+   phi0err2 =e->get_phi0err2();
+   cpaerr2 =e->get_cpaerr2();
+   dzerr2 =e->get_dzerr2();
+   tanlerr2 =e->get_tanlerr2();
+
    T1 =e->get_T1();
    T2 =e->get_T2();
    T3 =e->get_T3();
@@ -80,4 +99,7 @@ void ALEvent::Copy(ALEvent* e)
 
  
 }
+
+
+
 
