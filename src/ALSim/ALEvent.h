@@ -175,6 +175,7 @@ class ALEvent:public TObject
    ////////////////////////////////
    int get_typereco(){return typereco;}
    double get_Ekreco(){return Ekreco;}
+   double get_p0reco(){return p0reco;}
    double get_X0reco(){return X0reco;}
    double get_Y0reco(){return Y0reco;}
    double get_Z0reco(){return Z0reco;}
