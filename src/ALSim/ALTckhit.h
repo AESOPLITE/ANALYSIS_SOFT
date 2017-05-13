@@ -124,6 +124,7 @@ class ALTckhit:public TObject
    void set_cyreco(float a){cyreco=a;}
    void set_czreco(float a){czreco=a;}
    void set_ereco(float a){ereco=a;}
+   void set_agereco(float a){agereco=a;}
    void set_k(int a){k=a;}
    ////////////////////////////////
    //"Getting" member methods
@@ -151,6 +152,7 @@ class ALTckhit:public TObject
    float get_cyreco( ){return cyreco;}
    float get_czreco( ){return czreco;}
    float get_ereco( ){return ereco;}
+   float get_agereco( ){return agereco;}
    int get_k( ){return k;}
   
    ////////////////////////////////
