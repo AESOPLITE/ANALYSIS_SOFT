@@ -124,6 +124,7 @@ class ALTckhit:public TObject
    void set_cyreco(float a){cyreco=a;}
    void set_czreco(float a){czreco=a;}
    void set_ereco(float a){ereco=a;}
+   void set_agereco(float a){agereco=a;}
    void set_k(int a){k=a;}
    ////////////////////////////////
    //"Getting" member methods
@@ -136,7 +137,7 @@ class ALTckhit:public TObject
    float get_yin( ){return yin;}
    float get_zin( ){return zin;}
    float get_xout( ){return xout;}
-   float get_youtn( ){return yout;}
+   float get_yout( ){return yout;}
    float get_zout( ){return zout;}
    float get_cx( ){return cx;}
    float get_cy( ){return cy;}
@@ -151,6 +152,7 @@ class ALTckhit:public TObject
    float get_cyreco( ){return cyreco;}
    float get_czreco( ){return czreco;}
    float get_ereco( ){return ereco;}
+   float get_agereco( ){return agereco;}
    int get_k( ){return k;}
   
    ////////////////////////////////
