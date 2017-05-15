@@ -19,7 +19,7 @@ ALEvent::ALEvent()// Default
  Nhits=0; //Number of hits in the event
  typereco=-999; //type of particle
  Ekreco=-999;   //kinetic energy of the particle
- p0reco=-999  //momentum of the particle
+ p0reco=-999;  //momentum of the particle
  X0reco=Y0reco=Z0reco=0;//Coordinates of the partcle at the injection point 
  CX0reco=CY0reco=CZ0reco=0; //Incidence cosines of the partcle at the injection point 
  ndf=0;
