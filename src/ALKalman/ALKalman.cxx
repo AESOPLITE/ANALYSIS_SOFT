@@ -611,8 +611,8 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
 		double zreco = x_fil.Z();
 		
 		//directional cosines, find tangent to filtered state of helix
-	   TVector3 pivot = hel_first.CalcXAt(0.0);
-       TMatrixD dxdphi = hel_first.CalcDxDphi(0.0);					// tangent vector at destination surface
+	   TVector3 pivot = hel_fil.CalcXAt(0.0);
+       TMatrixD dxdphi = hel_fil.CalcDxDphi(0.0);					// tangent vector at destination surface
        TVector3 vtan(dxdphi(0,0),dxdphi(1,0),dxdphi(2,0));				// convert matrix diagonal to vector
 	   double theta = vtan.Theta();
        double phi   = vtan.Phi();
