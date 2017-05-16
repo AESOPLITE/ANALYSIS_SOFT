@@ -484,8 +484,11 @@ void ALKalman::Plot()
 
 //Function to reconstruct one event at the time 
 
-void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
+int ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re,int*TckReg)
 {
+   cout <<endl;
+   cout << "Begin of MakeRecoEvent" <<endl;
+
    // ===================================================================
    //  Prepare a detector
    // ===================================================================
@@ -496,20 +499,58 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
    
    Bool_t bApply2Iter = true;									//if initialize with first fit
    int nnhits = (int)re->get_Nhits();
-   
+   cout << "Got the number of hits " <<  nnhits << endl;
+   //Index of the hits used to reconstruct the track
+   int uhitnid[7]={0,0,0,0,0,0,0};
+   //Become true once one hit has been found in the layer
+   bool testlayer[7]={false,false,false,false,false,false,false};
+   //The selection of the hits stops once the 7 are true
    for(int j=0;j<nnhits;j++) 
-     {
-      Float_t X=((re->get_hits().at(j))->get_xin()+(re->get_hits().at(j))->get_xout())/2;//Mean of xin and xout
-      Float_t Z=((re->get_hits().at(j))->get_zin()+(re->get_hits().at(j))->get_zout())/2;
-      Float_t Y=((re->get_hits().at(j))->get_yin()+(re->get_hits().at(j))->get_yout())/2;
-      TVector3 xx;                      						
-      xx.SetXYZ(X,Y,Z);	
-      //cout << "Hitxx " << j << " x = "<< xx.Y() << "   y= "<< xx.Z()<< "   z= "<< xx.X() << endl;
-      ALMeasLayer &ms = *static_cast<ALMeasLayer *>(cradle.At(j));
-      Bool_t bending = ms.IsBending();
-      ms.ProcessHit(xx, kalhits, bending);
+     {    
+      for(int ij=0;ij<7;ij++)//Check the layer
+        {
+	 if((re->get_hits().at(j))->get_mregMC()==TckReg[ij])//check the region of the layer
+	  {
+           cout << "region mreg index: " << re->get_hits().at(j)->get_mregMC() <<endl;
+	   if(testlayer[ij]==true){continue;}//Not the first of the layer: We don't use it
+	   else //First of the layer: We use it
+	    {
+	     Float_t X=((re->get_hits().at(j))->get_xin()+(re->get_hits().at(j))->get_xout())/2;//Mean of xin and xout
+             Float_t Z=((re->get_hits().at(j))->get_zin()+(re->get_hits().at(j))->get_zout())/2;
+             Float_t Y=((re->get_hits().at(j))->get_yin()+(re->get_hits().at(j))->get_yout())/2;            
+             cout << "Got the x,y,z coordinates" <<endl;
+	     TVector3 xx;                      						
+             xx.SetXYZ(X,Y,Z);	
+             cout << "Hitxx " << j << " x = "<< xx.Y() << "   y= "<< xx.Z()<< "   z= "<< xx.X() << endl;
+             ALMeasLayer &ms = *static_cast<ALMeasLayer *>(cradle.At(j));
+             cout << "after make one ALMeasLayer when one event is found" <<endl; 
+
+	     Bool_t bending = ms.IsBending();
+             cout << "after beding check when one event is found" <<endl; 
+
+             ms.ProcessHit(xx, kalhits, bending);
+             cout << "after Process hits when one event is found" <<endl; 
+    	     
+	     testlayer[ij]=true; //One hit of the layer was found :)
+             uhitnid[ij]=j;//We record the index of the hit so we will be able to record the reconstructed variables at the right place 
+	     cout << "End of else when one event is found" <<endl; 
+	    }//else
+	  }//if
+	}//i
+      //if we have found one hit in each layer then we stop looking for more
+      if(testlayer[0]&&testlayer[1]&&testlayer[2]&&testlayer[3]&&testlayer[4]&&testlayer[5]&&testlayer[6]) j=nnhits;
      }//end j
+   cout << "retrieved the hits" <<endl;
+
+   if(testlayer[0]&&testlayer[1]&&testlayer[2]&&testlayer[3]&&testlayer[4]&&testlayer[5]&&testlayer[6]==false) 
+      {
+       cout << "We did not find hits on all layer!!" <<endl;
+       return 0;
+      }
       
+   cout << "Indexes of the hits used in the reconstruction" << endl;
+   for(int i=0;i<7;i++) cout << uhitnid[i] << " ";//Check the layer
+   cout << endl;
    // ============================================================
    //  Do Kalman Filter in backward direction for the initial helix
    // ============================================================   
@@ -605,42 +646,46 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
    // -------------------------------------------------------------
    //  Add correspondance between ALTckhit structure and ALHit
    // -------------------------------------------------------------
-		//(filtered) reconstructed position
-		double xreco = x_fil.X();
-		double yreco = x_fil.Y();
-		double zreco = x_fil.Z();
+        cout << "Add correspondance between ALTckhit structure and ALHit hitindex="<<hit_index <<endl;
+	//(filtered) reconstructed position
+	//!!!!!!  CONVERT BACK TO FLUKA COORDINATES !!!!!!!
+	float xreco = x_fil.Z();
+	float yreco = x_fil.X();
+	float zreco = x_fil.Y();
 		
 		//directional cosines, find tangent to filtered state of helix
-	   TVector3 pivot = hel_fil.CalcXAt(0.0);
-       TMatrixD dxdphi = hel_fil.CalcDxDphi(0.0);					// tangent vector at destination surface
-       TVector3 vtan(dxdphi(0,0),dxdphi(1,0),dxdphi(2,0));				// convert matrix diagonal to vector
-	   double theta = vtan.Theta();
-       double phi   = vtan.Phi();
-       double cxreco = sin(theta) * cos(phi);
-       double cyreco = sin(theta) * sin(phi);
-       double czreco = cos(theta);   
+        TVector3 pivot = hel_fil.CalcXAt(0.0);
+        TMatrixD dxdphi = hel_fil.CalcDxDphi(0.0);					// tangent vector at destination surface
+        TVector3 vtan(dxdphi(0,0),dxdphi(1,0),dxdphi(2,0));				// convert matrix diagonal to vector
+	float theta = vtan.Theta();
+        float phi   = vtan.Phi();
+        //!!!!!!  CONVERT BACK TO FLUKA COORDINATES !!!!!!!
+        float cxreco = sin(theta) * sin(phi);
+        float cyreco = cos(theta);   
+        float czreco = sin(theta) * cos(phi);
 		   
-	   //kinetic energy of particle   
-	   double ereco = sqrt(mom*mom + (RestMass)*(RestMass))  - RestMass;   
-	   //fill variables !!!!!!  CONVERT BACK TO FLUKA COORDINATES !!!!!!!
-	   re->get_hits().at(hit_index)->set_xreco(zreco);
-	   re->get_hits().at(hit_index)->set_yreco(xreco);
-	   re->get_hits().at(hit_index)->set_zreco(yreco);
-	   re->get_hits().at(hit_index)->set_cxreco(czreco);
-	   re->get_hits().at(hit_index)->set_cyreco(cxreco);
-	   re->get_hits().at(hit_index)->set_czreco(cyreco);	
-	   re->get_hits().at(hit_index)->set_ereco(ereco);	   
-	   re->get_hits().at(hit_index)->set_k(hit_index);
-
+	//kinetic energy of particle   
+	float ereco = sqrt(mom*mom + (RestMass)*(RestMass))  - RestMass;   
+	//fill variables 
+	/*if(re->get_hits().at(uhitnid[hit_index])->get_k()==uhitnid[hit_index])//check that we will fill the reconstruted variables in the right hit structure
+	 {
+	  re->get_hits().at(uhitnid[hit_index])->set_xreco(xreco);
+	  re->get_hits().at(uhitnid[hit_index])->set_yreco(yreco);
+	  re->get_hits().at(uhitnid[hit_index])->set_zreco(zreco);
+  	  re->get_hits().at(uhitnid[hit_index])->set_cxreco(cxreco);
+	  re->get_hits().at(uhitnid[hit_index])->set_cyreco(cyreco);
+	  re->get_hits().at(uhitnid[hit_index])->set_czreco(czreco);	
+	  re->get_hits().at(uhitnid[hit_index])->set_ereco(ereco);	   
+         }*/
        }//end else  
-		hit_index--;
+       hit_index--;
       } //end while
 	
 	  
    // =======================================================================
    //  Find tangent to helix at first site and extrapolate injection point
    // =======================================================================   
-
+   cout << "Find tangent to helix at first site and extrapolate injection point" <<endl;
    TVKalState *state_first =(TVKalState*) &(kaltrack.GetCurSite().GetCurState());
    THelicalTrack hel_first = (dynamic_cast<TKalTrackState *>(state_first))->GetHelix();
    TVector3 pivot = hel_first.CalcXAt(0.0);
@@ -651,11 +696,12 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
    //Parametric equation of tangent line
    Double_t yinjection = 35; 
    Double_t t = (yinjection - pivot.Y())/(vtan.Y());
-   double X0reco = pivot.X() + vtan.X() * t;
-   double Y0reco = pivot.Y() + vtan.Y() * t;
-   double Z0reco = pivot.Z() + vtan.Z() * t;
-   
-    //Get directional cosines of tangent line
+   //!!!!!!  CONVERT BACK TO FLUKA COORDINATES !!!!!!!
+   double X0reco = pivot.Z() + vtan.Z() * t;
+   double Y0reco = pivot.X() + vtan.X() * t;
+   double Z0reco = pivot.Y() + vtan.Y() * t;
+  
+   //Get directional cosines of tangent line
    Double_t theta = vtan.Theta();
    Double_t phi   = vtan.Phi();
    Double_t CX0reco = sin(theta) * cos(phi);
@@ -666,6 +712,7 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
    // ============================================================
    //  Fill reconstructed variables
    // ============================================================
+   cout << "Fill reconstructed variables" <<endl;
   
    re->set_X0reco(X0reco); 
    re->set_Y0reco(Y0reco); 
@@ -696,47 +743,7 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
    
    //cout << "Reconstructed injection point	X0= " << X0reco << "  Y0=" << yinjection << "  Z0=" << Z0reco << endl;
    //cout << "p = " << p0 << " MeV" << endl; 
+   cout << "End of MakeRecoEventMC" <<endl;
 
+   return 0;
  }
- 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	

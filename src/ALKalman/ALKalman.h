@@ -29,7 +29,7 @@ public:
 	 void InitialBackwardFit(TObjArray &kalhits, THelicalTrack &Hel_1st,TKalMatrix &C_1st);
 	 void Reconstruct();
 	 void Plot();
-     void MakeRecoEvent(TBField *bfield, ALEvent *re);
+     int MakeRecoEvent(TBField *bfield, ALEvent *re,int *TckReg);
 	//void Tree_Init();	
 
 	
