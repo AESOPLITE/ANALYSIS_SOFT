@@ -564,9 +564,9 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
    kaltrack.SetOwner();   // kaltrack owns sites
    kaltrack.Add(&sited);  // add the dummy site to the track
    
-   TIter next(&kalhits, kDir);
+      TIter next(&kalhits, kDir);
    ALHit *hitp =  0;
-
+   int hit_index = 6;										//start from last to first hit, in direction of filter 
    while ((hitp = dynamic_cast<ALHit *>(next()))) 
      {
       //cout << "-----------------------Next Hit--------------------------- " << endl;
@@ -577,6 +577,7 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
       TVector3 TVbfield = TBField::GetGlobalBfield(xv);
       //cout << "x = "  << xv.X() << " y ="  << xv.Y() << " z ="  << xv.Z();
       //cout << ", B = (" << TVbfield.X() << "," << TVbfield.Y() << "," << TVbfield.Z() << ")"  << endl;
+	  		 	 
       if (!kaltrack.AddAndFilter(site))
        { // add and filter this site
         site.DebugPrint();
@@ -599,7 +600,40 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
         //cout << "\t x_exp=("<< x_exp.X()<<",  "<<x_exp.Y()<<", "<<x_exp.Z()<<"): \n";
         //cout << "\t x_fil=("<< x_fil.X()<<",  "<<x_fil.Y()<<", "<<x_fil.Z()<<"): \n";
         //cout << "\t momentum = " << mom * 1000 << " MeV \n";
-       }//end else   
+
+		      
+   // -------------------------------------------------------------
+   //  Add correspondance between ALTckhit structure and ALHit
+   // -------------------------------------------------------------
+		//(filtered) reconstructed position
+		double xreco = x_fil.X();
+		double yreco = x_fil.Y();
+		double zreco = x_fil.Z();
+		
+		//directional cosines, find tangent to filtered state of helix
+	   TVector3 pivot = hel_first.CalcXAt(0.0);
+       TMatrixD dxdphi = hel_first.CalcDxDphi(0.0);					// tangent vector at destination surface
+       TVector3 vtan(dxdphi(0,0),dxdphi(1,0),dxdphi(2,0));				// convert matrix diagonal to vector
+	   double theta = vtan.Theta();
+       double phi   = vtan.Phi();
+       double cxreco = sin(theta) * cos(phi);
+       double cyreco = sin(theta) * sin(phi);
+       double czreco = cos(theta);   
+		   
+	   //kinetic energy of particle   
+	   double ereco = sqrt(mom*mom + (RestMass)*(RestMass))  - RestMass;   
+	   //fill variables !!!!!!  CONVERT BACK TO FLUKA COORDINATES !!!!!!!
+	   re->get_hits().at(hit_index)->set_xreco(zreco);
+	   re->get_hits().at(hit_index)->set_yreco(xreco);
+	   re->get_hits().at(hit_index)->set_zreco(yreco);
+	   re->get_hits().at(hit_index)->set_cxreco(czreco);
+	   re->get_hits().at(hit_index)->set_cyreco(cxreco);
+	   re->get_hits().at(hit_index)->set_czreco(cyreco);	
+	   re->get_hits().at(hit_index)->set_ereco(ereco);	   
+	   re->get_hits().at(hit_index)->set_k(hit_index);
+
+       }//end else  
+		hit_index--;
       } //end while
 	
 	  
