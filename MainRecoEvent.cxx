@@ -18,12 +18,12 @@ int main()
  for(int i=0;i<7;i++)TckReg[i]=0;
  for(int i=0;i<4;i++)TrigReg[i]=0;
  for(int i=0;i<1;i++)GReg[i]=0;
- string MCparamfile="/home/sarah/AESOPLITE/ANALYSIS_SOFT/src/ALSim/MCparameters.dat"; 
+ string MCparamfile="/src/ALSim/MCparameters.dat"; 
  
  LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg); 
   
  //Set Magnetic field map
- TFile*file_map=new TFile("/home/sarah/AESOPLITE/ANALYSIS_SOFT/prod/fieldmap.root","READ");
+ TFile*file_map=new TFile("/prod/fieldmap.root","READ");
  TBField *bfield = new TBField();
  bool FlagMagF=false;
  FlagMagF=bfield->SetMagField();
