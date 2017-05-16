@@ -621,6 +621,12 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
    double Y0reco = pivot.Y() + vtan.Y() * t;
    double Z0reco = pivot.Z() + vtan.Z() * t;
    
+    //Get directional cosines of tangent line
+   Double_t theta = vtan.Theta();
+   Double_t phi   = vtan.Phi();
+   Double_t CX0reco = sin(theta) * cos(phi);
+   Double_t CY0reco = sin(theta) * sin(phi);
+   Double_t CZ0reco = cos(theta);
    kaltrack.SmoothBackTo(1);                          // smooth back to first site
  
    // ============================================================
@@ -630,7 +636,9 @@ void ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re)
    re->set_X0reco(X0reco); 
    re->set_Y0reco(Y0reco); 
    re->set_Z0reco(Z0reco); 
-   
+   re->set_CX0reco(CX0reco);
+   re->set_CY0reco(CY0reco);
+   re->set_CZ0reco(CZ0reco);
    int    ndf  = kaltrack.GetNDF();
    re->set_ndf(ndf);
    double chi2 = kaltrack.GetChi2();
