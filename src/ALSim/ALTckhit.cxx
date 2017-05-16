@@ -29,13 +29,13 @@ ALTckhit::ALTckhit()// Default
    DeltaE=0;     //Energy along the track or at hit location Hit=0  
 
   //Reconstructed information
-   xreco=0;      //x coordinate of hit 
-   yreco=0;      //y coordinate of hit 
-   zreco=0;      //z coordinate of hit 
-   agereco=0;    //Age of particle  
-   cxreco=0;     //cosineX of momentum 
-   cyreco=0;     //cosineY of momentum 
-   czreco=0;     //cosineZ of momentum    
-   ereco=0;     //kinetic energy 
-   k=0;     //kth hit in event
+   xreco=-999;      //x coordinate of hit 
+   yreco=-999;      //y coordinate of hit 
+   zreco=-999;      //z coordinate of hit 
+   agereco=-99;    //Age of particle  
+   cxreco=-999;     //cosineX of momentum 
+   cyreco=-999;     //cosineY of momentum 
+   czreco=-999;     //cosineZ of momentum    
+   ereco=-999;     //kinetic energy 
+   k=-999;     //kth hit in event
 }
