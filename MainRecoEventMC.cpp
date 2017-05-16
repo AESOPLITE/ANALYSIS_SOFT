@@ -50,13 +50,13 @@ int main()
  string Outpath="/home/psmangeard/MCproduction/AESOPLITE/rootfiles/UniB/V1";
   
  //string Reco Index: allows to distinct between types of reconstruction
- string RecoInd="Test1";
+ string RecoInd="Test2";
  
- for(int i=0;i<Nene;i++)//Energies
-// for(int i=0;i<1;i++)//Energies
+// for(int i=0;i<Nene;i++)//Energies
+ for(int i=5;i<6;i++)//Energies
    {
-    for(int j=0;j<Ncycles[i];j++)//Number of cycles
-//    for(int j=0;j<1;j++)//Number of cycles
+//    for(int j=0;j<Ncycles[i];j++)//Number of cycles
+    for(int j=0;j<1;j++)//Number of cycles
       {
        cout << Form("%s/%d/RawEvent_%s_%d_%dMeV%03d%s.root",Inppath.c_str(),type,startfile.c_str(),type,Ene[i],j+1,endfile.c_str()) <<endl;
 
@@ -100,11 +100,11 @@ int main()
    
           //This is where selection is made on the event that can be reconstructed 
           
-          //only reconstruct events with 7 hits, one hit per layer inner trigger==127
-          if (nnhits == 7 && re->get_Ti()==127)
+          //only select for reconstruction event with at least one hit per layer inner trigger==127
+          if (re->get_Ti()==127)
            {
             ALKalman* TestKalman= new ALKalman();
-            TestKalman->MakeRecoEvent(bfield,re);
+            TestKalman->MakeRecoEvent(bfield,re,TckReg);
            }
          
           /////////////////////    
