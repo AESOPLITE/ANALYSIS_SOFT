@@ -238,7 +238,7 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	Double_t b = ALKalDetector::GetBfield(xv);		//won't be used for non-uniform mag field 
 	ALHit *aHit = new ALHit(*this, meas, dmeas, xx, b,m);
 	aHit->SetRawXv(xv);
-	hits.AddAt(aHit. index);
+	hits.AddAt(aHit, index);
 	}
 }
 
