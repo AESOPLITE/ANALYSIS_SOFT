@@ -532,7 +532,7 @@ int ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re,int*TckReg)
 	     cout << "Normal vector to layer Xc(" << Xc.X() << ", " << Xc.Y() << ", " << Xc.Z() << ")" << endl;
              cout << "after beding check when one event is found" <<endl; 
 
-             ms.ProcessHit(xx, kalhits, bending);
+             ms.ProcessHit(xx, kalhits, bending, ij);
              cout << "after Process hits when one event is found" <<endl; 
     	     
 	     testlayer[ij]=true; //One hit of the layer was found :)
