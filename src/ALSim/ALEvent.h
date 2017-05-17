@@ -139,6 +139,16 @@ class ALEvent:public TObject
    void set_tanlerr2(double a){tanlerr2=a;}
    
    void add_hit(ALTckhit* h){hits.push_back(h);Nhits++;}
+   //Set reconstruted variable at the position of the hit of index k
+   void set_hxreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_xreco(a);}
+   void set_hyreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_yreco(a);}
+   void set_hzreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_zreco(a);}
+   void set_hagereco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_agereco(a);}
+   void set_hcxreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_cxreco(a);}
+   void set_hcyreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_cyreco(a);}
+   void set_hczreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_czreco(a);}
+   void set_hereco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_ereco(a);}
+   
    void set_T1(bool a){T1=a;}
    void set_T2(bool a){T2=a;}
    void set_T3(bool a){T3=a;}
@@ -154,6 +164,14 @@ class ALEvent:public TObject
    void add_timeT4(double a){timeT4.push_back(a);}
    void add_timeg(double a){timeg.push_back(a);}   
    void set_Ti(int a){Ti=a;}
+   
+   
+   
+   
+   
+   
+   
+   
    
    ////////////////////////////////
    //"Getting" member methods
