@@ -146,7 +146,7 @@ void ALKalman::Reconstruct()
            ALMeasLayer &ms = *static_cast<ALMeasLayer *>(cradle.At((j*2)));					//point to kActive layer
            Bool_t bending = ms.IsBending();
            Bool_t active = ms.IsActive();
-           ms.ProcessHit(xx, kalhits, bending);
+           ms.ProcessHit(xx, kalhits, bending, j);
           }//j
        }//if
       
