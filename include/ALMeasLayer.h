@@ -57,7 +57,7 @@ class ALMeasLayer : public TVMeasLayer, public TPlane {
 	virtual TVector3 HitToXv (const TVTrackHit &ht) const;
 	virtual TVector3 RawHitToXv (const TVTrackHit &ht) const;
 	virtual void CalcDhDa (const TVTrackHit &ht, const TVector3 &xv, const TKalMatrix &dxphiada, TKalMatrix &H) const;
-	virtual void ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbending);
+	virtual void ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbending, Int_t index);
 	virtual void ProcessRawHit(const TVector3 &xx, TObjArray &hits, Bool_t isbending);
 
 
