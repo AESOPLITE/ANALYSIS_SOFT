@@ -1,3 +1,4 @@
+
 //*************************************************************************
 //* ===================
 //*  ALKalTest
@@ -522,10 +523,13 @@ int ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re,int*TckReg)
 	     TVector3 xx;                      						
              xx.SetXYZ(X,Y,Z);	
              cout << "Hitxx " << j << " x = "<< xx.Y() << "   y= "<< xx.Z()<< "   z= "<< xx.X() << endl;
-             ALMeasLayer &ms = *static_cast<ALMeasLayer *>(cradle.At(j));
+             ALMeasLayer &ms = *static_cast<ALMeasLayer *>(cradle.At(ij*2));
              cout << "after make one ALMeasLayer when one event is found" <<endl; 
-
+	     Bool_t isactive = ms.IsActive();
 	     Bool_t bending = ms.IsBending();
+	     TVector3 Xc = ms.GetXc();
+	     cout << "Index ij = " << ij << "  Index j = " << j << "   Active layer?  " << isactive << ",    bending layer?  " << bending << endl; 
+	     cout << "Normal vector to layer Xc(" << Xc.X() << ", " << Xc.Y() << ", " << Xc.Z() << ")" << endl;
              cout << "after beding check when one event is found" <<endl; 
 
              ms.ProcessHit(xx, kalhits, bending);
@@ -747,3 +751,4 @@ int ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re,int*TckReg)
 
    return 0;
  }
+	
