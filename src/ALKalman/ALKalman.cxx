@@ -1,4 +1,3 @@
-
 //*************************************************************************
 //* ===================
 //*  ALKalTest
@@ -37,6 +36,7 @@ static const double CovMElement=5.0e-2;			//initial covariant matrix elements
 //static const Bool_t kDir = kIterForward;				//first hit to last (does not work as well...)
 
 //Class constructor
+
 
 
 
@@ -314,6 +314,7 @@ void ALKalman::Reconstruct()
   filein->Close();
   Plot();
 }
+
 
 	
 void ALKalman::InitialBackwardFit(TObjArray &kalhits, THelicalTrack &Hel_1st,TKalMatrix &C_1st) 
@@ -671,16 +672,14 @@ int ALKalman::MakeRecoEvent(TBField *bfield, ALEvent *re,int*TckReg)
 	//kinetic energy of particle   
 	float ereco = sqrt(mom*mom + (RestMass)*(RestMass))  - RestMass;   
 	//fill variables 
-	/*if(re->get_hits().at(uhitnid[hit_index])->get_k()==uhitnid[hit_index])//check that we will fill the reconstruted variables in the right hit structure
-	 {
-	  re->get_hits().at(uhitnid[hit_index])->set_xreco(xreco);
-	  re->get_hits().at(uhitnid[hit_index])->set_yreco(yreco);
-	  re->get_hits().at(uhitnid[hit_index])->set_zreco(zreco);
-  	  re->get_hits().at(uhitnid[hit_index])->set_cxreco(cxreco);
-	  re->get_hits().at(uhitnid[hit_index])->set_cyreco(cyreco);
-	  re->get_hits().at(uhitnid[hit_index])->set_czreco(czreco);	
-	  re->get_hits().at(uhitnid[hit_index])->set_ereco(ereco);	   
-         }*/
+
+	re->set_hxreco(uhitnid[hit_index],xreco);
+	re->set_hyreco(uhitnid[hit_index],yreco);
+	re->set_hzreco(uhitnid[hit_index],zreco);
+	re->set_hcxreco(uhitnid[hit_index],cxreco);
+	re->set_hcyreco(uhitnid[hit_index],cyreco);
+	re->set_hczreco(uhitnid[hit_index],czreco);
+	re->set_hereco(uhitnid[hit_index],ereco);	  	   
        }//end else  
        hit_index--;
       } //end while
