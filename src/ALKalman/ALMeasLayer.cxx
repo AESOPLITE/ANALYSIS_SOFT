@@ -181,7 +181,7 @@ void ALMeasLayer::CalcDhDa(const TVTrackHit &vht, const TVector3 &xxv,
 
 
 
-void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbending)
+void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbending, Int_t index)
 {
 	//we proceed to a change of coordinate here to fit the helix parametric equation. The magnetic field points now in the +z direction.
 	//bending plane is the XY plane
@@ -211,7 +211,7 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	Double_t b = ALKalDetector::GetBfield(xv);
 	ALHit *aHit = new ALHit(*this, meas, dmeas, xx, b, m);
 	aHit->SetRawXv(xv);
-	hits.Add(aHit);
+	hits.AddAt(aHit, index);
 
 	}
 	//non-bending plane is YZ plane
@@ -238,7 +238,7 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	Double_t b = ALKalDetector::GetBfield(xv);		//won't be used for non-uniform mag field 
 	ALHit *aHit = new ALHit(*this, meas, dmeas, xx, b,m);
 	aHit->SetRawXv(xv);
-	hits.Add(aHit);
+	hits.AddAt(aHit. index);
 	}
 }
 
