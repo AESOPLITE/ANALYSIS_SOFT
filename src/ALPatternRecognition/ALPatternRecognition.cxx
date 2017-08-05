@@ -15,7 +15,7 @@
 
  using namespace std;
 
-void ALPatternRecognition::FindPattern(ALEvent *re, int* TckReg) {
+void ALPatternRecognition::FindPattern(ALEvent *re) {
 	
 
    int nnhits = re->get_Nhits(); 
