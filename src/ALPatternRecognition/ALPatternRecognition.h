@@ -69,7 +69,7 @@ public:
 	ALPatternRecognition() {};
 	virtual ~ALPatternRecognition() {};
 	
-	 void FindPattern();
+	 void FindPattern(ALEvent *re);
 	ClassDef(ALPatternRecognition, 1)
 };
 
