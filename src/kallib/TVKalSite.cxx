@@ -58,12 +58,12 @@ Bool_t TVKalSite::Filter()
 {
    // prea and preC should be preset by TVKalState::Propagate()
    TVKalState &prea = GetState(TVKalSite::kPredicted);
-   TKalMatrix h = fM;
+   TKalMatrix h = fM; 
    if (!CalcExpectedMeasVec(prea,h)) return kFALSE;
    TKalMatrix pull  = fM - h;
    TKalMatrix preC  = GetState(TVKalSite::kPredicted).GetCovMat();
-
-   // Calculate fH and fHt
+	   // Calculate fH and fHt
+	//cout << " where are we right now? " << endl;
 
    if (!CalcMeasVecDerivative(prea,fH)) return kFALSE;
    fHt = TKalMatrix(TKalMatrix::kTransposed, fH);
@@ -77,6 +77,8 @@ Bool_t TVKalSite::Filter()
 
    TKalMatrix preCinv = TKalMatrix(TKalMatrix::kInverted, preC);
    TKalMatrix G       = TKalMatrix(TKalMatrix::kInverted, fV);
+ //  fV.DebugPrint("error matrix");
+   //G.DebugPrint("inverted error matrix");
 
    // Calculate filtered state vector
 
@@ -100,12 +102,19 @@ Bool_t TVKalSite::Filter()
    fResVec = fM - h;
    TKalMatrix curResVect = TKalMatrix(TKalMatrix::kTransposed, fResVec);
    fDeltaChi2 = (curResVect * G * fResVec + Kpullt * preCinv * Kpull)(0,0);
-   //fM.DebugPrint("measurement vector fM");
- //  h.DebugPrint("expected measurement vector h");
- //  cout << "deltachi = " << fDeltaChi2 << endl;
+ //  fM.DebugPrint("measurement vector fM");
+   //h.DebugPrint("expected measurement vector h");
+   //fResVec.DebugPrint("residual vector");
+   //cout << "deltachi = " << fDeltaChi2 << endl;
 
-   if (IsAccepted()) return kTRUE;
-   else              return kFALSE;
+   if (fDeltaChi2 <25.0) {
+	  // cout << "deltachi2 = " << fDeltaChi2 << ", site accepted " << endl;
+	   return kTRUE;
+   }
+   else  {
+	  // cout << "DeltaChi2 increment too big !! " << endl;
+	   return kFALSE;
+   }
 }
 
 //---------------------------------------------------------------

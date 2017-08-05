@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include "TVKalSystem.h"
 #include "TVKalState.h"
+using namespace std;
 
 //_____________________________________________________________________
 //  ------------------------------
@@ -68,6 +69,7 @@ Bool_t TVKalSystem::AddAndFilter(TVKalSite &next)
 
       Add(&next);
       fChi2 += next.GetDeltaChi2();
+      cout << "fCHi2 = " <<fChi2 << endl;
       return kTRUE;
    } else {
       return kFALSE; 

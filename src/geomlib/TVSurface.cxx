@@ -55,7 +55,7 @@ Int_t TVSurface::CalcXingPointWith(const TVTrack  &hel,
    static const Double_t    lambdadecr = 0.1;
    
    xx = hel.CalcXAt(phi);
-
+  //  cout << "Initial xx at surface x = " << xx.X() << "  y = " << xx.Y() << "  z = " << xx.Z() << endl;
    Double_t  lastphi =  phi;
    Double_t  lasts   =  1.e10;
    Double_t  lambda  =  initlambda;
@@ -112,7 +112,7 @@ Int_t TVSurface::CalcXingPointWith(const TVTrack  &hel,
        return 0;
      }
    }
-	//cout << "TVSurface vector xx x = " << xx.X() << "  y = " << xx.Y() << " z = " << xx.Z() << endl;
+  // cout << "TVSurface vector xx x = " << xx.X() << "  y = " << xx.Y() << " z = " << xx.Z() << endl;
    
    return (IsOnSurface(xx) ? 1 : 0);
 }

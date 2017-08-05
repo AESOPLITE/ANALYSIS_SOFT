@@ -16,7 +16,7 @@
 #include "TKalFilterCond.h"
 #include "TKalTrackSite.h"
 #include <iostream>
-
+using namespace std;
 //_____________________________________________________________________
 //  ------------------------------
 //   Filter condition class
@@ -26,9 +26,8 @@ ClassImp(TKalFilterCond)
 
 Bool_t TKalFilterCond::IsAccepted(const TKalTrackSite &site)
 {
-#if 0
+
    // return kTRUE if this site is acceptable
-   using namespace std;
    Double_t delchi2 = site.GetDeltaChi2();
    if (delchi2 > 25.) {
       cerr << ">>>> TKalFilterCond::IsAccepted >>>>>>>>>>>>> " << endl
@@ -36,7 +35,9 @@ Bool_t TKalFilterCond::IsAccepted(const TKalTrackSite &site)
       site.DebugPrint();
       return kFALSE;
    }
-#else
+	else {
+   cout << "deltachi2 < 25 " << endl;
    return kTRUE;
-#endif
+	}
+
 }

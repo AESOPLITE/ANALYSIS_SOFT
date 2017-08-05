@@ -121,10 +121,9 @@ Int_t TKalTrackSite::CalcExpectedMeasVec(const TVKalState &a, TKalMatrix &h)
    Double_t phi = 0.;
    TVector3 xxv;
    if (!CalcXexp(a,xxv,phi)) return 0;	// no hit
-
-   if (a.GetNrows() == 6) h = GetHit().XvToMv(xxv,a(5,0));
-   else                   h = GetHit().XvToMv(xxv,0.);
-
+	Bool_t isbending;
+	   h = GetHit().XvToMv(xxv,isbending);
+ 
    return 1;
 }
 
@@ -145,7 +144,6 @@ Int_t TKalTrackSite::CalcMeasVecDerivative(const TVKalState &a,
 
    const TVSurface &ms = dynamic_cast<const TVSurface &>(GetHit().GetMeasLayer());
    TKalMatrix    dsdx(ms.CalcDSDx(xxv));   // (@S(x)/@x)
-
    std::auto_ptr<TVTrack> hel(&static_cast<const TKalTrackState &>(a).CreateTrack());
 
    TKalMatrix    dxda   = hel->CalcDxDa(phi);  	     // (@x(phi,a)/@a)
@@ -157,7 +155,6 @@ Int_t TKalTrackSite::CalcMeasVecDerivative(const TVKalState &a,
    dphida *= 1/denom;
 
    TKalMatrix dxphiada = dxdphi * dphida + dxda; // (@x(phi(a),a)/@a)
-
    GetHit().GetMeasLayer().CalcDhDa(GetHit(), xxv, dxphiada, H); // H = (@h/@a)
 
    return 1;
