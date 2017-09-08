@@ -81,6 +81,13 @@ class ALTckhit:public TObject
   int flag;     //flag value: Track=1, Hit=0
   float DeltaE;     //Energy along the track or at hit location Hit=0  
   
+   // Time data from the corressponding "ASI" LINE  
+  int year;//Year from first ASI line of the event
+  int m;//Month from first ASI line of the event
+  int d;//Day from first ASI line of the event
+  int h;//Hour from first ASI line of the event
+  int mi;//Minute from first ASI line of the event
+  int s;//Second from first ASI line of the event
   
   //Raw Data from cluster information
   int L;         //Layer from 0 to 6 top to bottom
@@ -147,7 +154,12 @@ class ALTckhit:public TObject
    void set_agereco(float a){agereco=a;}
    void set_k(int a){k=a;}
    ////////////////////////////////
-   void set_L(int a){L=a;}         
+   void set_year(int a){y=a;}
+   void set_m(int a){m=a;}
+   void set_d(int a){d=a;}
+   void set_h(int a){h=a;}
+   void set_mi(int a){mi=a;}
+   void set_s(int a){s=a;}       
    void set_chip(int a){chip=a;}      
    void set_nstrips(int a){nstrips=a;}   
    void set_fstrip(int a){fstrip=a;}    
@@ -182,6 +194,12 @@ class ALTckhit:public TObject
    float get_DeltaE( ){return DeltaE;}
      
    ////////////////////////////////
+   int get_year(){return year;}
+   int get_m(){return m;}
+   int get_d(){return d;}
+   int get_h(){return h;}
+   int get_mi(){return mi;}
+   int get_s(){return s;}       
    int get_L(){return L;}         
    int get_chip(){return chip;}      
    int get_nstrips(){return nstrips;}   

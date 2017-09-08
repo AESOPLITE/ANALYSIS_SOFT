@@ -44,6 +44,28 @@ class ALEvent:public TObject
  private:
   
    int eventnumber; //Event number
+   
+   //Data FROM "PHA" LINE
+   int yPHA;//Year from PHA line linked to the event
+   int mPHA;//Month from PHA line linked to the event
+   int dPHA;//Day from PHA line linked to the event
+   int hPHA;//Hour from PHA line linked to the event
+   int miPHA;//Minute from PHA line linked to the event
+   int sPHA;//Second from PHA line linked to the event
+
+   //Data FROM "EVT" LINE
+   int yEVT;//Year from EVT line linked to the event
+   int mEVT;//Month from EVT line linked to the event
+   int dEVT;//Day from EVT line linked to the event
+   int hEVT;//Hour from EVT line linked to the event
+   int miEVT;//Minute from EVT line linked to the event
+   int sEVT;//Second from EVT line linked to the event  
+   string EVT;//Data from EVT line linked to the event  
+ 
+   //Data FROM "EVT" LINE
+   string L[7];//Data from  ASI lines of the event
+   
+   
    //Monte Carlo information: Truth variable names finish with MC 
    int ncase; 
    int typeMC; //type of particle
@@ -81,11 +103,13 @@ class ALEvent:public TObject
    bool T3;
    bool T4;
    bool guard;
+   //Energy for MC, PHA pulse height for datas
    std::vector<double> EneT1;  
    std::vector<double> EneT2;  
    std::vector<double> EneT3;
    std::vector<double> EneT4;
    std::vector<double> Eneg;   
+   //Timing for MC, Not available for data
    std::vector<double> timeT1;  
    std::vector<double> timeT2;  
    std::vector<double> timeT3;
@@ -110,6 +134,23 @@ class ALEvent:public TObject
    //"setting" member methods
    ////////////////////////////////
    void set_eventnumber(int a){eventnumber=a;}
+   
+   void set_yPHA(int a){yPHA=a;}
+   void set_mPHA(int a){mPHA=a;}
+   void set_dPHA(int a){dPHA=a;}
+   void set_hPHA(int a){hPHA=a;}
+   void set_miPHA(int a){miPHA=a;}
+   void set_sPHA(int a){sPHA=a;}
+   void set_yEVT(int a){yEVT=a;}
+   void set_mEVT(int a){mEVT=a;}
+   void set_dEVT(int a){dEVT=a;}
+   void set_hEVT(int a){hEVT=a;}
+   void set_miEVT(int a){miEVT=a;}
+   void set_sEVT(int a){sEVT=a;}
+   void set_EVT(string a){EVT=a;}
+   void set_L(int k, string a){if(k<7)L[k]=a;}
+   
+   ////////////////////////////////  
    void set_ncase(int a){ncase=a;}
    void set_typeMC(int a){typeMC=a;}
    void set_EkMC(double a){EkMC=a;}
@@ -135,7 +176,6 @@ class ALEvent:public TObject
    void set_chi2NB(double a){chi2NB=a;}
    void set_clB(double a){clB=a;}
    void set_clNB(double a){clNB=a;}
-   
    
    ////////////////////////////////
    void set_typereco(int a){typereco=a;}
@@ -199,6 +239,24 @@ class ALEvent:public TObject
    //"Getting" member methods
    ////////////////////////////////
    int get_eventnumber(){return eventnumber;}
+
+   int get_yPHA(){return yPHA;}
+   int get_mPHA(){return mPHA;}
+   int get_dPHA(){return dPHA;}
+   int get_hPHA(){return hPHA;}
+   int get_miPHA(){return miPHA;}
+   int get_sPHA(){return sPHA;}
+   int get_yEVT(){return yEVT;}
+   int get_mEVT(){return mEVT;}
+   int get_dEVT(){return dEVT;}
+   int get_hEVT(){return hEVT;}
+   int get_miEVT(){return miEVT;}
+   int get_sEVT(){return sEVT;}
+   string get_EVT(){return EVT;}
+   string get_L(int k){if(k<7)return L[k];}
+   
+   ////////////////////////////////
+  
    int get_ncase(){return ncase;}
    int get_typeMC(){return typeMC;}
    double get_EkMC(){return EkMC;}

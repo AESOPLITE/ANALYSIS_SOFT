@@ -30,6 +30,15 @@ ALTckhit::ALTckhit()// Default
    DeltaE=0;     //Energy along the track or at hit location Hit=0  
 
   
+   // Time data from the corressponding "ASI" LINE
+   y=-1;//Year from first ASI line of the event
+   m=-1;//Month from first ASI line of the event
+   d=-1;//Day from first ASI line of the event
+   h=-1;//Hour from first ASI line of the event
+   mi=-1;//Minute from first ASI line of the event
+   s=-1;//Second from first ASI line of the event
+  
+  
    //Raw Data from cluster information
    L=-1;         //Layer from 0 to 6 top to bottom
    chip=-1;      //Chip ID: 0 to 11

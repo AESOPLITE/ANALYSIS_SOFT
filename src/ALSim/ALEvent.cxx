@@ -11,6 +11,24 @@ ClassImp(ALTckhit)
 ALEvent::ALEvent()// Default
 {
  eventnumber=0; //Event number
+ 
+ yPHA=-1;//Year from PHA line linked to the event
+ mPHA=-1;//Month from PHA line linked to the event
+ dPHA=-1;//Day from PHA line linked to the event
+ hPHA=-1;//Hour from PHA line linked to the event
+ miPHA=-1;//Minute from PHA line linked to the event
+ sPHA=-1;//Second from PHA line linked to the event
+
+ yEVT=-1;//Year from EVT line linked to the event
+ mEVT=-1;//Month from EVT line linked to the event
+ dEVT=-1;//Day from EVT line linked to the event
+ hEVT=-1;//Hour from EVT line linked to the event
+ miEVT=-1;//Minute from EVT line linked to the event
+ sEVT=-1;//Second from EVT line linked to the event  
+ EVT="";//Data from EVT line linked to the event  
+ 
+ for(int i=0;i<7;i++) L[i]="";//Data from  ASI lines of the event
+   
  ncase=0; 
  typeMC=-99; //type of particle
  EkMC=0;   //kinetic energy of the particle
@@ -47,7 +65,24 @@ void ALEvent::Copy(ALEvent* e)
 {
   //Single variables 
   
-   eventnumber =e->get_eventnumber();
+  eventnumber =e->get_eventnumber();
+  yPHA=e->get_yPHA();
+  mPHA=e->get_mPHA();
+  dPHA=e->get_dPHA();
+  hPHA=e->get_hPHA();
+  miPHA=e->get_miPHA();
+  sPHA=e->get_sPHA();
+  yEVT=e->get_yEVT();
+  mEVT=e->get_mEVT();
+  dEVT=e->get_dEVT();
+  hEVT=e->get_hEVT();
+  miEVT=e->get_miEVT();
+  sEVT=e->get_sEVT();
+  EVT=e->get_EVT();
+  for(int i=0;i<7;i++)L[i]=e->get_L(i);
+
+
+
    ncase =e->get_ncase();
    typeMC =e->get_typeMC();
    EkMC =e->get_EkMC();
