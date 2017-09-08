@@ -80,7 +80,27 @@ class ALTckhit:public TObject
   float cz;     //cosineZ of momentum MC (Average in the tracker layer)
   int flag;     //flag value: Track=1, Hit=0
   float DeltaE;     //Energy along the track or at hit location Hit=0  
+  
+  
+  //Raw Data from cluster information
+  int L;         //Layer from 0 to 6 top to bottom
+  int chip;      //Chip ID: 0 to 11
+  int nstrips;   //Number of strips in the cluster
+  int fstrip;    //First strip ID from 0 to 63 
+  int fstripID;  //First strip on the layer from 0 767
+  //Coordinates of the cluster in cm determined from the raw data
+  float x;
+  float y;
+  float z;
 
+  
+  //Information from Pattern Recognition
+ 
+  float xPR;       //x coordinate of "chosen" hit MC (selected by Pattern Recognition)
+  float yPR;       //y coordinate of "chosen" hit MC (selected by Pattern Recognition)
+  float zPR;       //z coordinate of "chosen" hit MC (selected by Pattern Recognition)
+  bool flagPR;	   // flag  if hit chosen for reconstruction, flag = 0 if not 
+ 
   //Reconstructed information
   float xreco;      //x coordinate of hit 
   float yreco;      //y coordinate of hit 
@@ -90,7 +110,7 @@ class ALTckhit:public TObject
   float cyreco;     //cosineY of momentum 
   float czreco;     //cosineZ of momentum    
   float ereco;     //kinetic energy 
-  int k;     //kth hit in event  
+  int k;     	   //kth hit in event  
  
  public: 
    //Constructors
@@ -127,6 +147,22 @@ class ALTckhit:public TObject
    void set_agereco(float a){agereco=a;}
    void set_k(int a){k=a;}
    ////////////////////////////////
+   void set_L(int a){L=a;}         
+   void set_chip(int a){chip=a;}      
+   void set_nstrips(int a){nstrips=a;}   
+   void set_fstrip(int a){fstrip=a;}    
+   void set_fstripID(int a){fstripID=a;}  
+   void set_x(float a){x=a;}
+   void set_y(float a){y=a;}
+   void set_z(float a){z=a;}    
+   /////////////////////////////////
+   
+   void set_xPR(float a){xPR=a;}
+   void set_yPR(float a){yPR=a;}
+   void set_zPR(float a){zPR=a;}
+   void set_flagPR(bool a){flagPR=a;}
+  
+   ////////////////////////////////
    //"Getting" member methods
    ////////////////////////////////
    float get_mregMC( ){return mregMC;}
@@ -144,6 +180,23 @@ class ALTckhit:public TObject
    float get_cz( ){return cz;}
    int get_flag( ){return flag;}
    float get_DeltaE( ){return DeltaE;}
+     
+   ////////////////////////////////
+   int get_L(){return L;}         
+   int get_chip(){return chip;}      
+   int get_nstrips(){return nstrips;}   
+   int get_fstrip(){return fstrip;}    
+   int get_fstripID(){return fstripID;}  
+   float get_x(){return x;}
+   float get_y(){return y;}
+   float get_z(){return z;}    
+   ////////////////////////////////
+
+   float get_xPR() {return xPR;}
+   float get_yPR() {return yPR;}
+   float get_zPR() {return zPR;}
+   bool  get_flagPR() {return flagPR;}
+   
    ////////////////////////////////
    float get_xreco( ){return xreco;}
    float get_yreco( ){return yreco;}
@@ -154,7 +207,7 @@ class ALTckhit:public TObject
    float get_ereco( ){return ereco;}
    float get_agereco( ){return agereco;}
    int get_k( ){return k;}
-  
+
    ////////////////////////////////
    ClassDef(ALTckhit,1)
 };
