@@ -160,6 +160,7 @@ class ALTckhit:public TObject
    void set_h(int a){h=a;}
    void set_mi(int a){mi=a;}
    void set_s(int a){s=a;}       
+   void set_L(int a){L=a;}       
    void set_chip(int a){chip=a;}      
    void set_nstrips(int a){nstrips=a;}   
    void set_fstrip(int a){fstrip=a;}    
