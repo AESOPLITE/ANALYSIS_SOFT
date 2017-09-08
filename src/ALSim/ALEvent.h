@@ -253,7 +253,7 @@ class ALEvent:public TObject
    int get_miEVT(){return miEVT;}
    int get_sEVT(){return sEVT;}
    string get_EVT(){return EVT;}
-   string get_L(int k){if(k<7)return L[k];}
+   string get_L(int k){if(k<7)return L[k];else return "";}
    
    ////////////////////////////////
   
