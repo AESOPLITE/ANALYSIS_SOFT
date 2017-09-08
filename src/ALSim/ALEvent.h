@@ -26,7 +26,6 @@ struct ALHit //Track or hits
  float cz;     //cosineZ of momentum MC (Average in the tracker layer)
  int flag;     //flag value: Track=1, Hit=0
  float DeltaE;     //Energy along the track or at hit location Hit=0
-
  //Reconstructed information
  float xreco;      //x coordinate of hit 
  float yreco;      //y coordinate of hit 
@@ -54,15 +53,24 @@ class ALEvent:public TObject
    // Hits information
    int Nhits; //Number of hits in the event
    
-   //Reconstruction information: variables finish with reco
-   int typereco; //type of particle
-   double Ekreco, p0reco;   //kinetic energy and momentum of the particle
-   double X0reco,Y0reco,Z0reco;//Coordinates of the partcle at the injection point 
-   double CX0reco,CY0reco,CZ0reco; //Incidence cosines of the partcle at the injection point 
-   int ndf;					 // number of degrees of freedom
-   double chi2, cl;			 //chi2 of fit and confidence level (cl = Prob(chi2, ndf)
-   double d0, phi0, cpa, dz, tanl;				//reconstructed helical track parameters
-   double d0err2, phi0err2, cpaerr2, dzerr2, tanlerr2; 		//err^2 of track parameters
+   
+   //Pattern Recognition info
+   
+   double EkPR, p0PR;			//kinetic energy and momentum of particle from least squares fit
+   double chi2NB, chi2B, clNB, clB;	//chi2 of parabolic/linear fit in bending/nonbending plane
+   double a, b, c;			//parameters of parabolic fit ( y(x) = a + bx + cx*x)
+   double slope, inter;			//parameters of linear fit 
+  
+  
+  //Reconstruction information: variables finish with reco
+   int typereco;                    //type of particle
+   double Ekreco, p0reco;           //kinetic energy and momentum of the particle
+   double X0reco,Y0reco,Z0reco;     //Coordinates of the partcle at the injection point 
+   double CX0reco,CY0reco,CZ0reco;  //Incidence cosines of the partcle at the injection point 
+   int ndf;                         // number of degrees of freedom
+   double chi2, cl;                 //chi2 of fit and confidence level (cl = Prob(chi2, ndf)
+   double d0, phi0, cpa, dz, tanl;  //reconstructed helical track parameters
+   double d0err2, phi0err2, cpaerr2, dzerr2, tanlerr2; //err^2 of track parameters
    
    //Hits information
    std::vector<ALTckhit*> hits;  
@@ -114,6 +122,21 @@ class ALEvent:public TObject
    ////////////////////////////////
    void set_Nhits(int a){Nhits=a;}
    void add_Nhits(){Nhits++;}
+   ////////////////////////////////  
+   
+   void set_EkPR(double a){EkPR=a;}
+   void set_p0PR(double a){p0PR=a;}
+   void set_a(double b){a=b;}
+   void set_b(double a){b=a;}
+   void set_c(double a){c=a;}
+   void set_inter(double a){inter=a;}
+   void set_slope(double a){slope=a;}
+   void set_chi2B(double a){chi2B=a;}
+   void set_chi2NB(double a){chi2NB=a;}
+   void set_clB(double a){clB=a;}
+   void set_clNB(double a){clNB=a;}
+   
+   
    ////////////////////////////////
    void set_typereco(int a){typereco=a;}
    void set_Ekreco(double a){Ekreco=a;}
@@ -139,6 +162,12 @@ class ALEvent:public TObject
    void set_tanlerr2(double a){tanlerr2=a;}
    
    void add_hit(ALTckhit* h){hits.push_back(h);Nhits++;}
+   
+   //Set Pattern Reco variable at the position of the hit of index k
+   void set_hxPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_xPR(a);}
+   void set_hyPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_yPR(a);}
+   void set_hzPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_zPR(a);}
+
    //Set reconstruted variable at the position of the hit of index k
    void set_hxreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_xreco(a);}
    void set_hyreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_yreco(a);}
@@ -148,6 +177,7 @@ class ALEvent:public TObject
    void set_hcyreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_cyreco(a);}
    void set_hczreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_czreco(a);}
    void set_hereco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_ereco(a);}
+   
    
    void set_T1(bool a){T1=a;}
    void set_T2(bool a){T2=a;}
@@ -164,14 +194,6 @@ class ALEvent:public TObject
    void add_timeT4(double a){timeT4.push_back(a);}
    void add_timeg(double a){timeg.push_back(a);}   
    void set_Ti(int a){Ti=a;}
-   
-   
-   
-   
-   
-   
-   
-   
    
    ////////////////////////////////
    //"Getting" member methods
@@ -190,6 +212,20 @@ class ALEvent:public TObject
 
    ////////////////////////////////
    int get_Nhits(){return Nhits;}
+   ////////////////////////////////
+   
+   double get_EkPR(){return EkPR;}
+   double get_p0PR(){return p0PR;}
+   double get_a(){return a;}
+   double get_b(){return b;}
+   double get_c(){return c;}
+   double get_inter(){return inter;}
+   double get_slope(){return slope;}
+   double get_chi2B(){return chi2B;}
+   double get_chi2NB(){return chi2NB;}
+   double get_clB(){return clB;}
+   double get_clNB(){return clNB;}
+ 
    ////////////////////////////////
    int get_typereco(){return typereco;}
    double get_Ekreco(){return Ekreco;}

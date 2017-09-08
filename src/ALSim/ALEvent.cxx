@@ -26,6 +26,13 @@ ALEvent::ALEvent()// Default
  chi2=cl=0;
  d0=phi0=cpa=dz=tanl=0;
  d0err2=phi0err2=cpaerr2=dzerr2=tanlerr2=0;
+	
+ EkPR=-999; 
+ p0PR =-999;
+ a=b=c=0;
+ inter=slope=0;
+ chi2B=chi2NB=clB=clNB=0;
+ 
  //Triggers: default is false
  T1=false;
  T2=false;
@@ -74,6 +81,18 @@ void ALEvent::Copy(ALEvent* e)
    dzerr2 =e->get_dzerr2();
    tanlerr2 =e->get_tanlerr2();
 
+   EkPR = e->get_EkPR();
+   p0PR = e->get_p0PR();
+   a = e->get_a();
+   b = e->get_b();
+   c = e->get_c();
+   inter = e->get_inter();
+   slope = e->get_slope();
+   chi2B = e->get_chi2B();
+   chi2NB = e->get_chi2NB();
+   clB = e->get_clB();
+   clNB = e->get_clNB();
+   
    T1 =e->get_T1();
    T2 =e->get_T2();
    T3 =e->get_T3();
@@ -100,7 +119,3 @@ void ALEvent::Copy(ALEvent* e)
 
  
 }
-
-
-
-
