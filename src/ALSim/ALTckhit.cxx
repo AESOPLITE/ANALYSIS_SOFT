@@ -44,7 +44,8 @@ ALTckhit::ALTckhit()// Default
    chip=-1;      //Chip ID: 0 to 11
    nstrips=-1;   //Number of strips in the cluster
    fstrip=-1;    //First strip ID from 0 to 63 
-   fstripID=-1;  //First strip on the layer from 0 767
+   fstripID=-1;  //First strip on the layer from 1 768
+   noisy=0;
    //Coordinates of the cluster in cm determined from the raw data
    x=-999.;
    y=-999.;

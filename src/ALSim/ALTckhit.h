@@ -94,7 +94,8 @@ class ALTckhit:public TObject
   int chip;      //Chip ID: 0 to 11
   int nstrips;   //Number of strips in the cluster
   int fstrip;    //First strip ID from 0 to 63 
-  int fstripID;  //First strip on the layer from 0 767
+  int fstripID;  //First strip on the layer from 1 768
+  int noisy;  //is 1 if one the strip of the cluster is noisy
   //Coordinates of the cluster in cm determined from the raw data
   float x;
   float y;
@@ -165,6 +166,7 @@ class ALTckhit:public TObject
    void set_nstrips(int a){nstrips=a;}   
    void set_fstrip(int a){fstrip=a;}    
    void set_fstripID(int a){fstripID=a;}  
+   void set_noisy(int a){noisy=a;}  
    void set_x(float a){x=a;}
    void set_y(float a){y=a;}
    void set_z(float a){z=a;}    
@@ -206,6 +208,7 @@ class ALTckhit:public TObject
    int get_nstrips(){return nstrips;}   
    int get_fstrip(){return fstrip;}    
    int get_fstripID(){return fstripID;}  
+   int get_noisy(){return noisy;}  
    float get_x(){return x;}
    float get_y(){return y;}
    float get_z(){return z;}    
