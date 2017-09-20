@@ -52,7 +52,9 @@ class ALEvent:public TObject
    int hPHA;//Hour from PHA line linked to the event
    int miPHA;//Minute from PHA line linked to the event
    int sPHA;//Second from PHA line linked to the event
-
+   int GoPHA;//Go counter
+   int tPHA;//timer
+   
    //Data FROM "EVT" LINE
    int yEVT;//Year from EVT line linked to the event
    int mEVT;//Month from EVT line linked to the event
@@ -60,7 +62,7 @@ class ALEvent:public TObject
    int hEVT;//Hour from EVT line linked to the event
    int miEVT;//Minute from EVT line linked to the event
    int sEVT;//Second from EVT line linked to the event  
-   string EVT;//Data from EVT line linked to the event  
+   string EVT; //Data from EVT line linked to the event  
  
    //Data FROM "EVT" LINE
    string L[7];//Data from  ASI lines of the event
@@ -82,8 +84,8 @@ class ALEvent:public TObject
    double chi2NB, chi2B, clNB, clB;	//chi2 of parabolic/linear fit in bending/nonbending plane
    double a, b, c;			//parameters of parabolic fit ( y(x) = a + bx + cx*x)
    double slope, inter;			//parameters of linear fit 
-  
-  
+   double deflec;                       //deflection from layer 2 to layer 6 in the beding plane: Difference of the slope of straight line
+   
   //Reconstruction information: variables finish with reco
    int typereco;                    //type of particle
    double Ekreco, p0reco;           //kinetic energy and momentum of the particle
@@ -141,6 +143,8 @@ class ALEvent:public TObject
    void set_hPHA(int a){hPHA=a;}
    void set_miPHA(int a){miPHA=a;}
    void set_sPHA(int a){sPHA=a;}
+   void set_GoPHA(int a){GoPHA=a;}
+   void set_tPHA(int a){tPHA=a;}
    void set_yEVT(int a){yEVT=a;}
    void set_mEVT(int a){mEVT=a;}
    void set_dEVT(int a){dEVT=a;}
@@ -148,7 +152,7 @@ class ALEvent:public TObject
    void set_miEVT(int a){miEVT=a;}
    void set_sEVT(int a){sEVT=a;}
    void set_EVT(string a){EVT=a;}
-   void set_L(int k, string a){if(k<7)L[k]=a;}
+   void set_L(int k, string a){if(k<7)L[k]=string(a);}
    
    ////////////////////////////////  
    void set_ncase(int a){ncase=a;}
@@ -176,6 +180,7 @@ class ALEvent:public TObject
    void set_chi2NB(double a){chi2NB=a;}
    void set_clB(double a){clB=a;}
    void set_clNB(double a){clNB=a;}
+   void set_deflec(double a){deflec=a;}
    
    ////////////////////////////////
    void set_typereco(int a){typereco=a;}
@@ -224,7 +229,7 @@ class ALEvent:public TObject
    void set_T3(bool a){T3=a;}
    void set_T4(bool a){T4=a;}
    void set_guard(bool a){guard=a;}
-   void add_EneT1(double a){EneT1.push_back(a);}
+   void add_EneT1(double a){EneT1.push_back(a);} 
    void add_EneT2(double a){EneT2.push_back(a);}
    void add_EneT3(double a){EneT3.push_back(a);}
    void add_EneT4(double a){EneT4.push_back(a);}
@@ -246,6 +251,8 @@ class ALEvent:public TObject
    int get_hPHA(){return hPHA;}
    int get_miPHA(){return miPHA;}
    int get_sPHA(){return sPHA;}
+   int get_GoPHA(){return GoPHA;}
+   int get_tPHA(){return tPHA;}
    int get_yEVT(){return yEVT;}
    int get_mEVT(){return mEVT;}
    int get_dEVT(){return dEVT;}
@@ -283,7 +290,8 @@ class ALEvent:public TObject
    double get_chi2NB(){return chi2NB;}
    double get_clB(){return clB;}
    double get_clNB(){return clNB;}
- 
+   double get_deflec(){return deflec;}
+
    ////////////////////////////////
    int get_typereco(){return typereco;}
    double get_Ekreco(){return Ekreco;}
@@ -307,22 +315,22 @@ class ALEvent:public TObject
    double get_cpaerr2(){return cpaerr2;}
    double get_dzerr2(){return dzerr2;}
    double get_tanlerr2(){return tanlerr2;}
-   std::vector<ALTckhit*> get_hits(){return hits;}
+   std::vector<ALTckhit*>& get_hits(){return hits;}
    bool get_T1(){return T1;}
    bool get_T2(){return T2;}
    bool get_T3(){return T3;}
    bool get_T4(){return T4;}
    bool get_guard(){return guard;}
-   std::vector<double>  get_EneT1(){return EneT1;}
-   std::vector<double>  get_EneT2(){return EneT2;}
-   std::vector<double>  get_EneT3(){return EneT3;}
-   std::vector<double>  get_EneT4(){return EneT4;}
-   std::vector<double>  get_Eneg(){return Eneg;}
-   std::vector<double>  get_timeT1(){return timeT1;}
-   std::vector<double>  get_timeT2(){return timeT2;}
-   std::vector<double>  get_timeT3(){return timeT3;}
-   std::vector<double>  get_timeT4(){return timeT4;}
-   std::vector<double>  get_timeg(){return timeg;}
+   std::vector<double>&  get_EneT1(){return EneT1;}
+   std::vector<double>&  get_EneT2(){return EneT2;}
+   std::vector<double>&  get_EneT3(){return EneT3;}
+   std::vector<double>&  get_EneT4(){return EneT4;}
+   std::vector<double>&  get_Eneg(){return Eneg;}
+   std::vector<double>&  get_timeT1(){return timeT1;}
+   std::vector<double>&  get_timeT2(){return timeT2;}
+   std::vector<double>&  get_timeT3(){return timeT3;}
+   std::vector<double>&  get_timeT4(){return timeT4;}
+   std::vector<double>&  get_timeg(){return timeg;}
    int get_Ti(){return Ti;}
 
    ////////////////////////////////

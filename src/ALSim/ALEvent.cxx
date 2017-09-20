@@ -18,16 +18,16 @@ ALEvent::ALEvent()// Default
  hPHA=-1;//Hour from PHA line linked to the event
  miPHA=-1;//Minute from PHA line linked to the event
  sPHA=-1;//Second from PHA line linked to the event
-
+ GoPHA=-1;//Go counter from PHA line linked to the event
+ tPHA=-1;//timer from from PHA line linked to the event
  yEVT=-1;//Year from EVT line linked to the event
  mEVT=-1;//Month from EVT line linked to the event
  dEVT=-1;//Day from EVT line linked to the event
  hEVT=-1;//Hour from EVT line linked to the event
  miEVT=-1;//Minute from EVT line linked to the event
  sEVT=-1;//Second from EVT line linked to the event  
- EVT="";//Data from EVT line linked to the event  
- 
- for(int i=0;i<7;i++) L[i]="";//Data from  ASI lines of the event
+ EVT="";//Data from EVT line linked to the event
+ for(int i=0;i<7;i++) L[i]=string();//Data from  ASI lines of the event
    
  ncase=0; 
  typeMC=-99; //type of particle
@@ -50,7 +50,7 @@ ALEvent::ALEvent()// Default
  a=b=c=0;
  inter=slope=0;
  chi2B=chi2NB=clB=clNB=0;
- 
+ deflec=0;
  //Triggers: default is false
  T1=false;
  T2=false;
@@ -72,6 +72,8 @@ void ALEvent::Copy(ALEvent* e)
   hPHA=e->get_hPHA();
   miPHA=e->get_miPHA();
   sPHA=e->get_sPHA();
+  GoPHA=e->get_GoPHA();
+  tPHA=e->get_tPHA();
   yEVT=e->get_yEVT();
   mEVT=e->get_mEVT();
   dEVT=e->get_dEVT();
@@ -127,6 +129,7 @@ void ALEvent::Copy(ALEvent* e)
    chi2NB = e->get_chi2NB();
    clB = e->get_clB();
    clNB = e->get_clNB();
+   deflec = e->get_deflec();
    
    T1 =e->get_T1();
    T2 =e->get_T2();
