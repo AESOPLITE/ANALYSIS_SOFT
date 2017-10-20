@@ -28,6 +28,7 @@ ALEvent::ALEvent()// Default
  sEVT=-1;//Second from EVT line linked to the event  
  EVT="";//Data from EVT line linked to the event
  for(int i=0;i<7;i++) L[i]=string();//Data from  ASI lines of the event
+ for(int i=0;i<7;i++) flagL[i]=0;////1 if ASI line was present
    
  ncase=0; 
  typeMC=-99; //type of particle
@@ -41,7 +42,7 @@ ALEvent::ALEvent()// Default
  X0reco=Y0reco=Z0reco=0;//Coordinates of the partcle at the injection point 
  CX0reco=CY0reco=CZ0reco=0; //Incidence cosines of the partcle at the injection point 
  ndf=0;
- chi2=cl=0;
+ chi2=cl=-1;
  d0=phi0=cpa=dz=tanl=0;
  d0err2=phi0err2=cpaerr2=dzerr2=tanlerr2=0;
 	
@@ -49,7 +50,7 @@ ALEvent::ALEvent()// Default
  p0PR =-999;
  a=b=c=0;
  inter=slope=0;
- chi2B=chi2NB=clB=clNB=0;
+ chi2B=chi2NB=clB=clNB=-1;
  deflec=0;
  //Triggers: default is false
  T1=false;
@@ -82,6 +83,7 @@ void ALEvent::Copy(ALEvent* e)
   sEVT=e->get_sEVT();
   EVT=e->get_EVT();
   for(int i=0;i<7;i++)L[i]=e->get_L(i);
+  for(int i=0;i<7;i++)flagL[i]=e->get_flagL(i);
 
 
 
