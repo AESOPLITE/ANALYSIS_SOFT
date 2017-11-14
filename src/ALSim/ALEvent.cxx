@@ -44,6 +44,8 @@ ALEvent::ALEvent()// Default
  ndf=0;
  chi2=cl=-1;
  d0=phi0=cpa=dz=tanl=0;
+ phi0_init=cpa_init=tanl_init=0;
+// B0_init=(0,0,0);     by default in TVector3, all components are initialized to 0
  d0err2=phi0err2=cpaerr2=dzerr2=tanlerr2=0;
 	
  EkPR=-999; 
@@ -114,6 +116,10 @@ void ALEvent::Copy(ALEvent* e)
    cpa =e->get_cpa();
    dz =e->get_dz();
    tanl =e->get_tanl();
+   phi0_init=get_phi0_init();
+   cpa_init=get_cpa_init();
+   tanl_init=get_tanl_init();
+   B0_init=get_B0_init();
    d0err2 =e->get_d0err2();
    phi0err2 =e->get_phi0err2();
    cpaerr2 =e->get_cpaerr2();
