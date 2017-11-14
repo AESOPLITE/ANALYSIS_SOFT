@@ -5,6 +5,7 @@
 #ifndef __ALEVENT__
 #define __ALEVENT__
 #include "headers.h"
+#include "TVector3.h"
 #include "ALTckhit.h"
 
 /*
@@ -66,6 +67,7 @@ class ALEvent:public TObject
  
    //Data FROM "EVT" LINE
    string L[7];//Data from  ASI lines of the event
+   int flagL[7];//1 if ASI line was present
    
    
    //Monte Carlo information: Truth variable names finish with MC 
@@ -94,6 +96,8 @@ class ALEvent:public TObject
    int ndf;                         // number of degrees of freedom
    double chi2, cl;                 //chi2 of fit and confidence level (cl = Prob(chi2, ndf)
    double d0, phi0, cpa, dz, tanl;  //reconstructed helical track parameters
+   double phi0_init, cpa_init, tanl_init;  //initial helical track parameters
+   TVector3 B0_init;				 //magnetic field used for initial helix
    double d0err2, phi0err2, cpaerr2, dzerr2, tanlerr2; //err^2 of track parameters
    
    //Hits information
@@ -153,6 +157,7 @@ class ALEvent:public TObject
    void set_sEVT(int a){sEVT=a;}
    void set_EVT(string a){EVT=a;}
    void set_L(int k, string a){if(k<7)L[k]=string(a);}
+   void set_flagL(int k, int a){if(k<7)flagL[k]=a;}
    
    ////////////////////////////////  
    void set_ncase(int a){ncase=a;}
@@ -200,6 +205,10 @@ class ALEvent:public TObject
    void set_cpa(double a){cpa=a;}
    void set_dz(double a){dz=a;}
    void set_tanl(double a){tanl=a;}
+   void set_phi0_init(double a){phi0_init=a;}
+   void set_cpa_init(double a){cpa_init=a;}
+   void set_tanl_init(double a){tanl_init=a;}
+   void set_B0_init(TVector3 a){B0_init=a;}
    void set_d0err2(double a){d0err2=a;}
    void set_phi0err2(double a){phi0err2=a;}
    void set_cpaerr2(double a){cpaerr2=a;}
@@ -261,6 +270,7 @@ class ALEvent:public TObject
    int get_sEVT(){return sEVT;}
    string get_EVT(){return EVT;}
    string get_L(int k){if(k<7)return L[k];else return "";}
+   int get_flagL(int k){if(k<7)return flagL[k];else return 0;}
    
    ////////////////////////////////
   
@@ -310,6 +320,10 @@ class ALEvent:public TObject
    double get_cpa(){return cpa;}
    double get_dz(){return dz;}
    double get_tanl(){return tanl;}
+   double get_phi0_init(){return phi0_init;}
+   double get_cpa_init(){return cpa_init;}
+   double get_tanl_init(){return tanl_init;}
+   TVector3 get_B0_init(){return B0_init;}
    double get_d0err2(){return d0err2;}
    double get_phi0err2(){return phi0err2;}
    double get_cpaerr2(){return cpaerr2;}
