@@ -68,7 +68,8 @@ int Partition(int ,int ,float []);
 void Quick_sort(int ,int ,float []);
 void extractdate(int *y,int*m,int*d,string*str);
 void extracttime(int *h,int*m,int*s,string*str);
-int DecodeASI(string data,vector<ALTckhit*>* Hh,int*);
+int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*);
+int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*);
 int MakeRawBPDEvent(string);
 
 
