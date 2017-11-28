@@ -27,6 +27,8 @@ ALEvent::ALEvent()// Default
  miEVT=-1;//Minute from EVT line linked to the event
  sEVT=-1;//Second from EVT line linked to the event  
  EVT="";//Data from EVT line linked to the event
+ GoEVT=-1;//Go counter from EVT line linked to the event
+ tEVT=-1;//timer from from EVT line linked to the event
  for(int i=0;i<7;i++) L[i]=string();//Data from  ASI lines of the event
  for(int i=0;i<7;i++) flagL[i]=0;////1 if ASI line was present
    
@@ -83,6 +85,9 @@ void ALEvent::Copy(ALEvent* e)
   hEVT=e->get_hEVT();
   miEVT=e->get_miEVT();
   sEVT=e->get_sEVT();
+  GoEVT=e->get_GoEVT();
+  tEVT=e->get_tEVT();
+ 
   EVT=e->get_EVT();
   for(int i=0;i<7;i++)L[i]=e->get_L(i);
   for(int i=0;i<7;i++)flagL[i]=e->get_flagL(i);
