@@ -53,8 +53,8 @@ class ALEvent:public TObject
    int hPHA;//Hour from PHA line linked to the event
    int miPHA;//Minute from PHA line linked to the event
    int sPHA;//Second from PHA line linked to the event
-   int GoPHA;//Go counter
-   float tPHA;//timer
+   double GoPHA;//Go counter
+   double tPHA;//timer
    
    //Data FROM "EVT" LINE
    int yEVT;//Year from EVT line linked to the event
@@ -64,9 +64,15 @@ class ALEvent:public TObject
    int miEVT;//Minute from EVT line linked to the event
    int sEVT;//Second from EVT line linked to the event  
    string EVT; //Data from EVT line linked to the event  
-   int GoEVT;//Go counter
-   float tEVT;//timer
- 
+   double GoEVT;//Go counter
+   double tEVT;//timer
+   
+   int nHitLEVT;//nHitL from EVT line linked to the event added 12/05/2017
+   int CCEVT;//CC from EVT line linked to the event   added 12/05/2017
+   int PatternEVT;//CC from EVT line linked to the event   added 12/05/2017
+   int Q1EVT;//Q1 from EVT line linked to the event   added 12/05/2017
+   double TrigEVT;//Q1 from EVT line linked to the event   added 12/05/2017
+   
    //Data FROM "EVT" LINE
    string L[7];//Data from  ASI lines of the event
    int flagL[7];//1 if ASI line was present
@@ -149,8 +155,8 @@ class ALEvent:public TObject
    void set_hPHA(int a){hPHA=a;}
    void set_miPHA(int a){miPHA=a;}
    void set_sPHA(int a){sPHA=a;}
-   void set_GoPHA(int a){GoPHA=a;}
-   void set_tPHA(float a){tPHA=a;}
+   void set_GoPHA(double a){GoPHA=a;}
+   void set_tPHA(double a){tPHA=a;}
    void set_yEVT(int a){yEVT=a;}
    void set_mEVT(int a){mEVT=a;}
    void set_dEVT(int a){dEVT=a;}
@@ -158,8 +164,15 @@ class ALEvent:public TObject
    void set_miEVT(int a){miEVT=a;}
    void set_sEVT(int a){sEVT=a;}
    void set_EVT(string a){EVT=a;}
-   void set_GoEVT(int a){GoEVT=a;}
-   void set_tEVT(float a){tEVT=a;}
+   void set_GoEVT(double a){GoEVT=a;}
+   void set_tEVT(double a){tEVT=a;}
+
+   void set_nHitLEVT(int a){nHitLEVT=a;}
+   void set_CCEVT(int a){CCEVT=a;}
+   void set_PatternEVT(int a){PatternEVT=a;}
+   void set_Q1EVT(int a){Q1EVT=a;}
+   void set_TrigEVT(double a){TrigEVT=a;}
+ 
    void set_L(int k, string a){if(k<7)L[k]=string(a);}
    void set_flagL(int k, int a){if(k<7)flagL[k]=a;}
    
@@ -264,17 +277,24 @@ class ALEvent:public TObject
    int get_hPHA(){return hPHA;}
    int get_miPHA(){return miPHA;}
    int get_sPHA(){return sPHA;}
-   int get_GoPHA(){return GoPHA;}
-   float get_tPHA(){return tPHA;}
+   double get_GoPHA(){return GoPHA;}
+   double get_tPHA(){return tPHA;}
    int get_yEVT(){return yEVT;}
    int get_mEVT(){return mEVT;}
    int get_dEVT(){return dEVT;}
    int get_hEVT(){return hEVT;}
    int get_miEVT(){return miEVT;}
    int get_sEVT(){return sEVT;}
-   int get_GoEVT(){return GoEVT;}
-   float get_tEVT(){return tEVT;}
+   double get_GoEVT(){return GoEVT;}
+   double get_tEVT(){return tEVT;}
    string get_EVT(){return EVT;}
+   
+   int get_nHitLEVT(){return nHitLEVT;}
+   int get_CCEVT(){return CCEVT;}
+   int get_PatternEVT(){return PatternEVT;}
+   int get_Q1EVT(){return Q1EVT;}
+   double get_TrigEVT(){return TrigEVT;}
+  
    string get_L(int k){if(k<7)return L[k];else return "";}
    int get_flagL(int k){if(k<7)return flagL[k];else return 0;}
    

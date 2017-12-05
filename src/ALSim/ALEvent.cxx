@@ -29,6 +29,12 @@ ALEvent::ALEvent()// Default
  EVT="";//Data from EVT line linked to the event
  GoEVT=-1;//Go counter from EVT line linked to the event
  tEVT=-1;//timer from from EVT line linked to the event
+ nHitLEVT=-999;//nHitL from EVT line linked to the event added 12/05/2017
+ CCEVT=-999;//CC from EVT line linked to the event   added 12/05/2017
+ PatternEVT=-999;//CC from EVT line linked to the event   added 12/05/2017
+ Q1EVT=-999;//Q1 from EVT line linked to the event   added 12/05/2017
+ TrigEVT=-999;//Q1 from EVT line linked to the event   added 12/05/2017
+
  for(int i=0;i<7;i++) L[i]=string();//Data from  ASI lines of the event
  for(int i=0;i<7;i++) flagL[i]=0;////1 if ASI line was present
    
@@ -87,12 +93,15 @@ void ALEvent::Copy(ALEvent* e)
   sEVT=e->get_sEVT();
   GoEVT=e->get_GoEVT();
   tEVT=e->get_tEVT();
- 
   EVT=e->get_EVT();
+  nHitLEVT=e->get_nHitLEVT();
+  CCEVT=e->get_CCEVT();
+  PatternEVT=e->get_PatternEVT();
+  Q1EVT=e->get_Q1EVT();
+  TrigEVT=e->get_TrigEVT();
+  
   for(int i=0;i<7;i++)L[i]=e->get_L(i);
   for(int i=0;i<7;i++)flagL[i]=e->get_flagL(i);
-
-
 
    ncase =e->get_ncase();
    typeMC =e->get_typeMC();
