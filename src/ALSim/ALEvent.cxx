@@ -41,6 +41,7 @@ ALEvent::ALEvent()// Default
  ncase=0; 
  typeMC=-99; //type of particle
  EkMC=0;   //kinetic energy of the particle
+ pMC=0;		//momentum at point of injection
  X0MC=Y0MC=Z0MC=0;//Coordinates of the partcle at the injection point 
  CX0MC=CY0MC=CZ0MC=0; //Incidence cosines of the partcle at the injection point 
  Nhits=0; //Number of hits in the event
@@ -53,15 +54,15 @@ ALEvent::ALEvent()// Default
  chi2=cl=-1;
  d0=phi0=cpa=dz=tanl=0;
  phi0_init=cpa_init=tanl_init=0;
-// B0_init=(0,0,0);     by default in TVector3, all components are initialized to 0
  d0err2=phi0err2=cpaerr2=dzerr2=tanlerr2=0;
+ Cov_init=Cov_last=0;
 	
  EkPR=-999; 
  p0PR =-999;
- a=b=c=0;
- inter=slope=0;
- chi2B=chi2NB=clB=clNB=-1;
- deflec=0;
+ aPR=bPR=cPR=0;
+ interPR=slopePR=0;
+ chi2BPR=chi2NBPR=clBPR=clNBPR=-1;
+ deflecPR=0;
  //Triggers: default is false
  T1=false;
  T2=false;
@@ -106,6 +107,7 @@ void ALEvent::Copy(ALEvent* e)
    ncase =e->get_ncase();
    typeMC =e->get_typeMC();
    EkMC =e->get_EkMC();
+   pMC = e->get_pMC();
    X0MC =e->get_X0MC();
    Y0MC =e->get_Y0MC();
    Z0MC =e->get_Z0MC();
@@ -133,25 +135,26 @@ void ALEvent::Copy(ALEvent* e)
    phi0_init=get_phi0_init();
    cpa_init=get_cpa_init();
    tanl_init=get_tanl_init();
-   B0_init=get_B0_init();
    d0err2 =e->get_d0err2();
    phi0err2 =e->get_phi0err2();
    cpaerr2 =e->get_cpaerr2();
    dzerr2 =e->get_dzerr2();
    tanlerr2 =e->get_tanlerr2();
+   Cov_init = e->get_Cov_init();
+   Cov_last = e->get_Cov_last();
 
    EkPR = e->get_EkPR();
    p0PR = e->get_p0PR();
-   a = e->get_a();
-   b = e->get_b();
-   c = e->get_c();
-   inter = e->get_inter();
-   slope = e->get_slope();
-   chi2B = e->get_chi2B();
-   chi2NB = e->get_chi2NB();
-   clB = e->get_clB();
-   clNB = e->get_clNB();
-   deflec = e->get_deflec();
+   aPR = e->get_aPR();
+   bPR = e->get_bPR();
+   cPR = e->get_cPR();
+   interPR = e->get_interPR();
+   slopePR = e->get_slopePR();
+   chi2BPR = e->get_chi2BPR();
+   chi2NBPR = e->get_chi2NBPR();
+   clBPR = e->get_clBPR();
+   clNBPR = e->get_clNBPR();
+   deflecPR = e->get_deflecPR();
    
    T1 =e->get_T1();
    T2 =e->get_T2();
