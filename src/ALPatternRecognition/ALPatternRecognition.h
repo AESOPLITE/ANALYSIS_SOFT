@@ -62,7 +62,13 @@
 #include "TSpline.h"
 #include "Math/Interpolator.h"
 #include "TMultiGraph.h"
-
+#include "LoadDataparameters.h"
+#include "LoadMCparameters.h"
+#include "TCollection.h"
+#include "TBox.h"
+#include <sstream>
+#include <bitset>
+#include <string>
 class ALPatternRecognition {
 	
 public:
@@ -70,6 +76,7 @@ public:
 	virtual ~ALPatternRecognition() {};
 	
 	 void FindPattern(ALEvent *re);
+	 void FindPatternPSM(ALEvent *re);
 	ClassDef(ALPatternRecognition, 1)
 };
 
