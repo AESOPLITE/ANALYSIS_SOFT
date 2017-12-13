@@ -4,34 +4,49 @@
 ////////////////////////////////////////////////////////////////////////////////////////// 
 
 #include "MakeRawEventMC.h"
-int MakeRawEventMC()
+int MakeRawEventMC(int typeT,int Ene,int cycle,string Inppath,string Inppath2,string Outpath,string startfile,string endfile)
 {
 
  //Load region numbers used in the MC geometry 
  int*TckReg=new int[7];
  int*TrigReg=new int[4];
- int*GReg=new int[1];for(int i=0;i<1;i++)GReg[i]=0;
+ int*GReg=new int[1];
+ float*TckZPos=new float[7];
+ float*TrigThresh=new float[4];
+ float*GuardThresh=new float[1];
  for(int i=0;i<7;i++)TckReg[i]=0;
  for(int i=0;i<4;i++)TrigReg[i]=0;
  for(int i=0;i<1;i++)GReg[i]=0;
- string MCparamfile="MCparameters.dat"; 
+ for(int i=0;i<7;i++)TckZPos[i]=0;
+ for(int i=0;i<4;i++)TrigThresh[i]=0;
+ for(int i=0;i<1;i++)GuardThresh[i]=0;
+	
+ string MCparamfile="../src/ALSim/MCparameters.dat"; 
  
- LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg);
+ LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg,TckZPos,TrigThresh,GuardThresh);
  
- //Input file 
- TFile*file=new TFile("aesoplite.root","READ");
+   //Input file 
+
+// TFile*file=new TFile(Form("%s/%d/%s/%s_%d_%dMeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
+ TFile*file=new TFile(Form("%s/%d/%s/%s_%d_%dGeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
+
+	cout << "Input file is open" <<endl;
   //Output file 
- TFile*fileout=new TFile("RawEventMC.root","RECREATE");
- 
+ //TFile*fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dMeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE");
+ TFile*fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dGeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE"); 
+cout << "Output file is created" <<endl;
+
  //Get ntuple from the input file
  TNtuple*ntuple=(TNtuple*)file->Get("Track");
-  
+ cout << "Got the ntuple from the input file" <<endl;
+
  //Define variables to read ntuple
  float ncase=0; 
  float mreg=0;
  float mtrack=0;
  float type=0;
- float ene=0; 
+ float EkMC=0;
+ float pMC=0; 
  float x=0;
  float y=0;
  float z=0;
@@ -42,14 +57,13 @@ int MakeRawEventMC()
  float Edep=0; 
  float flag=0; 
 
-
  //Set addresses to access ntuple data
  
  ntuple->SetBranchAddress("ncase",&ncase); 
  ntuple->SetBranchAddress("mreg",&mreg);
  ntuple->SetBranchAddress("mtrack",&mtrack);
  ntuple->SetBranchAddress("type",&type);
- ntuple->SetBranchAddress("e",&ene); 
+ ntuple->SetBranchAddress("p",&pMC); 
  ntuple->SetBranchAddress("x",&x);
  ntuple->SetBranchAddress("y",&y);
  ntuple->SetBranchAddress("z",&z);
@@ -60,14 +74,17 @@ int MakeRawEventMC()
  ntuple->SetBranchAddress("flag",&flag); 
  ntuple->SetBranchAddress("Edep",&Edep); 
 
+ 
+ cout << "Set Branch Address done" <<endl;
+
+ 
  // Get number of entries in ntuple (number of lines in the output fluka file) 
  int nentries=ntuple->GetEntries();
  cout << "Number  of entries: " << nentries << endl;
  int ievt=-1; // Identify the event
  // Create a TTree
  TTree *tree = new TTree("MC","Raw event MC");
- ALEvent *e = new ALEvent;
-
+ ALEvent *e = new ALEvent();
  // Create a branch with event
  tree->Branch("event",&e);  
 
@@ -81,15 +98,18 @@ int MakeRawEventMC()
  double timeT3=0; 
  double timeT4=0;
  int prevreg=0; 
- double timeg=0; 
- double nT1=0; 
- double nT3=0; 
+ double timeg=0; 	
+ double nT1=0; 						//number of segments of track in T1
+ double nT3=0; 						
  double nT4=0; 
  double ng=0; 
  int iT1=0; 
  int iT3=0; 
  int iT4=0; 
  int ig=0;
+//Temporary variable for internal triggers 
+ int*Titmp=new int[7];
+ for (int i=0;i<7;i++)Titmp[i]=0;
  
  int nL=0;
  int iL=0;
@@ -98,7 +118,6 @@ int MakeRawEventMC()
  
  //Loop over the entries and create the events
  // This is the main loop
-// for (int i=0;i<nentries;i++)
  for (int i=0;i<nentries;i++)
    {
     ntuple->GetEntry(i); //Load the entry i in the variables  
@@ -112,7 +131,8 @@ int MakeRawEventMC()
       if(nT1>0)
        {
         e->add_EneT1(EneT1); e->add_timeT1(timeT1);
-        e->set_T1(true);EneT1=0;timeT1=0;nT1=0;iT1=0;
+		if (EneT1 > TrigThresh[0]) e->set_T1(true);
+		EneT1=0;timeT1=0;nT1=0;iT1=0;
        }
      }
     if(prevreg==TrigReg[2] && prevreg!=mreg)//T3
@@ -120,7 +140,8 @@ int MakeRawEventMC()
       if(nT3>0)
        {
         e->add_EneT3(EneT3); e->add_timeT3(timeT3);
-        e->set_T3(true);EneT3=0;timeT3=0;nT3=0;iT3=0;
+		if(EneT3 > TrigThresh[2]) e->set_T3(true);
+        EneT3=0;timeT3=0;nT3=0;iT3=0;
        }
      }
     if(prevreg==TrigReg[3] && prevreg!=mreg)//T4
@@ -128,7 +149,8 @@ int MakeRawEventMC()
       if(nT4>0)
        {
         e->add_EneT4(EneT4); e->add_timeT4(timeT4);
-        e->set_T4(true);EneT4=0;timeT4=0;nT4=0;iT4=0;
+		if (EneT4 > TrigThresh[3]) e->set_T4(true);
+        EneT4=0;timeT4=0;nT4=0;iT4=0;
        }
      }
     if(prevreg==GReg[0] && prevreg!=mreg)//guard
@@ -136,7 +158,8 @@ int MakeRawEventMC()
       if(ng>0)
        {
         e->add_Eneg(Eneg); e->add_timeg(timeg);
-        e->set_guard(true);Eneg=0;timeg=0;ng=0;ig=0;
+		if (Eneg > TrigThresh[4]) e->set_guard(true);
+	    Eneg=0;timeg=0;ng=0;ig=0;
        }
      }
     if(prevreg>=TckReg[0] && prevreg<=TckReg[6]&& prevreg!=mreg)
@@ -146,6 +169,11 @@ int MakeRawEventMC()
       nh++;
       h->set_k(nh);
       e->add_hit(h);
+      //Check the layer for internal trigger
+      for (int ij=0;ij<7;ij++)
+        {
+	 if (h->get_mregMC()== TckReg[ij]) {Titmp[ij]=1;ij=7;}
+	}
       //Reset the hit structure
       h=new ALTckhit();
       nL=0;
@@ -155,7 +183,8 @@ int MakeRawEventMC()
      {
       j++;
       nh=0;
-      if(i==0)
+
+      if(i==0)//if first event
        {
 	ievt=ncase; 
 	delete e;
@@ -164,20 +193,31 @@ int MakeRawEventMC()
         e->set_ncase(ncase);
 	//First line  with a given ncase contains the source particle info
         e->set_typeMC(type);
-        e->set_EkMC(ene);
+        e->set_pMC(pMC);
+   //Calculate kinetic energy from momentum at point of injection
+		float mass=0.000511;								//electron mass in GeV
+        if(type==11 || type ==10)	mass=0.10566;			//muon mass in GeV
+	    EkMC = TMath::Sqrt(pMC*pMC+mass*mass);
+		e->set_EkMC(EkMC);
         e->set_X0MC(x);
         e->set_Y0MC(y);
         e->set_Z0MC(z);
         e->set_CX0MC(cx);
         e->set_CY0MC(cy);
         e->set_CZ0MC(cz);
-       }	
+	//T2 is not used for now timeT2 and EneT2 are empty
+        e->set_T2(false);
+       }	//if
       else
        {
+	//Fill internal trigger information of the previous event
+	int t=0;
+	for (int ij=0;ij<7;ij++) t+=Titmp[ij]*(int)TMath::Power(2,ij);
+	e->set_Ti(t);  
         //Fill the previous event in the output file  
 	tree->Fill(); 
 	delete e;
-        e=new ALEvent();
+    e=new ALEvent();
 	h=new ALTckhit();
 	nh=0;
 	ievt=ncase; 
@@ -185,7 +225,12 @@ int MakeRawEventMC()
         e->set_ncase(ncase);
         //First line with a given ncase contains the source particle info
         e->set_typeMC(type);
-        e->set_EkMC(ene);
+        e->set_pMC(pMC);
+   //Calculate kinetic energy from momentum at point of injection
+		float mass=0.000511;								//electron mass in GeV
+        if(type==11 || type ==10)	mass=0.10566;			//muon mass in GeV
+	    float EkMC = TMath::Sqrt(pMC*pMC+mass*mass);
+		e->set_EkMC(EkMC);
         e->set_X0MC(x);
         e->set_Y0MC(y);
         e->set_Z0MC(z);
@@ -194,12 +239,13 @@ int MakeRawEventMC()
         e->set_CZ0MC(cz);
         //T2 is not used for now timeT2 and EneT2 are empty
         e->set_T2(false);
-	
-       }     
-     }  
+        //Reset internal trigger
+        for (int ij=0;ij<7;ij++)Titmp[ij]=0;
+       }     //else
+     }  //if
     
     ////////////////////////////////// 
-    //Check to see if the particle has crossed one of the boundaries 
+    //Check to see if the particle has crossed one of the scintallator 
     //(r19=air, r1=T1, r6=T3, r7=guard, r11=Tracker1 ,..., r17=Tracker7, r18=T4)
     ////////////////////////////////// 
     
@@ -235,50 +281,75 @@ int MakeRawEventMC()
         {
 	 if(i==iL+1) //if the segment of track is not the first of the hit 
 	  {
-	   h->set_DeltaE(h->get_DeltaE()+Edep);// Add the energy deposited in the segment
-	   h->set_cx(h->get_cx()+cx);
+	       h->set_DeltaE(h->get_DeltaE()+Edep);// Add the energy deposited in the segment
+	       h->set_cx(h->get_cx()+cx);
            h->set_cy(h->get_cy()+cy); 
            h->set_cz(h->get_cz()+cz);
-	   h->set_xout(x);
+	       h->set_xout(x);
            h->set_yout(y);   
-           h->set_zout(z); 
-	   nL++;//Increment the number of segments that compose the hit
-	  }
+           h->set_zout(z);
+		   h->set_x((h->get_xin() + x)/2.);
+		   h->set_y((h->get_yin() + y)/2.);
+		   h->set_z((h->get_zin() + z)/2.);
+	       nL++;//Increment the number of segments that compose the hit
+	  }//if
          else //if this segment of track is the first part of the hit
 	  {
 	   //Fill the data at the entrance of the particle in the tracker layer
-	   h->set_mregMC(mreg); 
+	       h->set_mregMC(mreg); 
+	   //set layer number (for MC and data)
+		   h->set_L((int)mreg%11);
            h->set_mtrackMC(mtrack);
            h->set_typeMC((int)type);
-           h->set_eMC(ene); 
+           h->set_eMC(pMC); 				//total energy of particle crossing region
            h->set_flag(flag);
            h->set_k(nh);
            h->set_age(age);
-	   h->set_cx(cx);
+	       h->set_cx(cx);
            h->set_cy(cy); 
            h->set_cz(cz);
-	   h->set_xin(x);
+	       h->set_xin(x);
            h->set_yin(y);   
            h->set_zin(z);
-	   h->set_xout(x);
+	       h->set_xout(x);
            h->set_yout(y);   
            h->set_zout(z); 
-	   h->set_DeltaE(Edep);
+	       h->set_DeltaE(Edep);
            nL=1;
-          } 
+          } //else
          iL=i; 
          ii=7;
-	}  
-      }
+	}  //if
+      }//ii
     prevreg=mreg;
-   }//
- //Fill the last event
-  if(nT1>0){e->add_EneT1(EneT1/nT1);e->add_timeT1(timeT1);e->set_T1(true);}
-  if(nT3>0){e->add_EneT3(EneT3/nT3);e->add_timeT3(timeT3);e->set_T3(true);}
-  if(nT4>0){e->add_EneT4(EneT4/nT4);e->add_timeT4(timeT4);e->set_T4(true);}
-  if(ng>0){e->add_Eneg(Eneg/ng);e->add_timeg(timeg);e->set_guard(true);}
-  if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}//add the last hit
-  
+   }//i
+
+  //Fill the last event
+ if(nT1>0){
+	 e->add_EneT1(EneT1);e->add_timeT1(timeT1);
+	 if (EneT1 > TrigThresh[0]) e->set_T1(true);
+ 	}
+ if(nT3>0){
+	 e->add_EneT3(EneT3);e->add_timeT3(timeT3);
+	 if (EneT3 > TrigThresh[2]) e->set_T3(true);
+ 	}
+ if(nT4>0){
+	 e->add_EneT4(EneT4);e->add_timeT4(timeT4);
+	 if(EneT4 > TrigThresh[3]) e->set_T4(true);
+    }
+ if(ng>0){
+	 e->add_Eneg(Eneg);e->add_timeg(timeg);
+	 if (Eneg > TrigThresh[4]) e->set_guard(true);
+ 	}
+ if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}//add the last hit
+ //Check the layer for internal trigger
+ for (int ij=0;ij<7;ij++)
+   {
+    if (h->get_mregMC()== TckReg[ij]) {Titmp[ij]=1;ij=7;}
+   }
+ int tt=0;
+ for (int ij=0;ij<7;ij++) tt+=Titmp[ij]*(int)TMath::Power(2,ij);
+ e->set_Ti(tt);	  
  tree->Fill(); 
  delete e;
  

@@ -1,12 +1,12 @@
-TckL1 11
-TckL2 12
-TckL3 13
-TckL4 14
-TckL5 15
-TckL6 16
-TckL7 17
-Trig1 1
-Trig2 3
-Trig3 6
-Trig4 18
-Guard 7
+TckL1 11 -1.887
+TckL2 12 -3.886
+TckL3 13 -10.520
+TckL4 14 -17.119
+TckL5 15 -19.118
+TckL6 16 -21.117
+TckL7 17 -23.116
+Trig1 1 0.0003
+Trig2 3 0.0000
+Trig3 6 0.00029
+Trig4 18 0.00057
+Guard 7  0.0000

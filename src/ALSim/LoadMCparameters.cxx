@@ -5,7 +5,7 @@
 
 #include "LoadMCparameters.h"
 
-void LoadMCparameters(string filename,int*TckReg,int*TrigReg,int*GReg)
+void LoadMCparameters(string filename,int*TckReg,int*TrigReg,int*GReg, float*TckZPos, float*TrigThresh, float*GuardThresh)
 {
 // Read the file filename and load the region numbers in the geometry file of Fluka
 //The 7 layers of the tracker arrive first
@@ -29,15 +29,17 @@ void LoadMCparameters(string filename,int*TckReg,int*TrigReg,int*GReg)
     in >> prefix;                  //and read the first whitespace-separated token
     int tmp;
     in >> tmp;
+	float val;
+	in >> val;
     //check prefix to load the appropriate region variable 
     for(int i=0;i<n;i++)
       {
        
        if(prefix.compare(pre[i]) == 0)
         {
-         if(i<7) {TckReg[i]=tmp;j++;}
-	 else if(i<7+4) {TrigReg[i-7]=tmp;j++;}
-	 else if(i==n-1) {GReg[0]=tmp;j++;}
+         if(i<7) {TckReg[i]=tmp;TckPos[i]=val;j++;}
+	 else if(i<7+4) {TrigReg[i-7]=tmp;TrigThresh[i-7]=val;j++;}
+	 else if(i==n-1) {GReg[0]=tmp;GuardThresh[0]=val;j++;}
         }
       }
    }
