@@ -355,7 +355,7 @@ class ALEvent:public TObject
    ////////////////////////////////
 
 
-   int get_NL();
+   int get_NLayers();
    int get_Layer(int);
    void get_Layers(int*);
 
