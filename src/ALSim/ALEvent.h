@@ -5,40 +5,8 @@
 #ifndef __ALEVENT__
 #define __ALEVENT__
 #include "headers.h"
-#include "TVector3.h"
 #include "ALTckhit.h"
 
-/*
-struct ALHit //Track or hits
-{
- float mregMC; // region if MC
- float mtrackMC; // mtrack of track
- int typeMC;   //type of particle if MC
- float eMC;     //total energy if MC (entrance of the tracker layer)
- float xin;      //x coordinate of hit MC (entrance of the tracker layer)
- float yin;      //y coordinate of hit MC (entrance of the tracker layer)
- float zin;      //z coordinate of hit MC (entrance of the tracker layer)
- float xout;     //x coordinate of hit MC (exit the tracker layer)
- float yout;     //y coordinate of hit MC (exit the tracker layer)
- float zout;     //z coordinate of hit MC (exit the tracker layer)
- float age;    //Age of particle if MC  (entrance of the tracker layer)
- float cx;     //cosineX of momentum MC (Average in the tracker layer)
- float cy;     //cosineY of momentum MC (Average in the tracker layer)
- float cz;     //cosineZ of momentum MC (Average in the tracker layer)
- int flag;     //flag value: Track=1, Hit=0
- float DeltaE;     //Energy along the track or at hit location Hit=0
- //Reconstructed information
- float xreco;      //x coordinate of hit 
- float yreco;      //y coordinate of hit 
- float zreco;      //z coordinate of hit 
- float agereco;    //Age of particle  
- float cxreco;     //cosineX of momentum 
- float cyreco;     //cosineY of momentum 
- float czreco;     //cosineZ of momentum    
- float ereco;     //kinetic energy 
- int k;     //kth hit in event 
-};
-*/
 
 class ALEvent:public TObject
 {
@@ -46,7 +14,7 @@ class ALEvent:public TObject
   
    int eventnumber; //Event number
    
-   //Data FROM "PHA" LINE
+   //Data FROM "PHA" LINE, trigger information
    int yPHA;//Year from PHA line linked to the event
    int mPHA;//Month from PHA line linked to the event
    int dPHA;//Day from PHA line linked to the event
@@ -56,7 +24,7 @@ class ALEvent:public TObject
    double GoPHA;//Go counter
    double tPHA;//timer
    
-   //Data FROM "EVT" LINE
+   //Data FROM "EVT" LINE, tracker information
    int yEVT;//Year from EVT line linked to the event
    int mEVT;//Month from EVT line linked to the event
    int dEVT;//Day from EVT line linked to the event
@@ -73,40 +41,40 @@ class ALEvent:public TObject
    int Q1EVT;//Q1 from EVT line linked to the event   added 12/05/2017
    double TrigEVT;//Q1 from EVT line linked to the event   added 12/05/2017
    
-   //Data FROM "EVT" LINE
+   //Data FROM "ASI" LINE
    string L[7];//Data from  ASI lines of the event
    int flagL[7];//1 if ASI line was present
    
    
    //Monte Carlo information: Truth variable names finish with MC 
    int ncase; 
-   int typeMC; //type of particle
-   double EkMC;   //kinetic energy of the particle
-   double X0MC,Y0MC,Z0MC;//Coordinates of the partcle at the injection point 
-   double CX0MC,CY0MC,CZ0MC; //Incidence cosines of the partcle at the injection point 
-   // Hits information
-   int Nhits; //Number of hits in the event
+   int typeMC; 					//type of particle
+   double EkMC;   				//kinetic energy of the particle at injection point
+   double pMC;	        			//momentum of particle at injection point
+   double X0MC,Y0MC,Z0MC;			//Coordinates of the partcle at the injection point 
+   double CX0MC,CY0MC,CZ0MC; 			//Incidence cosines of the partcle at the injection point 
+   int Nhits; 					//Number of hits in the event (MC && data)
    
    
    //Pattern Recognition info
    
-   double EkPR, p0PR;			//kinetic energy and momentum of particle from least squares fit
-   double chi2NB, chi2B, clNB, clB;	//chi2 of parabolic/linear fit in bending/nonbending plane
-   double a, b, c;			//parameters of parabolic fit ( y(x) = a + bx + cx*x)
-   double slope, inter;			//parameters of linear fit 
-   double deflec;                       //deflection from layer 2 to layer 6 in the beding plane: Difference of the slope of straight line
+   double EkPR, p0PR;				//kinetic energy and momentum of particle from least squares fit
+   double chi2NBPR, chi2BPR, clNBPR, clBPR;	//chi2 of parabolic/linear fit in bending/nonbending plane
+   double aPR, bPR, cPR;			//parameters of parabolic fit ( y(x) = c + bx + ax*x)
+   double slopePR, interPR;			//parameters of linear fit 
+   double deflecPR;                       	//deflection from layer 2 to layer 6 in the beding plane: Difference of the slope of straight line
    
   //Reconstruction information: variables finish with reco
-   int typereco;                    //type of particle
-   double Ekreco, p0reco;           //kinetic energy and momentum of the particle
-   double X0reco,Y0reco,Z0reco;     //Coordinates of the partcle at the injection point 
-   double CX0reco,CY0reco,CZ0reco;  //Incidence cosines of the partcle at the injection point 
-   int ndf;                         // number of degrees of freedom
-   double chi2, cl;                 //chi2 of fit and confidence level (cl = Prob(chi2, ndf)
-   double d0, phi0, cpa, dz, tanl;  //reconstructed helical track parameters
-   double phi0_init, cpa_init, tanl_init;  //initial helical track parameters
-   TVector3 B0_init;				 //magnetic field used for initial helix
+   int typereco;                    		//type of particle
+   double Ekreco, p0reco;           		//kinetic energy and momentum of the particle
+   double X0reco,Y0reco,Z0reco;     		//Coordinates of the partocle at the injection point 
+   double CX0reco,CY0reco,CZ0reco;  		//Incidence cosines of the particle at the injection point 
+   int ndf;                         		// number of degrees of freedom
+   double chi2, cl;                 		//chi2 of fit and confidence level (cl = Prob(chi2, ndf)
+   double d0, phi0, cpa, dz, tanl;  		//reconstructed helical track parameters
+   double phi0_init, cpa_init, tanl_init;  	//initial helical track parameters
    double d0err2, phi0err2, cpaerr2, dzerr2, tanlerr2; //err^2 of track parameters
+   TMatrixD Cov_init, Cov_last;			//covariance matrix at initialization and last site
    
    //Hits information
    std::vector<ALTckhit*> hits;  
@@ -180,6 +148,7 @@ class ALEvent:public TObject
    void set_ncase(int a){ncase=a;}
    void set_typeMC(int a){typeMC=a;}
    void set_EkMC(double a){EkMC=a;}
+   void set_pMC(double a){pMC=a;}
    void set_X0MC(double a){X0MC=a;}
    void set_Y0MC(double a){Y0MC=a;}
    void set_Z0MC(double a){Z0MC=a;}
@@ -193,16 +162,16 @@ class ALEvent:public TObject
    
    void set_EkPR(double a){EkPR=a;}
    void set_p0PR(double a){p0PR=a;}
-   void set_a(double b){a=b;}
-   void set_b(double a){b=a;}
-   void set_c(double a){c=a;}
-   void set_inter(double a){inter=a;}
-   void set_slope(double a){slope=a;}
-   void set_chi2B(double a){chi2B=a;}
-   void set_chi2NB(double a){chi2NB=a;}
-   void set_clB(double a){clB=a;}
-   void set_clNB(double a){clNB=a;}
-   void set_deflec(double a){deflec=a;}
+   void set_aPR(double b){aPR=b;}
+   void set_bPR(double a){bPR=a;}
+   void set_cPR(double a){cPR=a;}
+   void set_interPR(double a){interPR=a;}
+   void set_slopePR(double a){slopePR=a;}
+   void set_chi2BPR(double a){chi2BPR=a;}
+   void set_chi2NBPR(double a){chi2NBPR=a;}
+   void set_clBPR(double a){clBPR=a;}
+   void set_clNBPR(double a){clNBPR=a;}
+   void set_deflecPR(double a){deflecPR=a;}
    
    ////////////////////////////////
    void set_typereco(int a){typereco=a;}
@@ -225,12 +194,14 @@ class ALEvent:public TObject
    void set_phi0_init(double a){phi0_init=a;}
    void set_cpa_init(double a){cpa_init=a;}
    void set_tanl_init(double a){tanl_init=a;}
-   void set_B0_init(TVector3 a){B0_init=a;}
    void set_d0err2(double a){d0err2=a;}
    void set_phi0err2(double a){phi0err2=a;}
    void set_cpaerr2(double a){cpaerr2=a;}
    void set_dzerr2(double a){dzerr2=a;}
    void set_tanlerr2(double a){tanlerr2=a;}
+   void set_Cov_init(TMatrixD a){Cov_init=a;}
+   void set_Cov_last(TMatrixD a){Cov_last=a;}
+
    
    void add_hit(ALTckhit* h){hits.push_back(h);Nhits++;}
    
@@ -238,7 +209,10 @@ class ALEvent:public TObject
    void set_hxPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_xPR(a);}
    void set_hyPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_yPR(a);}
    void set_hzPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_zPR(a);}
-
+   void set_hcxPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_cxPR(a);}
+   void set_hcyPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_cyPR(a);}
+   void set_hczPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_czPR(a);}
+   
    //Set reconstruted variable at the position of the hit of index k
    void set_hxreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_xreco(a);}
    void set_hyreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_yreco(a);}
@@ -303,6 +277,7 @@ class ALEvent:public TObject
    int get_ncase(){return ncase;}
    int get_typeMC(){return typeMC;}
    double get_EkMC(){return EkMC;}
+   double get_pMC(){return pMC;}
    double get_X0MC(){return X0MC;}
    double get_Y0MC(){return Y0MC;}
    double get_Z0MC(){return Z0MC;}
@@ -317,16 +292,16 @@ class ALEvent:public TObject
    
    double get_EkPR(){return EkPR;}
    double get_p0PR(){return p0PR;}
-   double get_a(){return a;}
-   double get_b(){return b;}
-   double get_c(){return c;}
-   double get_inter(){return inter;}
-   double get_slope(){return slope;}
-   double get_chi2B(){return chi2B;}
-   double get_chi2NB(){return chi2NB;}
-   double get_clB(){return clB;}
-   double get_clNB(){return clNB;}
-   double get_deflec(){return deflec;}
+   double get_aPR(){return aPR;}
+   double get_bPR(){return bPR;}
+   double get_cPR(){return cPR;}
+   double get_interPR(){return interPR;}
+   double get_slopePR(){return slopePR;}
+   double get_chi2BPR(){return chi2BPR;}
+   double get_chi2NBPR(){return chi2NBPR;}
+   double get_clBPR(){return clBPR;}
+   double get_clNBPR(){return clNBPR;}
+   double get_deflecPR(){return deflecPR;}
 
    ////////////////////////////////
    int get_typereco(){return typereco;}
@@ -349,12 +324,13 @@ class ALEvent:public TObject
    double get_phi0_init(){return phi0_init;}
    double get_cpa_init(){return cpa_init;}
    double get_tanl_init(){return tanl_init;}
-   TVector3 get_B0_init(){return B0_init;}
    double get_d0err2(){return d0err2;}
    double get_phi0err2(){return phi0err2;}
    double get_cpaerr2(){return cpaerr2;}
    double get_dzerr2(){return dzerr2;}
    double get_tanlerr2(){return tanlerr2;}
+   TMatrixD get_Cov_init(){return Cov_init;}
+   TMatrixD get_Cov_last(){return Cov_last;}
    std::vector<ALTckhit*>& get_hits(){return hits;}
    bool get_T1(){return T1;}
    bool get_T2(){return T2;}
