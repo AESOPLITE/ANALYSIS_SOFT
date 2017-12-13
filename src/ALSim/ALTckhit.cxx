@@ -43,6 +43,7 @@ ALTckhit::ALTckhit()// Default
    L=-1;         //Layer from 0 to 6 top to bottom
    chip=-1;      //Chip ID: 0 to 11
    nstrips=-1;   //Number of strips in the cluster
+   nstripsNC=-1;   //Number of strips in the next chip if it is a boundary cluster (except boundary chips 5-6)
    fstrip=-1;    //First strip ID from 0 to 63 
    fstripID=-1;  //First strip on the layer from 1 768
    noisy=0;

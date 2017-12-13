@@ -46,6 +46,7 @@ class ALTckhit:public TObject
   int L;         //Layer from 0 to 6 top to bottom, for MC & data
   int chip;      //Chip ID: 0 to 11
   int nstrips;   //Number of strips in the cluster
+  int nstripsNC; //Number of strips in the next chip if it is a boundary cluster (except boundary chips 5-6)
   int fstrip;    //First strip ID from 0 to 63 
   int fstripID;  //First strip on the layer from 1 768
   int noisy;  //is 1 if one the strip of the cluster is noisy
@@ -123,6 +124,7 @@ class ALTckhit:public TObject
    void set_L(int a){L=a;}       
    void set_chip(int a){chip=a;}      
    void set_nstrips(int a){nstrips=a;}   
+   void set_nstripsNC(int a){nstripsNC=a;}   
    void set_fstrip(int a){fstrip=a;}    
    void set_fstripID(int a){fstripID=a;}  
    void set_noisy(int a){noisy=a;}  
@@ -169,6 +171,7 @@ class ALTckhit:public TObject
    int get_L(){return L;}         
    int get_chip(){return chip;}      
    int get_nstrips(){return nstrips;}   
+   int get_nstripsNC(){return nstripsNC;}   
    int get_fstrip(){return fstrip;}    
    int get_fstripID(){return fstripID;}  
    int get_noisy(){return noisy;}  

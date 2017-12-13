@@ -182,3 +182,28 @@ void ALEvent::Copy(ALEvent* e)
 
  
 }
+
+////////////////////////////////
+//Methods to get number of layerS and layer with hits
+////////////////////////////////
+
+int  ALEvent::get_NLayers()
+ {
+  uint8_t tmpTi=(uint8_t)Ti;
+  int NL=0;
+  for(int ij=0;ij<7;ij++) NL+=(int)((tmpTi >>ij) & 0x01);
+  return NL; 
+ }
+int  ALEvent::get_Layer(int i)
+ {
+  uint8_t tmpTi=(uint8_t)Ti;
+  int Ni=0;
+  if(i<7) Ni=(int)((tmpTi >>i) & 0x01);
+  return Ni; 
+ }
+void  ALEvent::get_Layers(int*Lay)
+ {
+  uint8_t tmpTi=(uint8_t)Ti;
+  Lay=new int[7];
+  for(int ij=0;ij<7;ij++) Lay[ij]=(int)((tmpTi >>ij) & 0x01);
+ }

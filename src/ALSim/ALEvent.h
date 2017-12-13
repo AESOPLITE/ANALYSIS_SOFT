@@ -349,6 +349,19 @@ class ALEvent:public TObject
    std::vector<double>&  get_timeg(){return timeg;}
    int get_Ti(){return Ti;}
 
+
+   ////////////////////////////////
+   //Methods to get number of layerS and layer with hits
+   ////////////////////////////////
+
+
+   int get_NL();
+   int get_Layer(int);
+   void get_Layers(int*);
+
+
+
+
    ////////////////////////////////
    ClassDef(ALEvent,1)
 
