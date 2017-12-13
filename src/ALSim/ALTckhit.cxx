@@ -53,8 +53,12 @@ ALTckhit::ALTckhit()// Default
  
   //Pattern Reco info
    xPR=0;
-   yPR=-0;
+   yPR=0;
    zPR=0;
+   cxPR=0;
+   cyPR=0;
+   czPR=0;
+   fGhost=false;
    flagPR=false;
 
   //Reconstructed information
@@ -66,9 +70,9 @@ ALTckhit::ALTckhit()// Default
    cyreco=-999;     //cosineY of momentum 
    czreco=-999;     //cosineZ of momentum    
    ereco=-999;     //kinetic energy 
+   fUsed=false;    //if site accepted by filter
    k=-999;     //kth hit in event
 	
 	
 
 }
-
