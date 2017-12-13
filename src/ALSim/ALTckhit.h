@@ -1,58 +1,11 @@
+
 ////////////////////////////////////////////////////////////////////////////////////////// 
 ///    Author: Pierre-Simon Mangeard, psmangeard@gmail.com
 ///    Department of Physics and Astronomy, University of Delaware, October 28, 2016
 ////////////////////////////////////////////////////////////////////////////////////////// 
 
 #include <iostream>
-#include <iomanip>
-#include <vector>
-#include <algorithm>
-#include <fstream>
-#include <stdio.h>
-#include <string>
-#include <stdlib.h>
-#include <sstream>
-#include <TROOT.h>
-#include <Riostream.h>
-#include "TChain.h"
-#include "TCanvas.h"
-#include "TObject.h"
-#include "TGraph.h"
-#include "TGraphErrors.h"
-#include "TMultiGraph.h"
-#include "TAxis.h"
-#include "TMath.h"
-#include "TLegend.h"
-#include "TLeaf.h"
-#include "TLine.h"
-#include "TCanvas.h"
-#include "TStyle.h"
-#include "TLinearFitter.h"
-#include "TH2F.h"
-#include "TH2D.h"
-#include "TCut.h"
-#include "TLine.h"
-#include "TArrow.h"
-#include "TBox.h"
-#include "TPDF.h"
-#include "TTree.h"
-#include "TBranch.h"
-#include "TFile.h"
-#include "TPostScript.h"
-#include "TPaveText.h"
-#include "TString.h"
-#include "TH1F.h"
-#include "TSystem.h"
-#include "THStack.h"
-#include "TNtuple.h"
-#include "TFormula.h"
-#include "TFitResultPtr.h"
-#include "TFitResult.h"
-#include "TH3F.h"
-#include "TRandom3.h"
-#include "TRandom2.h"
-#include "TRandom1.h"
-
+#include "headers.h"
 
 
 #ifndef ALTckhit_H
@@ -90,16 +43,16 @@ class ALTckhit:public TObject
   int s;//Second from first ASI line of the event
   
   //Raw Data from cluster information
-  int L;         //Layer from 0 to 6 top to bottom
+  int L;         //Layer from 0 to 6 top to bottom, for MC & data
   int chip;      //Chip ID: 0 to 11
   int nstrips;   //Number of strips in the cluster
   int fstrip;    //First strip ID from 0 to 63 
   int fstripID;  //First strip on the layer from 1 768
   int noisy;  //is 1 if one the strip of the cluster is noisy
   //Coordinates of the cluster in cm determined from the raw data
-  float x;
-  float y;
-  float z;
+  float x;				//used for MC and data
+  float y;				//used for MC and data
+  float z;				//used for MC and data
 
   
   //Information from Pattern Recognition
@@ -107,6 +60,10 @@ class ALTckhit:public TObject
   float xPR;       //x coordinate of "chosen" hit MC (selected by Pattern Recognition)
   float yPR;       //y coordinate of "chosen" hit MC (selected by Pattern Recognition)
   float zPR;       //z coordinate of "chosen" hit MC (selected by Pattern Recognition)
+  float cxPR;	   //cosineX from PR fit
+  float cyPR;	   //cosineY from PR fit
+  float czPR;	   //cosineZ from PR fit
+  bool fGhost;	   //flag true = "fake" hit from PR extrapolation, false = true hit	
   bool flagPR;	   // flag  if hit chosen for reconstruction, flag = 0 if not 
  
   //Reconstructed information
@@ -118,6 +75,7 @@ class ALTckhit:public TObject
   float cyreco;     //cosineY of momentum 
   float czreco;     //cosineZ of momentum    
   float ereco;     //kinetic energy 
+  bool fUsed;      //flag to tell if hit was accepted by reconstruction algorithm
   int k;     	   //kth hit in event  
  
  public: 
@@ -153,6 +111,7 @@ class ALTckhit:public TObject
    void set_czreco(float a){czreco=a;}
    void set_ereco(float a){ereco=a;}
    void set_agereco(float a){agereco=a;}
+   void set_fUsed(bool a){fUsed=a;}
    void set_k(int a){k=a;}
    ////////////////////////////////
    void set_year(int a){y=a;}
@@ -175,6 +134,10 @@ class ALTckhit:public TObject
    void set_xPR(float a){xPR=a;}
    void set_yPR(float a){yPR=a;}
    void set_zPR(float a){zPR=a;}
+   void set_cxPR(float a){cxPR=a;}
+   void set_cyPR(float a){cyPR=a;}
+   void set_czPR(float a){czPR=a;}
+   void set_fGhost(bool a){fGhost=a;}
    void set_flagPR(bool a){flagPR=a;}
   
    ////////////////////////////////
@@ -217,6 +180,10 @@ class ALTckhit:public TObject
    float get_xPR() {return xPR;}
    float get_yPR() {return yPR;}
    float get_zPR() {return zPR;}
+   float get_cxPR() {return cxPR;}
+   float get_cyPR() {return cyPR;}
+   float get_czPR() {return czPR;}
+   bool  get_fGhost() {return fGhost;}
    bool  get_flagPR() {return flagPR;}
    
    ////////////////////////////////
@@ -228,6 +195,7 @@ class ALTckhit:public TObject
    float get_czreco( ){return czreco;}
    float get_ereco( ){return ereco;}
    float get_agereco( ){return agereco;}
+   bool  get_fUsed() {return fUsed;}
    int get_k( ){return k;}
 
    ////////////////////////////////
