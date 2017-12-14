@@ -11,16 +11,15 @@
 
 int MakeEventData(string filename,int geoconfig)
 {
-
- 
  //Load configuration parameter
  float* zL=new float[7];
  float*OffsetLL=new float[7];
  float*OffsetRL=new float[7];
+ int*TrigThresh=new int[5];
  for(int i=0;i<7;i++)zL[i]=OffsetLL[i]=OffsetRL[i]=0;
  string paramfile=Form("../src/ALSim/Dataparameters%d.dat",geoconfig); 
 
- LoadDataparameters(paramfile,zL,OffsetLL,OffsetRL);
+ LoadDataparameters(paramfile,zL,OffsetLL,OffsetRL,TrigThresh);
 
  for(int i=0;i<7;i++)
    {
@@ -28,7 +27,13 @@ int MakeEventData(string filename,int geoconfig)
     cout << ", OffsetLL:" << OffsetLL[i] ;
     cout << ", OffsetRL:" << OffsetRL[i] << endl;
    }  
- 
+ cout << "T1 threshold: " << TrigThresh[0] <<endl;
+ cout << "T2 threshold: " << TrigThresh[1] <<endl;
+ cout << "T3 threshold: " << TrigThresh[2] <<endl;
+ cout << "T4 threshold: " << TrigThresh[3] <<endl;
+ cout << "Guard threshold: " << TrigThresh[4] <<endl;
+
+
  //Maximum of configuration to try fitting
  
  int MAXB=1000;
@@ -48,7 +53,7 @@ int MakeEventData(string filename,int geoconfig)
 
 
  //Input root file 
- //Get input filename and ASIC Length 
+ //Get input filename and ASIC Length and EVT Length
  vector<string> input;
  //Split the line 
  input=split(&filename,' '); 
@@ -84,22 +89,24 @@ int MakeEventData(string filename,int geoconfig)
     tree->GetEntry(k); //Load the entry k in the variable e  
     //cout << "Make Event Data: "<<k <<endl;
     //Copy the raw event into a Data event with same structure 
-    //if(k!=3) continue;
-    if(k%10000==0) cout << "Event " << k << endl;
+    if(k%100==0) cout << "Event " << k << endl;
     de=new ALEvent();
     de->Copy(e);  
      
-    //loop over the number of clusters
-    int nnhits = (int)de->get_Nhits();
+    //Set boolean flag for triggers
+    
+    if(de->get_EneT1().at(0)>TrigThresh[0]) de->set_T1(true);
+    if(de->get_EneT2().at(0)>TrigThresh[1]) de->set_T2(true);
+    if(de->get_EneT3().at(0)>TrigThresh[2]) de->set_T3(true);
+    if(de->get_EneT4().at(0)>TrigThresh[3]) de->set_T4(true);
+    if(de->get_Eneg().at(0)>TrigThresh[4]) de->set_guard(true);
 
-    uint8_t Ti=(uint8_t)de->get_Ti();
+     uint8_t Ti=(uint8_t)de->get_Ti();
     //Number of layers wih hit(s)
-    int NL=0;
-    for(int i=0;i<7;i++) NL+=(int)((Ti >>i) & 0x01);
-     
-    if(NL>7) cout << "ERROR ON NUMBER OF LAYERS" <<endl;
+    int NL=de->get_NLayers();
+    //if(NL>7) cout << "ERROR ON NUMBER OF LAYERS" <<endl;
     int* Lay=new int[7];
-    for(int i=0;i<7;i++) Lay[i]=(int)((Ti >>i) & 0x01);
+    de->get_Layers(Lay);
 
     int NLB=0;
     int NLNB=0;
@@ -112,6 +119,9 @@ int MakeEventData(string filename,int geoconfig)
     NLNB+=(int)((Ti >>0) & 0x01);
     NLNB+=(int)((Ti >>4) & 0x01);
     NLNB+=(int)((Ti >>6) & 0x01);
+
+    //loop over the number of clusters
+    int nnhits = (int)de->get_Nhits();
 
     for(int i=0;i<nnhits;i++)
       {
@@ -126,15 +136,15 @@ int MakeEventData(string filename,int geoconfig)
        int fstripID=((de->get_hits()).at(i))->get_fstripID();
  
        //Determine the coordinate x,y,z parameters
-       //Get the values from configuration file read at the beginning of th efunction
+       //Get the values from configuration file read at the beginning of the function
        z=zL[L];
        offsetLL=OffsetLL[L];
        offsetRL=OffsetRL[L];
          
        //Determine the coordinates from the strips
-       //Equations from Sarah's email of Spetember 4 2017.
+       //Equations from Sarah's email of September 4 2017.
        //Just calculate the mean value of the strip positions
-       //Assume that the center of the coodinates is 0 is equidistant from the 
+       //Assume that the center of the coodinnates is 0 is equidistant from the 
        //two ladders
        center=(offsetRL+(offsetLL+384.*strippitch))/2.;
        //In non-bending plane: Coordinate X in cm
@@ -153,11 +163,8 @@ int MakeEventData(string filename,int geoconfig)
           
          //Calculate the center of the cluster depending on the number of strips 
     
-         x+=nstrips*strippitch/2.;    
-              
-          
-         y=-999.; 
-         
+         x+=nstrips*strippitch/2.;             
+         y=-999.;          
         }
        
        //In bending plane: Coordinate Y in cm
@@ -185,7 +192,7 @@ int MakeEventData(string filename,int geoconfig)
        ((de->get_hits()).at(i))->set_x(x);
        ((de->get_hits()).at(i))->set_y(y);
        ((de->get_hits()).at(i))->set_z(z);          
-      }  //i
+      }  //i nnhits
 
     ////////////////////////////////////
     //TRIGGER
@@ -274,7 +281,7 @@ int MakeEventData(string filename,int geoconfig)
       }  //i  
     
     //TEST ALL CONFIGURATIONS BENDING PLANE
-    
+    //if(de->get_eventnumber()==20191) cout << "EventB: " << de->get_eventnumber() << " " ;
     Int_t npointsB = xbend->GetEntries();
     if(NLB < 3)
      {  
@@ -294,7 +301,6 @@ int MakeEventData(string filename,int geoconfig)
     if(xbend4->GetEntries()!=0) layer4 = xbend4->GetEntries() ;// else cout << "bending plane layer 4 no hits " << endl;
 
     Int_t  ncomb   = layer1*layer2*layer3*layer4;
-    
     //cout << "There are " << ncomb << " possible combinations in the bending plane " << endl;
     if(ncomb<=0||ncomb>MAXB)
      {
@@ -354,8 +360,6 @@ int MakeEventData(string filename,int geoconfig)
                   gBendingInverted[ncombination]->SetPoint(gBendingInverted[ncombination]->GetN(), xx4->Z(), xx4->Y());//fourth layer
                   nhitB[ncombination]++;
                  }
-
-
                  
                  for(int ijk=0;ijk<gBending[ncombination]->GetN();ijk++)gBending[ncombination]->SetPointError(ijk,strippitch/TMath::Sqrt(12.),0.);
                 gBending[ncombination]->SetTitle(Form("Bending config %d", ncombination));
@@ -372,9 +376,10 @@ int MakeEventData(string filename,int geoconfig)
                 invertedparabolas[ncombination]->SetLineWidth(2);
                 invertedparabolas[ncombination]->SetLineStyle(1);
                 
-                //FIT
-                gBendingInverted[ncombination]->Fit(invertedparabolas[ncombination],"QSN");
-                double chi2=invertedparabolas[ncombination]->GetChisquare();
+				gBendingInverted[ncombination]->Fit(invertedparabolas[ncombination],"QSN");
+                
+				double chi2=0;
+				chi2=  invertedparabolas[ncombination]->GetChisquare();
 
                 chisquareB.push_back(chi2);
                                  
@@ -443,7 +448,7 @@ int MakeEventData(string filename,int geoconfig)
      }
     
     
-    //cout << "There are " << NConf << " possible combinations in the non-bending plane " << endl;
+   // cout << "There are " << NConf << " possible combinations in the non-bending plane " << endl;
     vector<double> chisquare;      
     TArrayI**indicesNB = new TArrayI*[NConf];//array of TVector3 corresponding to "good" hits in NB plane
     int*nhitNB=new int[NConf];
@@ -451,7 +456,8 @@ int MakeEventData(string filename,int geoconfig)
     TGraphErrors**gNonBending= new TGraphErrors*[NConf];
     TGraphErrors**gNonBending2= new TGraphErrors*[NConf];
     TF1**line = new TF1*[NConf];                  //arrays of fit functions for NB plane     
-   
+    
+
     //fit all possible lines 
     Int_t NConfig = 0;
     for(int m=0; m<ntop; m++) 
@@ -577,10 +583,10 @@ int MakeEventData(string filename,int geoconfig)
     Double_t b = invertedparabolas[indexB]->GetParameter(1);
     Double_t c = invertedparabolas[indexB]->GetParameter(0);
     
-    de->set_chi2B(chisquareB[indexB]);
-    de->set_a(a);
-    de->set_b(b);
-    de->set_c(c);
+    de->set_chi2BPR(chisquareB[indexB]);
+    de->set_aPR(a);
+    de->set_bPR(b);
+    de->set_cPR(c);
    //  if(indicesB[indexB]->GetSize()>4) 
     //     cout << "Event "<<de->get_eventnumber()  <<": Too many hits used for PR in the bending plane"  << endl;
     for (int l=0; l<nhitB[indexB];l++)
@@ -603,7 +609,7 @@ int MakeEventData(string filename,int geoconfig)
     
     //Set Deflection
     double deflection=diffout-diff;    
-    de->set_deflec(deflection);
+    de->set_deflecPR(deflection);
     
       //index of min. chisquare fit
     //   cout << " index of min chisquare in NB plane i = " << index << endl; 	  
@@ -615,9 +621,9 @@ int MakeEventData(string filename,int geoconfig)
     
     
     //Fill PR coordinates
-    de->set_inter(p0);
-    de->set_slope(p1);
-    de->set_chi2NB(chisquare.at(0));
+    de->set_interPR(p0);
+    de->set_slopePR(p1);
+    de->set_chi2NBPR(chisquare.at(0));
 
     //cout << "chi2: " << chisquare.at(index) <<endl;
     // cout << "p0: " << p0 <<endl;

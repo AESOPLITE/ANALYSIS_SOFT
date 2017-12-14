@@ -5,7 +5,7 @@
 
 #include "LoadDataparameters.h"
 
-void LoadDataparameters(string filename,float*zL,float*OffsetLL,float*OffsetRL)
+void LoadDataparameters(string filename,float*zL,float*OffsetLL,float*OffsetRL,int*TrigThresh)
 {
 //Read the file filename and load the detector geometry information
 //For each of the  7 layers of the tracker 
@@ -18,7 +18,7 @@ void LoadDataparameters(string filename,float*zL,float*OffsetLL,float*OffsetRL)
  //Number of lines in the file
  int n=7; 
  //Prefix 2 characters
- string pre[7]={"L0","L1","L2","L3","L4","L5","L6"}; 
+ string pre[12]={"L0","L1","L2","L3","L4","L5","L6","T1","T2","T3","T4","Gu"}; 
   
  //Create stream from filename 
  ifstream file;
@@ -31,23 +31,32 @@ void LoadDataparameters(string filename,float*zL,float*OffsetLL,float*OffsetRL)
     string prefix;
     in >> prefix;                  //and read the first whitespace-separated token
     string board;//not used
-    in >> board;//not used
     float ztmp;
-    in >> ztmp;
     float oLLtmp;
-    in >> oLLtmp;    
     float oRLtmp;
-    in >> oRLtmp;
-    
+    float valthres;
+   
     //check prefix to load the appropriate region variable 
     for(int i=0;i<n;i++)
       {
        if(prefix.compare(pre[i]) == 0)
         {
-         zL[i]=ztmp;
-         OffsetLL[i]=oLLtmp;
-         OffsetRL[i]=oRLtmp;
-         j++;
+         if(i<7)
+	   {
+            in >> board;//not used
+            in >> ztmp;
+            in >> oLLtmp;    
+            in >> oRLtmp;
+	    zL[i]=ztmp;
+            OffsetLL[i]=oLLtmp;
+            OffsetRL[i]=oRLtmp;
+           }
+	 else
+	   {
+            in >> valthres;
+    	    TrigThresh[i-7]=valthres;    
+	   } 
+	 j++;
         }
       }
    }

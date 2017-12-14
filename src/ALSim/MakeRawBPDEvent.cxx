@@ -13,6 +13,7 @@ int MakeRawBPDEvent(string filename)
  //Split the line 
  input=split(&filename,' '); 
  int ASILength =stoi(input.at(1));
+ int EVTLength =stoi(input.at(2));
  //Open input file
  ifstream filestr;
  filestr.open(input.at(0));
@@ -77,9 +78,9 @@ int MakeRawBPDEvent(string filename)
  //int NPHAwords=13; //PHA line for MIPFlit3.30
  int NPHAwords=11; //PHA line for MIPFlit3.31
  int NEVTwords=0;
- if(ASILength==0)  NEVTwords=4; //EVT line from MIPFlit3.30 to 3.35
- if(ASILength==1)  NEVTwords=16; //Was increased at the same time of ASIC Length
- 
+ if(EVTLength==0)  NEVTwords=4; //EVT line from MIPFlit3.30 to 3.35
+ if(EVTLength==1)  NEVTwords=16; //Was increased at the same time of ASIC Length
+ if(EVTLength==2)  NEVTwords=18; //Was increased at the same time of ASIC Length from NL0155 
  int NASIwords= 4; //ASI line   
 
  
@@ -164,13 +165,13 @@ int MakeRawBPDEvent(string filename)
       e->set_sPHA(second);
       //cout << "PHA time was added to the event" <<endl;
       //Fill the trigger information from the PHA line
-      e->add_EneT1((double)s2i(&datalinePHA.at(3)));
-      e->add_EneT2((double)s2i(&datalinePHA.at(4)));
-      e->add_EneT3((double)s2i(&datalinePHA.at(5)));
-      e->add_EneT4((double)s2i(&datalinePHA.at(6)));
-      e->add_Eneg((double)s2i(&datalinePHA.at(7)));
-      e->set_GoPHA((int)s2i(&datalinePHA.at(9)));
-      e->set_tPHA(s2f(&datalinePHA.at(10)));
+      e->add_EneT1(s2lf(&datalinePHA.at(3)));
+      e->add_EneT2(s2lf(&datalinePHA.at(4)));
+      e->add_EneT3(s2lf(&datalinePHA.at(5)));
+      e->add_EneT4(s2lf(&datalinePHA.at(6)));
+      e->add_Eneg(s2lf(&datalinePHA.at(7)));
+      e->set_GoPHA(s2lf(&datalinePHA.at(9)));
+      e->set_tPHA(s2lf(&datalinePHA.at(10)));
      }//end read line starting with PHA  
          
 ///////////////////////////////////////////////
@@ -219,9 +220,22 @@ int MakeRawBPDEvent(string filename)
       //cout << "EVT time was added to the event" <<endl;
       //Fill data
       e->set_EVT(datalineEVT.at(3));
-      e->set_GoEVT(s2i(&datalineEVT.at(11)));
-       //cout << "GoEVT "<<s2f(&datalineEVT.at(11)) << endl;
-      e->set_tEVT(s2f(&datalineEVT.at(13)));
+      if(EVTLength==1)
+       {
+        e->set_GoEVT(s2lf(&datalineEVT.at(11)));
+        e->set_tEVT(s2lf(&datalineEVT.at(13)));
+       }  
+      if(EVTLength==2)
+       {
+        e->set_nHitLEVT(s2i(&datalineEVT.at(5)));
+        e->set_CCEVT(s2i(&datalineEVT.at(7)));
+        e->set_PatternEVT(s2i(&datalineEVT.at(9)));
+        e->set_Q1EVT(s2i(&datalineEVT.at(11)));
+        e->set_GoEVT(s2lf(&datalineEVT.at(13)));
+        e->set_tEVT(s2lf(&datalineEVT.at(15)));
+        e->set_TrigEVT(s2lf(&datalineEVT.at(17)));
+       }  
+
       // cout << "EVT data was added to the event" <<endl;
      }//end read line starting with EVT  
 
@@ -303,6 +317,357 @@ int MakeRawBPDEvent(string filename)
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////// 
+//Test readout with internal trigger on
+////////////////////////////////////////////////////////////////////////////////////////// 
+int MakeRawBPDEventIT(string filename)
+{
+
+ //Get input filename and ASIC Length and EVT Length
+ vector<string> input;
+ //Split the line 
+ input=split(&filename,' '); 
+ int ASILength =stoi(input.at(1));
+ int EVTLength =stoi(input.at(2));
+ //Open input file
+ ifstream filestr;
+ filestr.open(input.at(0));
+ if(!filestr.is_open())
+  {
+   cout << "The file " <<input.at(0) << " is not open ... "<< endl ;
+   return -1;
+  }   
+ 
+  
+  
+
+ //Load configuration parameter
+/* int*TckReg=new int[7];
+ int*TrigReg=new int[4];
+ int*GReg=new int[1];for(int i=0;i<1;i++)GReg[i]=0;
+ for(int i=0;i<7;i++)TckReg[i]=0;
+ for(int i=0;i<4;i++)TrigReg[i]=0;
+ for(int i=0;i<1;i++)GReg[i]=0;
+ string MCparamfile="../src/ALSim/MCparameters.dat"; 
+ 
+ LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg);
+*/
+
+ //Output root file 
+ TFile*fileout=new TFile(Form("%s.root",input.at(0).c_str()),"RECREATE");
+ cout << "Output file is created" <<endl;
+
+ // Create a TTree
+ TTree *tree = new TTree("BPD","BPD Raw event");
+ ALEvent *e = new ALEvent();
+ 
+ // Create a branch with event
+ tree->Branch("event",&e);  
+
+//Temporary variable for internal triggers 
+ int*Titmp=new int[7];
+ for (int i=0;i<7;i++)Titmp[i]=0;
+ 
+ int nL=0;
+ int iL=0;
+ vector<ALTckhit*> Hh;
+
+ 
+///////////////////////////////////////////////
+//Define variables needed during the reading of the file
+///////////////////////////////////////////////
+
+ //Line number
+ int kLine=0;
+ //Event number
+ int kEvent=0;
+ 
+ //vector of the last "PHA" lines
+ vector <string> prevPHAline;
+ //Number of "PHA" lines kept in memory
+ int NPHAMem=5; 
+ //Last "EVT" lines
+ string prevEVTline=" ";
+ double prevGo=-999;
+
+ //number of words per line
+ //int NPHAwords=13; //PHA line for MIPFlit3.30
+ int NPHAwords=11; //PHA line for MIPFlit3.31
+ int NEVTwords=0;
+ if(EVTLength==0)  NEVTwords=4; //EVT line from MIPFlit3.30 to 3.35
+ if(EVTLength==1)  NEVTwords=16; //Was increased at the same time of ASIC Length
+ if(EVTLength==2)  NEVTwords=18; //Was increased at the same time of ASIC Length from NL0155
+ 
+ int NASIwords= 4; //ASI line   
+
+ 
+//Number of Layers read
+ int kASI=0;
+ int kEVT=0;
+ int kPHA=0;
+ int flagGoodGo=0;
+//Start to read the file
+ for (string line; getline(filestr,line);)
+   {
+   // if(kEvent>3) return -1;
+    //Here the full line is read and stored in the string object "line" 
+    //if(kEvent>10) continue;
+
+    kLine++;
+   // if(kLine%1000==0)  
+  //        cout<< "Line " << kLine << " is read" <<endl; 
+///////////////////////////////////////////////
+//Compare the first 3 char of the line to "PHA"
+///////////////////////////////////////////////
+
+    if (line.compare(0,3,"PHA",3)==0) 
+     {
+      //cout << "In PHA line" <<endl;
+      //Each PHA Line creates one event
+      //If not the first PHA Line fill the previous event in the tree 
+      if(kEvent!=0)  
+       {
+        int t=0;
+        for (int ij=0;ij<7;ij++) t+=Titmp[ij]*(int)TMath::Power(2,ij);
+        e->set_Ti(t);
+        tree->Fill(); 
+        //reset event 
+        kEVT=0; 
+        kASI=0; 
+        kPHA=0;
+        flagGoodGo=0;
+        delete e;
+       }
+    
+      //Define new event   
+      e=new ALEvent();
+      //Increment the number of read events 
+      kEvent++;
+      kPHA=1;
+      e->set_eventnumber(kEvent);    
+
+      //Define internal tracker trigger 
+      Titmp=new int[7];
+      for(int ij=0;ij<7;ij++)Titmp[ij]=0;       
+      
+      ///////////////////////////////////////////////
+      //Extract the data from the last PHA line
+      ///////////////////////////////////////////////  
+      vector<string> datalinePHA;
+
+      //Split the line 
+      datalinePHA=split(&line,' '); 
+      
+      if((int)datalinePHA.size()!=NPHAwords)
+        {
+         cout << "Number of words in the PHA line is wrong : " << (int)datalinePHA.size() << " (Should be " << NPHAwords  << "): "<< endl;
+         cout << line <<endl;
+         continue;
+        }    
+      int year=0;
+      int month=0;
+      int day=0;
+      int hour=0;
+      int minute=0;
+      int second=0;
+
+      //Extract PHA date
+      year=month=day=0;
+      //cout << "extract PHA date" <<endl;
+      //cout << dataline.at(1) <<endl;
+      extractdate(&year,&month,&day,&datalinePHA.at(1));
+      //cout << "extract PHA date is done" <<endl;
+      //Extract PHA time
+      hour=minute=second=0;
+      //cout << "extract PHA time" <<endl;
+      extracttime(&hour,&minute,&second,&datalinePHA.at(2));
+      //cout << "extract PHA time is done" <<endl;
+      //Fill the event structure with PHA time variables
+      e->set_yPHA(year);
+      e->set_mPHA(month);
+      e->set_dPHA(day);
+      e->set_hPHA(hour);
+      e->set_miPHA(minute);
+      e->set_sPHA(second);
+      //cout << "PHA time was added to the event" <<endl;
+      //Fill the trigger information from the PHA line
+      e->add_EneT1(s2lf(&datalinePHA.at(3)));
+      e->add_EneT2(s2lf(&datalinePHA.at(4)));
+      e->add_EneT3(s2lf(&datalinePHA.at(5)));
+      e->add_EneT4(s2lf(&datalinePHA.at(6)));
+      e->add_Eneg(s2lf(&datalinePHA.at(7)));
+      e->set_GoPHA(s2lf(&datalinePHA.at(9)));
+      e->set_tPHA(s2lf(&datalinePHA.at(10)));
+      
+     }//end read line starting with PHA  
+         
+///////////////////////////////////////////////
+//Compare the first 3 char of the line to "EVT"
+///////////////////////////////////////////////
+    if (line.compare(0,3,"EVT",3)==0)
+     {
+     // cout << "In EVT line" <<endl;
+      
+      //An EVT line is always associated to the previous PHA line   
+      //If several EVT lines follow one PHA line then the last EVT line is recorded
+      ///////////////////////////////////////////////
+      //Extract the data from the EVT line
+      ///////////////////////////////////////////////  
+      vector<string> datalineEVT;
+      kEVT++; 
+      //Split the line
+      datalineEVT=split(&line,' '); 
+      double oldGo=prevGo; 
+      string oldline=prevEVTline;
+      prevEVTline=line;
+      if((int)datalineEVT.size()!=NEVTwords)
+       {
+        cout << "Number of words in the EVT line is wrong : " << (int)datalineEVT.size() << " (Should be " << NEVTwords  << "): "<< endl;
+        cout << line <<endl;
+       }    
+       
+       if(EVTLength==1)
+        {
+         prevGo=s2lf(&datalineEVT.at(11));
+        }  
+       if(EVTLength==2)
+        {
+         prevGo=s2lf(&datalineEVT.at(13));
+        } 
+
+     // if(prevGo!=(oldGo+1))continue;
+      flagGoodGo=1;
+      //cout << oldline << endl;
+     // cout << line <<endl;
+      //cout << "Line: "<< kLine<<", oldGO=" << oldGo << ", prevGo=" <<prevGo<<endl; 
+       
+      if(kPHA!=1)continue;
+      if(kEVT!=1) {continue;} //Does not fill if the EVT line doesnt follow directly a PHA line  
+
+      int year=0;
+      int month=0;
+      int day=0;
+      int hour=0;
+      int minute=0;
+      int second=0;
+      //Extract EVT date
+      //cout << "extract EVT date" <<endl;
+      //cout << dataline.at(1) <<endl;
+      extractdate(&year,&month,&day,&datalineEVT.at(1));
+      //cout << "extract EVT date is done" <<endl;
+      //Extract PHA time
+      hour=minute=second=0;
+      //cout << "extract EVT time" <<endl;
+      extracttime(&hour,&minute,&second,&datalineEVT.at(2));
+       
+      //cout << "extract EVT time is done" <<endl;
+      //Fill the event structure with EVT time variables
+      e->set_yEVT(year);
+      e->set_mEVT(month);
+      e->set_dEVT(day);
+      e->set_hEVT(hour);
+      e->set_miEVT(minute);
+      e->set_sEVT(second);
+      //cout << "EVT time was added to the event" <<endl;
+      //Fill data
+      e->set_EVT(datalineEVT.at(3));
+      if(EVTLength==1)
+       {
+        e->set_GoEVT(s2lf(&datalineEVT.at(11)));
+        e->set_tEVT(s2lf(&datalineEVT.at(13)));
+       }  
+      if(EVTLength==2)
+       {
+        e->set_nHitLEVT(s2i(&datalineEVT.at(5)));
+        e->set_CCEVT(s2i(&datalineEVT.at(7)));
+        e->set_PatternEVT(s2i(&datalineEVT.at(9)));
+        e->set_Q1EVT(s2i(&datalineEVT.at(11)));
+        e->set_GoEVT(s2lf(&datalineEVT.at(13)));
+        e->set_tEVT(s2lf(&datalineEVT.at(15)));
+        e->set_TrigEVT(s2lf(&datalineEVT.at(17)));
+       }  
+        //cout << "GoEVT "<<s2f(&datalineEVT.at(11)) << endl;
+      // cout << "EVT data was added to the event" <<endl;
+     }//end read line starting with EVT  
+
+///////////////////////////////////////////////
+//Compare the first 3 char of the line to "ASI"
+///////////////////////////////////////////////
+    if (line.compare(0,3,"ASI",3)==0) 
+     {
+      //cout << "In ASI line" <<endl;       
+      if (kASI==7) continue;//Skip the ASI lines after 7 lines
+      //Define vector of string "dataline"
+      //The vector will contains the words of the line 
+      vector<string> dataline;
+      dataline=split(&line,' '); //split the line in a vector of words
+      kASI++;
+      if((int)dataline.size()!=NASIwords)
+       {
+        cout << "Number of words in the ASI line is wrong : " << (int)dataline.size() << " (Should be " << NASIwords  << "): "<< endl;
+        cout << line <<endl;
+        return -1;
+       }    
+      if(kPHA!=1)continue;
+      if(flagGoodGo==0) continue;
+      //Extract ASI date
+      int yearASI=0;
+      int monthASI=0;
+      int dayASI=0;
+      //cout << "extract ASI date" <<endl;
+      //cout << dataline.at(1) <<endl;
+      extractdate(&yearASI,&monthASI,&dayASI,&dataline.at(1));
+      //cout << "extract ASI date is done" <<endl;
+      //Extract ASI time
+      int hourASI=0;
+      int minuteASI=0;
+      int secondASI=0;
+      //cout << "extract ASI time" <<endl;
+      extracttime(&hourASI,&minuteASI,&secondASI,&dataline.at(2));
+      //cout << "extract ASI time is done" <<endl;
+        
+      //Decode ASIC code
+      if(ASILength==0)DecodeASIShort(dataline.at(3),&Hh,Titmp);   
+      if(ASILength==1)DecodeASILong(dataline.at(3),&Hh,Titmp);   
+       
+      for(int ij=0;ij<(int)Hh.size();ij++)
+        {
+         //e->set_L(Hh.at(ij)->getL(),dataline.at(3));
+         e->set_flagL(Hh.at(ij)->get_L(),1);
+         Hh.at(ij)->set_year(yearASI);
+         Hh.at(ij)->set_m(monthASI);
+         Hh.at(ij)->set_d(dayASI);
+         Hh.at(ij)->set_h(hourASI);
+         Hh.at(ij)->set_mi(minuteASI);
+         Hh.at(ij)->set_s(minuteASI);
+         e->add_hit(Hh.at(ij));
+        } 
+      //Clear hits  
+      Hh.clear();
+     }//end read line starting with ASI
+   }//end read file 
+
+ 
+ //Fill last event
+ int t=0;
+ for (int ij=0;ij<7;ij++) t+=Titmp[ij]*(int)TMath::Power(2,ij);
+ e->set_Ti(t);
+ tree->Fill(); 
+ //reset event 
+ delete e;
+ 
+ 
+ //Write tree in output file 
+ tree->Write(0,TObject::kOverwrite); 
+
+ //Close the file
+ filestr.close();
+ cout << "The file "<<filename  << " is closed"<< endl;  
+ fileout->Close();
+ cout << "The output file "<<Form("%s.root",input.at(0).c_str())  << " is closed"<< endl;  
+
+ return 0;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////// 
@@ -313,9 +678,7 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
 {
  
 //For data of August 10, 2017
-  
- ALTckhit*tmpH=new ALTckhit();      
-    
+     
 //Get string length
 
  int datalength=data.length(); 
@@ -386,6 +749,17 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
  //Start with 5 for the first chip header
  index=5;
  if(index>=datalength||index+3>=datalength) return 0;//Number of bytes incorrect
+
+ //Variables to combine with the chip boundary clusters   
+    
+ int* laststr=new int [12];
+ int* firststr=new int [12];
+ for(int i=0;i<12;i++) laststr[i]=-1;  //will be equal to the j index  of the cluster that has a strip 63 
+ for(int i=0;i<12;i++) firststr[i]=-1;  //will be equal to the j index  of the cluster that has a strip 0 
+  
+ vector<ALTckhit*>tmpHV;
+ ALTckhit*tmpH;
+  
  for(int i=0;i<Nchip;i++)//Loop over the number of chips reporting cluster data
    {
     
@@ -481,6 +855,10 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
        tmpH->set_fstrip(Stripadd);    
        tmpH->set_fstripID(firstStripNumber);  
 
+       if(Stripadd+Nstrip==63) laststr[Chipadd]=tmpHV.size();
+       if(Stripadd==0) firststr[Chipadd]=tmpHV.size();
+ 
+        
        //Internal trigger for Layer L set to 1
        Ti[L]=1;
        tmpH->set_noisy(0);
@@ -493,11 +871,46 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
          }  
                
        //Fill up the vector 
-       Hh->push_back(tmpH);
+       tmpHV.push_back(tmpH);
        
        //Increment the index to the next 3-digit word
        index+=3;
       }//j
+   }//i
+ //Loop over the clusters and merge at the boundaries if needed
+ for(int i=0;i<(int) tmpHV.size();i++)
+   {
+    int chip=tmpHV.at(i)->get_chip();
+    int fstrip=tmpHV.at(i)->get_fstrip();
+    int nstrips=tmpHV.at(i)->get_nstrips();
+     
+    
+    if(fstrip+nstrips==63 && chip<11 && chip!=5) //The last strip is touched not chip 5 nor 11
+     {
+      int ij= firststr[chip+1];
+      //There is a cluster on the first strip of the next chip
+      if(ij!=-1) 
+       {
+        tmpHV.at(i)->set_nstrips(nstrips+tmpHV.at(ij)->get_nstrips());
+        tmpHV.at(i)->set_nstripsNC(tmpHV.at(ij)->get_nstrips());
+       }
+      Hh->push_back(tmpHV.at(i));
+     } 
+    else if(fstrip==0 && chip>0 && chip!=6) //The first strip is touched not chip 0 nor 6
+     {
+      int ij= laststr[chip-1];
+      //There is not a cluster on the last strip of the previous chip: This is a real hit
+      if(ij==-1) 
+       {
+        Hh->push_back(tmpHV.at(i));
+       }
+      //If there is a cluster on the last strip of the previous we don't record the information. 
+      //The information is filled  with the other cluster.                
+     }    
+    else //Fill the non boudary clusters
+     {
+      Hh->push_back(tmpHV.at(i));
+     }      
    }//i
  
 
@@ -509,9 +922,8 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
 int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
 {
  
-//For data froms November, 2017
+//For data from November, 2017
   
- ALTckhit*tmpH=new ALTckhit();      
     
 //Get string length
 
@@ -593,7 +1005,20 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
  int index=0;
  //Start with 9 for the first chip header
  index=9;
+
+  
  if(index>=datalength||index+3>=datalength) return 0;//Number of bytes incorrect
+
+  
+ //Variables to combine with the chip boundary clusters   
+    
+ int* laststr=new int [12];
+ int* firststr=new int [12];
+ for(int i=0;i<12;i++) laststr[i]=-1;  //will be equal to the j index  of the cluster that has a strip 63 
+ for(int i=0;i<12;i++) firststr[i]=-1;  //will be equal to the j index  of the cluster that has a strip 0 
+  
+ vector<ALTckhit*>tmpHV;
+ ALTckhit*tmpH;
  for(int i=0;i<Nchip;i++)//Loop over the number of chips reporting cluster data
    {
     
@@ -642,6 +1067,8 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
 
     index+=3;
     if(index>=datalength||index+3>=datalength) return 0;//Number of bytes incorrect
+     
+     
     for(int j=0;j<Nclus;j++)//Loop over the number of clusters
       {
        tmpH=new ALTckhit();     
@@ -680,7 +1107,7 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
       // cout << "Nstrip: "<< Nstrip+1 << ", Stripadd: " << Stripadd <<endl;
        
        //Determine the strip ID
-       //Equation from Sarah's email of Spetember 4 2017.
+       //Equation from Sarah's email of September 4 2017.
        int  firstStripNumber=64*(Chipadd+1)-Stripadd;
        
        tmpH->set_L(L);         
@@ -689,6 +1116,9 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
        tmpH->set_fstrip(Stripadd);    
        tmpH->set_fstripID(firstStripNumber);  
 
+       if(Stripadd+Nstrip==63) laststr[Chipadd]=tmpHV.size();
+       if(Stripadd==0) firststr[Chipadd]=tmpHV.size();
+        
        //Internal trigger for Layer L set to 1
        Ti[L]=1;
        tmpH->set_noisy(0);
@@ -701,22 +1131,52 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
          }  
                
        //Fill up the vector 
-       Hh->push_back(tmpH);
+       tmpHV.push_back(tmpH);
        
        //Increment the index to the next 3-digit word
        index+=3;
       }//j
    }//i
  
-
+ //Loop over the clusters and merge at the boundaries if needed
+ for(int i=0;i<(int) tmpHV.size();i++)
+   {
+    int chip=tmpHV.at(i)->get_chip();
+    int fstrip=tmpHV.at(i)->get_fstrip();
+    int nstrips=tmpHV.at(i)->get_nstrips();
+     
+    
+    if(fstrip+nstrips==63 && chip<11 && chip!=5) //The last strip is touched not chip 5 nor 11
+     {
+      int ij= firststr[chip+1];
+      //There is a cluster on the first strip of the next chip
+      if(ij!=-1) 
+       {
+        tmpHV.at(i)->set_nstrips(nstrips+tmpHV.at(ij)->get_nstrips());
+        tmpHV.at(i)->set_nstripsNC(tmpHV.at(ij)->get_nstrips());
+       }
+      Hh->push_back(tmpHV.at(i));
+     } 
+    else if(fstrip==0 && chip>0 && chip!=6) //The first strip is touched not chip 0 nor 6
+     {
+      int ij= laststr[chip-1];
+      //There is not a cluster on the last strip of the previous chip: This is a real hit
+      if(ij==-1) 
+       {
+        Hh->push_back(tmpHV.at(i));
+       }
+      //If there is a cluster on the last strip of the previous we don't record the information. 
+      //The information is filled  with the other cluster.                
+     }    
+    else //Fill the non boudary clusters
+     {
+      Hh->push_back(tmpHV.at(i));
+     }      
+   }//i
+                    
  return 1;
 }
  
-
-
-
-
-
 
 
 //*******************************************************************
@@ -740,6 +1200,17 @@ vector<string> split (string* str,char separator)
     }
   output.push_back(str->substr(prev_pos,pos-prev_pos)); //Last word
   return output;
+}
+
+//*******************************************************************
+// Transform the string str into a double
+//*******************************************************************
+double s2lf(string* str)
+{
+  istringstream buffer(*str);
+  double temp;
+  buffer >> temp;
+  return temp;
 }
 
 //*******************************************************************

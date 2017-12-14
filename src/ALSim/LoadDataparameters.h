@@ -59,7 +59,7 @@ using namespace std;
 #ifndef LOADDATAPARAMETERS_H
 #define LOADDATAPARAMETERS_H
 
-void LoadDataparameters(string filename,float*,float*,float*);
+void LoadDataparameters(string filename,float*,float*,float*,int*);
 
 
 
