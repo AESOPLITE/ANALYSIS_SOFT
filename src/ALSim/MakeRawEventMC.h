@@ -57,10 +57,10 @@
 #include "ALEvent.h"
 #include "LoadMCparameters.h"
 
-ClassImp(ALTckhit)
-ClassImp(ALEvent)
+//ClassImp(ALTckhit)
+//ClassImp(ALEvent)
 
-int MakeRawEventMC();
+int MakeRawEventMC(int ,int ,int,string,string,string,string,string);
 
 
 
