@@ -37,7 +37,7 @@ void LoadMCparameters(string filename,int*TckReg,int*TrigReg,int*GReg, float*Tck
        
        if(prefix.compare(pre[i]) == 0)
         {
-         if(i<7) {TckReg[i]=tmp;TckPos[i]=val;j++;}
+         if(i<7) {TckReg[i]=tmp;TckZPos[i]=val;j++;}
 	 else if(i<7+4) {TrigReg[i-7]=tmp;TrigThresh[i-7]=val;j++;}
 	 else if(i==n-1) {GReg[0]=tmp;GuardThresh[0]=val;j++;}
         }
