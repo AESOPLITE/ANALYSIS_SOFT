@@ -9,11 +9,13 @@ INSTALLDIR    = ../..
 SOREV         = 2005.01
 PACKAGENAME   = ALSim
 
-SRCS          =  MCmain.$(SrcSuf)  \
+SRCS          =  MakeRawBPDEvent.$(SrcSuf)  \
 			 TriggerRE.$(SrcSuf)  \
 			  MakeRawEventMC.$(SrcSuf)  \
+			  MakeEventData.$(SrcSuf)  \
 			ALEvent.$(SrcSuf)  \
 			 LoadMCparameters.$(SrcSuf)  \
+			 LoadDataparameters.$(SrcSuf) \
 		ALTckhit.$(SrcSuf) 
 
 OBJS	      =	$(subst .$(SrcSuf),.$(ObjSuf),$(SRCS)) \
