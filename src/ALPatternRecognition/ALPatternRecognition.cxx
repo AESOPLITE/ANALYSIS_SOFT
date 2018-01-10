@@ -26,7 +26,8 @@
  double  strippitch=0.0228;
 //Detector resolution in cm
  double sigma_reso = strippitch/TMath::Sqrt(12);			
-
+static const double kMelectron = 0.5109989461e-3;		//electron mass in GeV
+static const double kMuon = 0.105658371;				//muon mass in GeV
  float zz0=0;//in cm
  
  TCanvas*can;
@@ -36,7 +37,7 @@
  TF1*tmpfB;
  TF1*tmpfB2;
 
-void ALPatternRecognition::FindPattern(ALEvent *re) {
+void ALPatternRecognition::FindPattern(ALEvent *re, int type, int DataType) {
 	
 	
 int nnhits = re->get_Nhits(); 
@@ -68,10 +69,24 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
  for(int i=0;i<7;i++)TckZPos[i]=0;
  for(int i=0;i<4;i++)TrigThresh[i]=0;
  for(int i=0;i<1;i++)GuardThresh[i]=0;
+ //Load detector geometry parameters
+ float*zL=new float[7];
+ float*OffsetLL=new float[7];
+ float*OffsetRL=new float[7];
+ int*valthres=new int[4];
+ for(int i=0;i<7;i++)zL[i]=OffsetLL[i]=OffsetRL[i]=valthres[i]=0;
 	
+  
+
+//MC or data file
+ if(DataType==0) {//MC file	
  string MCparamfile="../src/ALSim/MCparameters.dat"; 
- 
  LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg,TckZPos,TrigThresh,GuardThresh);
+ 	}
+ else {
+ string DataFile="../src/ALSim/Dataparameters.dat";	 
+ LoadDataparameters(DataFile,zL,OffsetLL,OffsetRL,valthres);
+ }
  
  int*LayerWithHit= new int[7];
  re->get_Layers(LayerWithHit);
@@ -444,12 +459,39 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 	} //end for
 //add missing hits to event
     for(int ij=0;ij<(int)Hh.size();ij++) re->add_hit(Hh.at(ij));
- 
-//Calculate directional cosines for each hit	
-	   double slopeNB = re->get_slopePR();		//slope at L0 in non-bending plane
+
+//Calculate and set momentum and total energy of particle from PR fit
+	   double slopeNB = re->get_slopePR();
 	   double thetaNB = TMath::ATan(slopeNB);
        double aPR = re->get_aPR(); 
-
+	   double bPR = re->get_bPR();
+	   double cPR = re->get_cPR();
+	   //Signed curvature at the 4 points of the bending plane
+	   double zzz[4]={TckZPos[5],TckZPos[3],TckZPos[2],TckZPos[1]};
+	   double curv[4]={0,0,0,0};
+	   TF1* fcurv=new TF1("fcurv","2*[0]/TMath::Power(1+TMath::Power(2*[0]*x+[1],2),3./2.)",-20,20);
+	   fcurv->SetParameter(0,aPR);
+	   fcurv->SetParameter(1,2*a*zz0+bPR);
+	   double CurvMean=0; 	    
+	   for(int ij=0;ij<4;ij++)
+		{
+         curv[ij]= fcurv->Eval(zzz[ij]);   
+	    CurvMean+=	curv[ij]/4;
+		}   
+	   double Rmean=1./curv[2];
+	   if(CurvMean!=0)	 Rmean=1./CurvMean;			 
+	   //Extract a simple estimation of energy from the average of the 4 curvature a radius	 
+	   double B=0.3; //in T	
+	   double Pt=0.3 * B *	0.01*Rmean; //in GeV
+	   double p0PR= Pt / TMath::Cos(fabs(thetaNB));   //in GeV
+	   double mass;
+	   if (type==3 || type == 4) mass = kMelectron;	//for electrons in GeV
+	   else if(type==10 || type ==11)  mass = kMuon;	//for muons in GeV
+	   double EkPR=TMath::Sqrt(p0PR*p0PR+mass*mass);
+	   re->set_EkPR(EkPR);
+	   re->set_p0PR(p0PR);
+	
+//Calculate and set directional cosines for each hit	
 	for(int j=0;j<re->get_Nhits();j++) { 		
 		bool flagPR = re->get_hits().at(j)->get_flagPR();
 		int k = re->get_hits().at(j)->get_k();
@@ -466,6 +508,6 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 		} //if flag
 	}	//end for
 
-   
+
  
 }

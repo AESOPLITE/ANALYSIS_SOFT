@@ -75,7 +75,7 @@ public:
 	ALPatternRecognition() {};
 	virtual ~ALPatternRecognition() {};
 	
-	 void FindPattern(ALEvent *re);
+	 void FindPattern(ALEvent *re, int type, int DataType);
 	 void FindPatternPSM(ALEvent *re);
 	ClassDef(ALPatternRecognition, 1)
 };
