@@ -74,7 +74,8 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
  float*OffsetLL=new float[7];
  float*OffsetRL=new float[7];
  int*valthres=new int[4];
- for(int i=0;i<7;i++)zL[i]=OffsetLL[i]=OffsetRL[i]=valthres[i]=0;
+ for(int i=0;i<7;i++)zL[i]=OffsetLL[i]=OffsetRL[i]=0;
+ for(int i=0;i<4;i++)valthres[i]=0;
 	
   
 
