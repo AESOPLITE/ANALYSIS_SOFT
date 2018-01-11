@@ -27,13 +27,13 @@ int MakeRawEventMC(int typeT,int Ene,int cycle,string Inppath,string Inppath2,st
  
    //Input file 
 
-// TFile*file=new TFile(Form("%s/%d/%s/%s_%d_%dMeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
- TFile*file=new TFile(Form("%s/%d/%s/%s_%d_%dGeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
+ TFile*file=new TFile(Form("%s/%d/%s/%s_%d_%dMeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
+ //TFile*file=new TFile(Form("%s/%d/%s/%s_%d_%dGeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
 
 	cout << "Input file is open" <<endl;
   //Output file 
- //TFile*fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dMeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE");
- TFile*fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dGeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE"); 
+ TFile*fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dMeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE");
+ //TFile*fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dGeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE"); 
 cout << "Output file is created" <<endl;
 
  //Get ntuple from the input file
@@ -166,9 +166,9 @@ cout << "Output file is created" <<endl;
      {       
       if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}
       //End of the hit. Add the hit to the event
-      nh++;
       h->set_k(nh);
       e->add_hit(h);
+      nh++;
       //Check the layer for internal trigger
       for (int ij=0;ij<7;ij++)
         {
@@ -199,9 +199,9 @@ cout << "Output file is created" <<endl;
         if(type==11 || type ==10)	mass=0.10566;			//muon mass in GeV
 	    EkMC = TMath::Sqrt(pMC*pMC+mass*mass);
 		e->set_EkMC(EkMC);
-        e->set_X0MC(x);
-        e->set_Y0MC(y);
-        e->set_Z0MC(z);
+                e->set_X0MC(x);
+                e->set_Y0MC(y);
+                e->set_Z0MC(z);
         e->set_CX0MC(cx);
         e->set_CY0MC(cy);
         e->set_CZ0MC(cz);
@@ -296,25 +296,25 @@ cout << "Output file is created" <<endl;
          else //if this segment of track is the first part of the hit
 	  {
 	   //Fill the data at the entrance of the particle in the tracker layer
-	       h->set_mregMC(mreg); 
+	   h->set_mregMC(mreg); 
 	   //set layer number (for MC and data)
-		   h->set_L((int)mreg%11);
+           h->set_L((int)mreg%11);
            h->set_mtrackMC(mtrack);
            h->set_typeMC((int)type);
            h->set_eMC(pMC); 				//total energy of particle crossing region
            h->set_flag(flag);
            h->set_k(nh);
            h->set_age(age);
-	       h->set_cx(cx);
+	   h->set_cx(cx);
            h->set_cy(cy); 
            h->set_cz(cz);
-	       h->set_xin(x);
+	   h->set_xin(x);
            h->set_yin(y);   
            h->set_zin(z);
-	       h->set_xout(x);
+	   h->set_xout(x);
            h->set_yout(y);   
            h->set_zout(z); 
-	       h->set_DeltaE(Edep);
+	   h->set_DeltaE(Edep);
            nL=1;
           } //else
          iL=i; 
