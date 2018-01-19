@@ -45,7 +45,7 @@ int i = re->get_eventnumber();
 double E0 = re->get_EkMC();
 TObjArray *xnonbend = new TObjArray();
 TObjArray *xbend = new TObjArray();
-TObjArray *allhits = new TObjArray(nnhits);
+TObjArray *allhits = new TObjArray(nnhits+1);
 TObjArray *xtoplayer = new TObjArray();
 TObjArray *xbottomlayer = new TObjArray();
 TObjArray *xmid = new TObjArray();
@@ -90,6 +90,7 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
  }
  
  int*LayerWithHit= new int[7];
+ for(int i=0;i<7;i++)LayerWithHit[i]=0;
  re->get_Layers(LayerWithHit);
  uint8_t Ti=(uint8_t)re->get_Ti();
  //Number of layers with hit(s)
@@ -107,17 +108,17 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
       	Double_t xx=(re->get_hits().at(j))->get_x();
         Double_t yy=(re->get_hits().at(j))->get_y();
         Double_t zz=(re->get_hits().at(j))->get_z();
-//Smear the coordinate to simulate the finite resolution of the detector
-		xx  += gRandom->Gaus(0., sigma_reso);   // smearing x
+//Smear the coordinate to simulate the finite resolution of the detector, before discretization
+	xx  += gRandom->Gaus(0., sigma_reso);   // smearing x
         yy += gRandom->Gaus(0., sigma_reso);   // smearing y
-		int kk = re->get_hits().at(j)->get_k();
-		TVector3 *X = new TVector3(xx,yy,zz);
-		allhits->AddAt(X,kk);
+	int kk = re->get_hits().at(j)->get_k();
+	TVector3 *X = new TVector3(xx,yy,zz);
+	allhits->AddAt(X,kk);
  //add region of hit
-		int L = re->get_hits().at(j)->get_L();
-		// cout << "Original MC coordinates, event " << i << "  , layer" << L << "    x=" << xx << "  y=" << yy << "  z=" << zz << endl;
- 
-		if(L==0||L==4||L==6)//non-bending plane
+	int L = re->get_hits().at(j)->get_L();
+        //cout << "Hit " << j << "  , layer" << L << ", index " << kk << "    x=" << xx << "  y=" << yy << "  z=" << zz << endl;
+
+	if(L==0||L==4||L==6)//non-bending plane
          {
           xnonbend->Add(X);
           switch(L)
@@ -141,6 +142,7 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
       }  //j 
 	
 	//GraphAllPoints(re);
+	
     //TEST ALL CONFIGURATIONS BENDING PLANE
     int npointsB, layer1, layer2, layer3, layer4, ncomb;
 	layer1=layer2=layer3=layer4=1;
@@ -187,28 +189,28 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
                   TVector3 *xx1 =(TVector3*)xbend1->At(m);
                   gBending[ncombination]->SetPoint(gBending[ncombination]->GetN(), xx1->Y(), xx1->Z());//first layer
                   gBendingInverted[ncombination]->SetPoint(gBendingInverted[ncombination]->GetN(), xx1->Z(), xx1->Y());//first layer
-				  nhitB[ncombination]++;
+	          nhitB[ncombination]++;
                  }
                 if(xbend2->GetEntries()!=0)
                  {
                   TVector3 *xx2 =(TVector3*)xbend2->At(n);
                   gBending[ncombination]->SetPoint(gBending[ncombination]->GetN(), xx2->Y(), xx2->Z());//second layer
                   gBendingInverted[ncombination]->SetPoint(gBendingInverted[ncombination]->GetN(), xx2->Z(), xx2->Y());//second layer
-				  nhitB[ncombination]++;
+	          nhitB[ncombination]++;
                  }
                 if(xbend3->GetEntries()!=0)
                  {
                   TVector3 *xx3 =(TVector3*)xbend3->At(o);
                   gBending[ncombination]->SetPoint(gBending[ncombination]->GetN(), xx3->Y(), xx3->Z());//third layer
                   gBendingInverted[ncombination]->SetPoint(gBendingInverted[ncombination]->GetN(), xx3->Z(), xx3->Y());//third layer
-				  nhitB[ncombination]++;
+	          nhitB[ncombination]++;
                  }
                 if(xbend4->GetEntries()!=0)
                  {
                   TVector3 *xx4 =(TVector3*)xbend4->At(p);
                   gBending[ncombination]->SetPoint(gBending[ncombination]->GetN(), xx4->Y(), xx4->Z());//fourth layer
                   gBendingInverted[ncombination]->SetPoint(gBendingInverted[ncombination]->GetN(), xx4->Z(), xx4->Y());//fourth layer
-				  nhitB[ncombination]++;
+		  nhitB[ncombination]++;
                  }
  
                 
@@ -246,8 +248,8 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 				    }
 				if(xbend2->GetEntries()!=0) {
 				 	int k2 = ibend2.at(n);
-			     	indicesB[ncombination]->AddAt(k2,point);
-                    point++;
+			     	        indicesB[ncombination]->AddAt(k2,point);
+                                        point++;
 					 }
 				if(xbend1->GetEntries()!=0) {
 				 	int k1 = ibend1.at(m);
@@ -405,7 +407,7 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
     Double_t p0 = line[index]->GetParameter(0);                                     
     Double_t p1 = line[index]->GetParameter(1);						//p1 = 1/tanl 
     TF1*inverseline=new TF1("inverseline","(x-[0])/([1])",-10,10);
-	inverseline->SetParameters(p0,p1);
+    inverseline->SetParameters(p0,p1);
     
     //Fill PR coordinates
     re->set_interPR(p0);
@@ -419,23 +421,25 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
        int kk = indicesB[indexB]->At(l);
        re->get_hits().at(kk)->set_flagPR(true);
        re->get_hits().at(kk)->set_yPR(invertedparabolas[indexB]->Eval(re->get_hits().at(kk)->get_z()));   
-	   re->get_hits().at(kk)->set_zPR(re->get_hits().at(kk)->get_z());
+       re->get_hits().at(kk)->set_zPR(re->get_hits().at(kk)->get_z());
        //extrapolate the xPR from the fit in the non bending plane
        if(NLNB>=2)re->get_hits().at(kk)->set_xPR(line[index]->Eval(re->get_hits().at(kk)->get_z()));       
       }//l
 	
+
     for(int l=0; l<nhitNB[index]; l++)
       {
        //index of chosen points given by array indicesNB
-       int kk = indicesNB[index]->At(l);    
+       int kk = indicesNB[index]->At(l);
        re->get_hits().at(kk)->set_flagPR(true);
 
-       if(p1!=0)
-		re->get_hits().at(kk)->set_zPR(re->get_hits().at(kk)->get_z());
+       if(p1!=0) 
+	re->get_hits().at(kk)->set_zPR(re->get_hits().at(kk)->get_z());
         re->get_hits().at(kk)->set_xPR(p1*re->get_hits().at(kk)->get_z()+p0);
        //extrapolate the yPR from the fit in the bending plane
         if(NLB>=3)re->get_hits().at(kk)->set_yPR(invertedparabolas[indexB]->Eval(re->get_hits().at(kk)->get_z()));
-      }
+
+     }
 		
  //For events with <1 hit per layer: create ghost hit
     int kold = re->get_Nhits();
@@ -450,6 +454,7 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 			h->set_xPR(x);
 			h->set_yPR(y);
 			h->set_zPR(z);
+			//cout << "created ghost track for layer " << l << " zPR = " << z << endl;
 			h->set_fGhost(true);
 			h->set_flagPR(true);
 			h->set_L(l); 
@@ -461,10 +466,11 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 //add missing hits to event
     for(int ij=0;ij<(int)Hh.size();ij++) re->add_hit(Hh.at(ij));
 
+
 //Calculate and set momentum and total energy of particle from PR fit
 	   double slopeNB = re->get_slopePR();
 	   double thetaNB = TMath::ATan(slopeNB);
-       double aPR = re->get_aPR(); 
+           double aPR = re->get_aPR(); 
 	   double bPR = re->get_bPR();
 	   double cPR = re->get_cPR();
 	   //Signed curvature at the 4 points of the bending plane
@@ -496,16 +502,16 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 	for(int j=0;j<re->get_Nhits();j++) { 		
 		bool flagPR = re->get_hits().at(j)->get_flagPR();
 		int k = re->get_hits().at(j)->get_k();
-	    if(flagPR) {
+	        if(flagPR) {
 		    float zPR =  re->get_hits().at(k)->get_zPR();
-            double slopeB = 2*aPR*zPR;
-			double thetaB = TMath::ATan(slopeB);
+                    double slopeB = 2*aPR*zPR;
+		    double thetaB = TMath::ATan(slopeB);
 		    float cxPR = TMath::Cos(TMath::Pi()*0.5+thetaNB);
-			float cyPR = TMath::Cos(TMath::Pi()*0.5-thetaB);
-			float czPR = TMath::Cos(TMath::Pi()-thetaNB);
-			re->get_hits().at(k)->set_cxPR(cxPR);
-			re->get_hits().at(k)->set_cyPR(cyPR);
-			re->get_hits().at(k)->set_czPR(czPR);
+		    float cyPR = TMath::Cos(TMath::Pi()*0.5-thetaB);
+		    float czPR = TMath::Cos(TMath::Pi()-thetaNB);
+		    re->get_hits().at(k)->set_cxPR(cxPR);
+		    re->get_hits().at(k)->set_cyPR(cyPR);
+		    re->get_hits().at(k)->set_czPR(czPR);
 		} //if flag
 	}	//end for
 
