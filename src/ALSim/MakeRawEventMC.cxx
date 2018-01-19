@@ -24,19 +24,24 @@ int MakeRawEventMC(int typeT,int Ene,int cycle,string Inppath,string Inppath2,st
  string MCparamfile="../src/ALSim/MCparameters.dat"; 
  
  LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg,TckZPos,TrigThresh,GuardThresh);
- 
+ TFile *file;
+ TFile *fileout;
    //Input file 
-
- TFile*file=new TFile(Form("%s/%d/%s/%s_%d_%dMeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
- //TFile*file=new TFile(Form("%s/%d/%s/%s_%d_%dGeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
-
-	cout << "Input file is open" <<endl;
+if(typeT==3 || typeT==4) {
+ file=new TFile(Form("%s/%d/%s/%s_%d_%dMeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
+cout << "Input file is open" <<endl;
   //Output file 
- TFile*fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dMeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE");
- //TFile*fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dGeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE"); 
-cout << "Output file is created" <<endl;
-
- //Get ntuple from the input file
+ fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dMeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE");
+ cout << "Output file is created" <<endl;
+}
+else {
+file=new TFile(Form("%s/%d/%s/%s_%d_%dGeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
+cout << "Input file is open" << endl;
+fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dGeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE"); 
+cout << "Output file is created " << endl;
+}
+	
+//Get ntuple from the input file
  TNtuple*ntuple=(TNtuple*)file->Get("Track");
  cout << "Got the ntuple from the input file" <<endl;
 
