@@ -35,6 +35,8 @@ class ALMeasLayer : public TVMeasLayer, public TPlane {
 	static Bool_t kDummy;
 	static Bool_t kBending;
 	static Bool_t kNonBending;
+	static Bool_t kInUse;
+	static Bool_t kNotInUse;
 	//Construtors and destructor 
 
 
@@ -43,7 +45,8 @@ class ALMeasLayer : public TVMeasLayer, public TPlane {
 				const TVector3 &center,
 				const TVector3 &normal,
 				Bool_t isactive = ALMeasLayer::kActive,
-				Bool_t isbending = ALMeasLayer::kBending);
+				Bool_t isbending = ALMeasLayer::kBending,
+         	    Bool_t isinuse = ALMeasLayer::kNotInUse);
 	
 	
 	ALMeasLayer() {}			//default constructor
@@ -64,13 +67,15 @@ class ALMeasLayer : public TVMeasLayer, public TPlane {
 
   	//function to set/get sigmas for unknown coordinate
 	
-	void SetSigmaX (Double_t a) { fSigmaX = a;}
-	void SetSigmaY (Double_t a) { fSigmaY = a;}
-	void SetSigmaZ (Double_t a) { fSigmaZ = a;}
-	inline Bool_t  IsBending() const {return fIsBending; }
-	Double_t GetSigmaX() const { return fSigmaX;}
-	Double_t GetSigmaY() const { return fSigmaY;}
-	Double_t GetSigmaZ() const { return fSigmaZ;}
+	void SetSigmaX (Double_t a) {fSigmaX = a;}
+	void SetSigmaY (Double_t a) {fSigmaY = a;}
+	void SetSigmaZ (Double_t a) {fSigmaZ = a;}
+	inline Bool_t  IsBending() const {return fIsBending;}
+	inline Bool_t  IsInUse()   const {return fIsInUse;}
+    inline virtual void Set_InUseFlag() {fIsInUse=kTRUE;}
+	Double_t GetSigmaX() const {return fSigmaX;}
+	Double_t GetSigmaY() const {return fSigmaY;}
+	Double_t GetSigmaZ() const {return fSigmaZ;}
 	
 
    
@@ -80,8 +85,9 @@ class ALMeasLayer : public TVMeasLayer, public TPlane {
   static Double_t fSigmaZ;  // sigma_z
   static Double_t fSigmaY;  // sigma_y
   Bool_t fIsBending;	//flag to tell whether the layer is in bending/non-bending plane
-	
-   ClassDef(ALMeasLayer, 1) 	//Sample measurement layer class
+  Bool_t fIsInUse;		//flag to tell whether the layer has been chosen in the detector cradle
+    
+  ClassDef(ALMeasLayer, 1) 	//Sample measurement layer class
 
 };
 

@@ -39,9 +39,11 @@ Bool_t   ALMeasLayer::kActive = kTRUE;
 Bool_t   ALMeasLayer::kDummy = kFALSE;
 Bool_t	 ALMeasLayer::kBending = kTRUE;
 Bool_t   ALMeasLayer::kNonBending = kFALSE;
-Double_t ALMeasLayer::fSigmaX = 0.0066;				//in cm	
-Double_t ALMeasLayer::fSigmaY = 0.0115;				//in cm 
-Double_t ALMeasLayer::fSigmaZ = 0.0066; 			   //in cm
+Bool_t   ALMeasLayer::kInUse     = kTRUE;
+Bool_t   ALMeasLayer::kNotInUse  = kFALSE;
+Double_t ALMeasLayer::fSigmaX = 0.066;				//in mm	
+Double_t ALMeasLayer::fSigmaY = 0.15;			    //in mm 
+Double_t ALMeasLayer::fSigmaZ = 0.066; 			    //in mm
 
 ClassImp(ALMeasLayer)
 	
@@ -50,9 +52,10 @@ ALMeasLayer::ALMeasLayer(TMaterial &min,			//material inside the layer
 			       const TVector3  &center,			//reference point on the layer (xc, yc, zc)
 			       const TVector3  &normal,			//outward normal vector 
                    Bool_t     isactive,				//flag to tell if the layer is active
-				   Bool_t	  isbending)				//flag to tell if the layer is in bending plane or non-bending
-              : TVMeasLayer(min, mout, isactive),
-                TPlane(center, normal), fIsBending(isbending)
+				   Bool_t	  isbending,			//flag to tell if the layer is in bending plane or non-bending
+                   Bool_t     isinuse)				//flag to tell whether layer has been selected yet
+				 : TVMeasLayer(min, mout, isactive),
+                TPlane(center, normal), fIsBending(isbending), fIsInUse(isinuse)
 		
 {
 }
@@ -186,7 +189,8 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	//we proceed to a change of coordinate here to fit the helix parametric equation. The magnetic field points now in the +z direction.
 	//bending plane is the XY plane
 
-	
+	//cout << "Process hit called for hit index " << index << "   x = " << xx.X() << "  y = " << xx.Y() << " z = " << xx.Z() << endl;
+
 
 	if (isbending) {
 	TKalMatrix h = XvToMv(xx, isbending); 
@@ -200,16 +204,23 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	Double_t y = h(1,0);
 	Double_t dx = GetSigmaX();				//rms of x in cm
 	Double_t dy = GetSigmaY();				//rms of y in cm (400um/sqrt(12))
-    x  += gRandom->Gaus(0., dx);   // smearing rphi
-    y += gRandom->Gaus(0., dy);   // smearing z	
+	Double_t realistic_dy = 0.15;			//rms of y in mm
+    x  += gRandom->Gaus(0., dx);   // smearing x
+    y += gRandom->Gaus(0., realistic_dy);   // smearing y
+//	  y += gRandom->Gaus(0., dy);   // smearing y
 	Double_t meas[2];
 	Double_t dmeas[2];
 	meas[0] = x;
 	meas[1] = y;
 	dmeas[0] = dx;
 	dmeas[1] = dy;
-	Double_t b = ALKalDetector::GetBfield(xv);
+  // cout << "In function ProcessHits, calling ALKalDetector::GetBField function " << endl;
+	TVector3 bfield = TBField::GetGlobalBfield(xv);
+	Double_t b = bfield.Mag();
+    cout << "index " << index << "  x =( "<< xv.X() << ","<< xv.Y()<< ","<< xv.Z() << ")" << endl;
+    //cout << " B =(" << bfield.X() << "," << bfield.Y() << "," << bfield.Z() << ")"  << endl;
 	ALHit *aHit = new ALHit(*this, meas, dmeas, xx, b, m);
+       //cout << "ALHit object created " << endl;
 	aHit->SetRawXv(xv);
 	hits.AddAt(aHit, index);
 
@@ -226,8 +237,10 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	Double_t y = h(0,0);
 	Double_t z = h(1,0);
 	Double_t dy = GetSigmaY();				
-	Double_t dz = GetSigmaZ();				
-    y  += gRandom->Gaus(0., dy);   // smearing rphi
+	Double_t dz = GetSigmaZ();
+	Double_t realistic_dy = 0.15;			//rms of y in mm
+   y  += gRandom->Gaus(0., realistic_dy);   // smearing rphi
+	//  y += gRandom->Gaus(0., dy);   // smearing y	
     z += gRandom->Gaus(0., dz);   // smearing z	
 	Double_t meas[2];
 	Double_t dmeas[2];
@@ -235,8 +248,13 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	meas[1] = z;
 	dmeas[0] = dy;
 	dmeas[1] = dz;	
-	Double_t b = ALKalDetector::GetBfield(xv);		//won't be used for non-uniform mag field 
+	TVector3 bfield = TBField::GetGlobalBfield(xv);
+    cout << "index " << index << "   x =( "<< xv.X() << ","<< xv.Y()<< ","<< xv.Z() << ")" << endl;
+  //  cout << " B = (" << bfield.X() << "," << bfield.Y() << "," << bfield.Z() << ")"  << endl;
+  //  cout << "In function ProcessHits, calling ALKalDetector::GetBField function " << endl;
+	Double_t b = bfield.Mag();			//get magnitude of vector
 	ALHit *aHit = new ALHit(*this, meas, dmeas, xx, b,m);
+      // cout << "ALHit object created " << endl;	
 	aHit->SetRawXv(xv);
 	hits.AddAt(aHit, index);
 	}
@@ -288,47 +306,4 @@ void ALMeasLayer::ProcessRawHit(const TVector3 &xx, TObjArray &hits, Bool_t isbe
 	hits.Add(RawHit);
 	}
 }
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		

@@ -27,9 +27,6 @@
 class TVMeasLayer;
 class TNode;
 
-extern const int kNDetDummyLayer;
-extern const int knDetLayer;	// = 7
-extern const double kDetLayerList[];
 
 class ALKalDetector : public TVKalDetector {
 public:

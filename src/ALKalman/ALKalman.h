@@ -81,15 +81,19 @@
 class ALKalman {
 
 public:
-     ALKalman() {} ; 
-	 virtual ~ALKalman() {};
-	 void InitialBackwardFit(TObjArray &kalhits, THelicalTrack &Hel_1st,TKalMatrix &C_1st);
-	 void GraphAllPoints(ALEvent *re);
-	 void LeastSquares(ALEvent *re);
-     int MakeRecoEvent(TBField *bfield, ALEvent *re,int *TckReg);
-	//void Tree_Init();	
+    ALKalman(ALEvent *re) ; 
+	virtual ~ALKalman();
 	
-	ClassDef (ALKalman, 1)
+	 void InitializeHelix(ALEvent *re, int InitType, bool secondIter, int type, TKalMatrix &state, TKalMatrix &covariant);	//InitType 0 = MCInit, 1 = PRInit, 2 = 3ptHelix	 
+	 void InitialFit(TKalMatrix &svd_first,  TKalMatrix &C_first, TKalMatrix &svd_last, TKalMatrix &C_last,int type);
+     int DoKF(ALEvent *re, int type, int InitType, bool secondIter);
+	
+	//class member
+
+  TObjArray     *kalhits;    // hit buffer to hold original hits, include the backward hits
+  TKalDetCradle *cradle;     // detctor system
+  ALKalDetector *detector;   // detector
+  ClassDef (ALKalman, 1)
 		
 };
 
