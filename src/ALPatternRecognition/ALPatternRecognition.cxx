@@ -37,8 +37,8 @@ static const double kMuon = 0.105658371;				//muon mass in GeV
  TF1*tmpfB;
  TF1*tmpfB2;
 
-void ALPatternRecognition::FindPattern(ALEvent *re, int type, int DataType) {
-	
+int ALPatternRecognition::FindPattern(ALEvent *re, int DataType) {
+cout << "Calling function FindPattern() " << endl;	
 	
 int nnhits = re->get_Nhits(); 
 int i = re->get_eventnumber();
@@ -100,7 +100,7 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
  int NLNB =  re->get_Layer(0) + re->get_Layer(4) + re->get_Layer(6);
 
   //if not less than 5 layers were touched then don't try pattern recognition
-  if(NL<5) return;  
+  if(NL<5) return 0;  
 
 
 	for(int j=0;j<nnhits;j++) { 
@@ -116,7 +116,7 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 	allhits->AddAt(X,kk);
  //add region of hit
 	int L = re->get_hits().at(j)->get_L();
-        //cout << "Hit " << j << "  , layer" << L << ", index " << kk << "    x=" << xx << "  y=" << yy << "  z=" << zz << endl;
+        cout << "Hit " << j << "  , layer" << L << ", index " << kk << "    x=" << xx << "  y=" << yy << "  z=" << zz << endl;
 
 	if(L==0||L==4||L==6)//non-bending plane
          {
@@ -151,14 +151,18 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
     if(xbend2->GetEntries()!=0) layer2 = xbend2->GetEntries() ; 
     if(xbend3->GetEntries()!=0) layer3 = xbend3->GetEntries() ; 
     if(xbend4->GetEntries()!=0) layer4 = xbend4->GetEntries() ; 
+   // cout << "entries in layer1 = " << xbend1->GetEntries() << "  , layer2 = " << xbend2->GetEntries() << "  , layer3 = " << xbend3->GetEntries() << "  , layer4= " << xbend4->GetEntries() << endl;
      ncomb   = layer1*layer2*layer3*layer4; 
 	
 // if less then 3 layers with hits in bending plane, can't reconstruct
-	if(NLB < 3) return;
-
+	if(NLB < 3) {
+	//cout << "NLB < 3, quitting function" << endl;
+	return 0;
+	}
 	    if(ncomb<=0||ncomb>MAXB)
       {
-	   return;
+         //  cout << " ncomb<=0||ncomb>MAXB " << endl;
+	   return 0;
       }
 	
     vector<double> chisquareB;
@@ -239,21 +243,25 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 				if(xbend4->GetEntries()!=0) {			   
 				  int k4 = ibend4.at(p);
 				  indicesB[ncombination]->AddAt(k4,point);
+				  //cout << "PR, bending plane, point added at index " << k4 << endl;
 				  point++;
 						 }
 				if(xbend3->GetEntries()!=0) {
 					int k3 = ibend3.at(o);
 				 	indicesB[ncombination]->AddAt(k3,point);
+					//cout << "PR, bending plane, point added at index " << k3 << endl;
 					point++;
 				    }
 				if(xbend2->GetEntries()!=0) {
 				 	int k2 = ibend2.at(n);
 			     	        indicesB[ncombination]->AddAt(k2,point);
+					//cout << "PR, bending plane, point added at index " << k2 << endl;
                                         point++;
 					 }
 				if(xbend1->GetEntries()!=0) {
 				 	int k1 = ibend1.at(m);
 			 	 	indicesB[ncombination]->AddAt(k1,point);
+					//cout << "PR, bending plane, point added at index " << k1 << endl;
 					  }
 		      ncombination++;
 
@@ -270,13 +278,14 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
     if(xtoplayer->GetEntries()!=0) ntop = xtoplayer->GetEntries(); //else cout << "non-bending plane top layer no hits " << endl;
     if(xmid->GetEntries()!=0) nmid = xmid->GetEntries(); //else cout << "non-bending plane middle layer no hits " << endl;
     if(xbottomlayer->GetEntries()!=0) nbottom = xbottomlayer->GetEntries(); //else cout << "non-bending plane botttom layer no hits " << endl;
+   //cout << "entries in toplayer = " << ntop << "  , midlayer = " << nmid << "  , nbottom = " << nbottom << endl;
     //cout << "npointsNB = " << npointsNB << endl;
 	NConf = nbottom*ntop*nmid; 
 	
 // if less then 2 hits in non-bending plane, can't reconstruct
-	if(NLNB < 2)return;
+	if(NLNB < 2)return 0;
 	
-    if(NConf<=0||NConf>MAXNB) return;
+    if(NConf<=0||NConf>MAXNB) return 0;
       
     
   
@@ -353,18 +362,21 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
               {
                int k3 = imid.at(o);
                indicesNB[NConfig]->AddAt(k3,index);
+	       //cout << "PR, non-bending plane, point added at index " << k3 << endl;
                index++;
               }
              if(xbottomlayer->GetEntries()!=0)
               {
                int k2 = ibottom.at(n);
                indicesNB[NConfig]->AddAt(k2,index);
+	       //cout << "PR, non-bending plane, point added at index " << k2 << endl;
                index++;
               }
              if(xtoplayer->GetEntries()!=0)
               {
                int k1 = itop.at(m);
                indicesNB[NConfig]->AddAt(k1,index);
+	       //cout << "PR, non-bending plane, point added at index " << k1 << endl;
                index++;
               }
                         
@@ -420,6 +432,7 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
       {
        int kk = indicesB[indexB]->At(l);
        re->get_hits().at(kk)->set_flagPR(true);
+       //cout << "In PR, hit index " << kk << " set_flagPR " << endl;
        re->get_hits().at(kk)->set_yPR(invertedparabolas[indexB]->Eval(re->get_hits().at(kk)->get_z()));   
        re->get_hits().at(kk)->set_zPR(re->get_hits().at(kk)->get_z());
        //extrapolate the xPR from the fit in the non bending plane
@@ -432,7 +445,7 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
        //index of chosen points given by array indicesNB
        int kk = indicesNB[index]->At(l);
        re->get_hits().at(kk)->set_flagPR(true);
-
+      // cout << "In PR, hit index " << kk << " set_flagPR " << endl;
        if(p1!=0) 
 	re->get_hits().at(kk)->set_zPR(re->get_hits().at(kk)->get_z());
         re->get_hits().at(kk)->set_xPR(p1*re->get_hits().at(kk)->get_z()+p0);
@@ -492,6 +505,21 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 	   double Pt=0.3 * B *	0.01*Rmean; //in GeV
 	   double p0PR= Pt / TMath::Cos(fabs(thetaNB));   //in GeV
 	   double mass;
+	   int type;
+	   double deflec = re->get_deflecPR();
+	   double Q =  TMath::Sign(1,deflec);
+	   if (DataType==1) { 
+	   if (re->get_T2()) {			//if CK fired, electrons or positrons
+	      if (Q>0) type=4;
+	      else type=3;
+	      }
+	    else   {			//if CK not fired
+	      if (Q>0) type=10;
+	      else type=11;	       			
+	    }
+	  } //if data
+	  //if MC	
+	   else type = re->get_typeMC();	//if MC	
 	   if (type==3 || type == 4) mass = kMelectron;	//for electrons in GeV
 	   else if(type==10 || type ==11)  mass = kMuon;	//for muons in GeV
 	   double EkPR=TMath::Sqrt(p0PR*p0PR+mass*mass);
@@ -515,6 +543,6 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 		} //if flag
 	}	//end for
 
-
+return 1;
  
 }
