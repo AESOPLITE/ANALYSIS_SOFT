@@ -76,7 +76,8 @@ int MakeRawBPDEvent(string filename)
 
  //number of words per line
  //int NPHAwords=13; //PHA line for MIPFlit3.30
- int NPHAwords=11; //PHA line for MIPFlit3.31
+ //int NPHAwords=11; //PHA line for MIPFlit3.31
+ int NPHAwords=12; //PHA line for MIPFlit3.72
  int NEVTwords=0;
  if(EVTLength==0)  NEVTwords=4; //EVT line from MIPFlit3.30 to 3.35
  if(EVTLength==1)  NEVTwords=16; //Was increased at the same time of ASIC Length
@@ -170,6 +171,7 @@ int MakeRawBPDEvent(string filename)
       e->add_EneT3(s2lf(&datalinePHA.at(5)));
       e->add_EneT4(s2lf(&datalinePHA.at(6)));
       e->add_Eneg(s2lf(&datalinePHA.at(7)));
+      e->add_PHA6(s2lf(&datalinePHA.at(8)));
       e->set_GoPHA(s2lf(&datalinePHA.at(9)));
       e->set_tPHA(s2lf(&datalinePHA.at(10)));
      }//end read line starting with PHA  
@@ -392,7 +394,9 @@ int MakeRawBPDEventIT(string filename)
 
  //number of words per line
  //int NPHAwords=13; //PHA line for MIPFlit3.30
- int NPHAwords=11; //PHA line for MIPFlit3.31
+// int NPHAwords=11; //PHA line for MIPFlit3.31
+ int NPHAwords=12; //PHA line for MIPFlit3.72
+
  int NEVTwords=0;
  if(EVTLength==0)  NEVTwords=4; //EVT line from MIPFlit3.30 to 3.35
  if(EVTLength==1)  NEVTwords=16; //Was increased at the same time of ASIC Length
@@ -496,6 +500,7 @@ int MakeRawBPDEventIT(string filename)
       e->add_EneT3(s2lf(&datalinePHA.at(5)));
       e->add_EneT4(s2lf(&datalinePHA.at(6)));
       e->add_Eneg(s2lf(&datalinePHA.at(7)));
+      e->add_PHA6(s2lf(&datalinePHA.at(8)));
       e->set_GoPHA(s2lf(&datalinePHA.at(9)));
       e->set_tPHA(s2lf(&datalinePHA.at(10)));
       
@@ -788,7 +793,7 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
     int Clusoverflow=(int)((intNclus >> 7) &0x0001);
     //Read chip error: Shift of 1 bit
     int chiperr=(int)((intNclus >> 1) &0x0001);
-    //Read parity overflow: Shift of 0 bit
+    //Read parity: Shift of 0 bit
     int parityerr=(int)(intNclus &0x0001);
     
     //cout << "Chip error: " << chiperr <<endl;
@@ -824,7 +829,10 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
          tmpH->set_chip(Chipadd);      
          tmpH->set_nstrips(-1);   
          tmpH->set_fstrip(-1);    
-         tmpH->set_fstripID(-1);  
+         tmpH->set_fstripID(-1); 
+         tmpH->set_overflow(Clusoverflow,-1.);
+         tmpH->set_chiperr(chiperr,-1.);
+         tmpH->set_parityerr(parityerr,-1.);
          //Fill up the vector 
          Hh->push_back(tmpH);
          //Increment the index to the next 3-digit word
@@ -847,7 +855,8 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
        
        //Determine the strip ID
        //Equation from Sarah's email of Spetember 4 2017.
-       int  firstStripNumber=64*(Chipadd+1)-Stripadd;
+       //From  0 to 767
+       int  firstStripNumber=64*(Chipadd+1)-Stripadd-1;
        
        tmpH->set_L(L);         
        tmpH->set_chip(Chipadd);      
@@ -855,10 +864,14 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
        tmpH->set_fstrip(Stripadd);    
        tmpH->set_fstripID(firstStripNumber);  
 
+       tmpH->set_overflow(Clusoverflow,-1.);
+       tmpH->set_chiperr(chiperr,-1.);
+       tmpH->set_parityerr(parityerr,-1.);
+
+       
        if(Stripadd+Nstrip==63) laststr[Chipadd]=tmpHV.size();
        if(Stripadd==0) firststr[Chipadd]=tmpHV.size();
  
-        
        //Internal trigger for Layer L set to 1
        Ti[L]=1;
        tmpH->set_noisy(0);
@@ -884,7 +897,6 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
     int fstrip=tmpHV.at(i)->get_fstrip();
     int nstrips=tmpHV.at(i)->get_nstrips();
      
-    
     if(fstrip+nstrips==63 && chip<11 && chip!=5) //The last strip is touched not chip 5 nor 11
      {
       int ij= firststr[chip+1];
@@ -893,6 +905,9 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
        {
         tmpHV.at(i)->set_nstrips(nstrips+tmpHV.at(ij)->get_nstrips());
         tmpHV.at(i)->set_nstripsNC(tmpHV.at(ij)->get_nstrips());
+        tmpHV.at(i)->set_overflow((unsigned int)1,tmpHV.at(ij)->get_overflow(0));
+        tmpHV.at(i)->set_chiperr((unsigned int)1,tmpHV.at(ij)->get_chiperr(0));
+        tmpHV.at(i)->set_parityerr((unsigned int)1,tmpHV.at(ij)->get_parityerr(0));
        }
       Hh->push_back(tmpHV.at(i));
      } 
@@ -1086,7 +1101,10 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
          tmpH->set_nstrips(-1);   
          tmpH->set_fstrip(-1);    
          tmpH->set_fstripID(-1);  
-         //Fill up the vector 
+         tmpH->set_overflow(Clusoverflow,-1.);
+         tmpH->set_chiperr(chiperr,-1.);
+         tmpH->set_parityerr(parityerr,-1.);
+        //Fill up the vector 
          Hh->push_back(tmpH);
          //Increment the index to the next 3-digit word
          index+=3;
@@ -1108,13 +1126,18 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
        
        //Determine the strip ID
        //Equation from Sarah's email of September 4 2017.
-       int  firstStripNumber=64*(Chipadd+1)-Stripadd;
+       //From 0 to 767
+       int  firstStripNumber=64*(Chipadd+1)-Stripadd-1;
        
        tmpH->set_L(L);         
        tmpH->set_chip(Chipadd);      
        tmpH->set_nstrips(Nstrip);   
        tmpH->set_fstrip(Stripadd);    
        tmpH->set_fstripID(firstStripNumber);  
+       
+       tmpH->set_overflow(Clusoverflow,-1.);
+       tmpH->set_chiperr(chiperr,-1.);
+       tmpH->set_parityerr(parityerr,-1.);
 
        if(Stripadd+Nstrip==63) laststr[Chipadd]=tmpHV.size();
        if(Stripadd==0) firststr[Chipadd]=tmpHV.size();
@@ -1154,6 +1177,9 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
        {
         tmpHV.at(i)->set_nstrips(nstrips+tmpHV.at(ij)->get_nstrips());
         tmpHV.at(i)->set_nstripsNC(tmpHV.at(ij)->get_nstrips());
+        tmpHV.at(i)->set_overflow((unsigned int)1,tmpHV.at(ij)->get_overflow(0));
+        tmpHV.at(i)->set_chiperr((unsigned int)1,tmpHV.at(ij)->get_chiperr(0));
+        tmpHV.at(i)->set_parityerr((unsigned int)1,tmpHV.at(ij)->get_parityerr(0));
        }
       Hh->push_back(tmpHV.at(i));
      } 

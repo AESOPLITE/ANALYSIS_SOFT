@@ -62,6 +62,7 @@
 
 
 vector<string> split (string*,char);
+double s2lf(string*);
 float s2f(string*);
 int s2i(string*);
 int Partition(int ,int ,float []);
@@ -71,6 +72,7 @@ void extracttime(int *h,int*m,int*s,string*str);
 int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*);
 int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*);
 int MakeRawBPDEvent(string);
+int MakeRawBPDEventIT(string);
 
 
 
