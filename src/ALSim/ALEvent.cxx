@@ -170,6 +170,7 @@ void ALEvent::Copy(ALEvent* e)
    for(int i=0;i<(int)(e->get_EneT3()).size();i++) EneT3.push_back((e->get_EneT3()).at(i));
    for(int i=0;i<(int)(e->get_EneT4()).size();i++) EneT4.push_back((e->get_EneT4()).at(i));
    for(int i=0;i<(int)(e->get_Eneg()).size();i++) Eneg.push_back((e->get_Eneg()).at(i));
+   for(int i=0;i<(int)(e->get_PHA6()).size();i++) PHA6.push_back((e->get_PHA6()).at(i));
    for(int i=0;i<(int)(e->get_timeT1()).size();i++) timeT1.push_back((e->get_timeT1()).at(i));
    for(int i=0;i<(int)(e->get_timeT2()).size();i++) timeT2.push_back((e->get_timeT2()).at(i));
    for(int i=0;i<(int)(e->get_timeT3()).size();i++) timeT3.push_back((e->get_timeT3()).at(i));
@@ -204,5 +205,6 @@ int  ALEvent::get_Layer(int i)
 void  ALEvent::get_Layers(int*Lay)
  {
   uint8_t tmpTi=(uint8_t)Ti;
+  Lay=new int[7];
   for(int ij=0;ij<7;ij++) Lay[ij]=(int)((tmpTi >>ij) & 0x01);
  }

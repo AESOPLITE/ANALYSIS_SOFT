@@ -85,12 +85,14 @@ class ALEvent:public TObject
    bool T3;
    bool T4;
    bool guard;
-   //Energy for MC, PHA pulse height for datas
+   //Energy for MC, PHA pulse height for data
    std::vector<double> EneT1;  
    std::vector<double> EneT2;  
    std::vector<double> EneT3;
    std::vector<double> EneT4;
-   std::vector<double> Eneg;   
+   std::vector<double> Eneg; 
+   std::vector<double> PHA6; //for data only 6th PHA 
+     
    //Timing for MC, Not available for data
    std::vector<double> timeT1;  
    std::vector<double> timeT2;  
@@ -234,6 +236,7 @@ class ALEvent:public TObject
    void add_EneT3(double a){EneT3.push_back(a);}
    void add_EneT4(double a){EneT4.push_back(a);}
    void add_Eneg(double a){Eneg.push_back(a);}
+   void add_PHA6(double a){PHA6.push_back(a);}
    void add_timeT1(double a){timeT1.push_back(a);}
    void add_timeT3(double a){timeT3.push_back(a);}
    void add_timeT4(double a){timeT4.push_back(a);}
@@ -342,6 +345,7 @@ class ALEvent:public TObject
    std::vector<double>&  get_EneT3(){return EneT3;}
    std::vector<double>&  get_EneT4(){return EneT4;}
    std::vector<double>&  get_Eneg(){return Eneg;}
+   std::vector<double>&  get_PHA6(){return PHA6;}
    std::vector<double>&  get_timeT1(){return timeT1;}
    std::vector<double>&  get_timeT2(){return timeT2;}
    std::vector<double>&  get_timeT3(){return timeT3;}
@@ -355,7 +359,7 @@ class ALEvent:public TObject
    ////////////////////////////////
 
 
-   int get_NLayers();
+   int  get_NLayers();
    int get_Layer(int);
    void get_Layers(int*);
 
