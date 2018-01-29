@@ -45,8 +45,12 @@ ALTckhit::ALTckhit()// Default
    nstrips=-1;   //Number of strips in the cluster
    nstripsNC=-1;   //Number of strips in the next chip if it is a boundary cluster (except boundary chips 5-6)
    fstrip=-1;    //First strip ID from 0 to 63 
-   fstripID=-1;  //First strip on the layer from 1 768
+   fstripID=-1;  //First strip on the layer from 0 767
    noisy=0;
+   parityerr[0]=parityerr[1]=-1;//Parity error of the clusters that make the hit
+   chiperr[0]=chiperr[1]=-1;//Chip error of the clusters that make the hit
+   overflow[0]=overflow[1]=-1;//overflow of the clusters that make the hit
+
    //Coordinates of the cluster in cm determined from the raw data
    x=-999.;
    y=-999.;
@@ -73,7 +77,5 @@ ALTckhit::ALTckhit()// Default
    ereco=-999;     //kinetic energy 
    fUsed=false;    //if site accepted by filter
    k=-999;     //kth hit in event
-	
-	
 
 }

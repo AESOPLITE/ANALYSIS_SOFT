@@ -48,8 +48,12 @@ class ALTckhit:public TObject
   int nstrips;   //Number of strips in the cluster
   int nstripsNC; //Number of strips in the next chip if it is a boundary cluster (except boundary chips 5-6)
   int fstrip;    //First strip ID from 0 to 63 
-  int fstripID;  //First strip on the layer from 1 768
+  int fstripID;  //First strip on the layer from 0 767
   int noisy;  //is 1 if one the strip of the cluster is noisy
+  int parityerr[2];//Parity error of the clusters that make the hit
+  int chiperr[2];//Chip error of the clusters that make the hit
+  int overflow[2];//overflow of the clusters that make the hit
+  
   //Coordinates of the cluster in cm determined from the raw data
   float x;				//used for MC and data
   float y;				//used for MC and data
@@ -128,6 +132,14 @@ class ALTckhit:public TObject
    void set_fstrip(int a){fstrip=a;}    
    void set_fstripID(int a){fstripID=a;}  
    void set_noisy(int a){noisy=a;}  
+   void set_parityerr(int a, int b){parityerr[0]=a;parityerr[1]=b;}
+   void set_chiperr(int a, int b){chiperr[0]=a;chiperr[1]=b;}
+   void set_overflow(int a, int b){overflow[0]=a;overflow[1]=b;}
+   void set_parityerr(unsigned int a, int b){parityerr[a]=b;}
+   void set_chiperr(unsigned int a, int b){chiperr[a]=b;}
+   void set_overflow(unsigned int a, int b){overflow[a]=b;}
+
+
    void set_x(float a){x=a;}
    void set_y(float a){y=a;}
    void set_z(float a){z=a;}    
@@ -174,7 +186,14 @@ class ALTckhit:public TObject
    int get_nstripsNC(){return nstripsNC;}   
    int get_fstrip(){return fstrip;}    
    int get_fstripID(){return fstripID;}  
-   int get_noisy(){return noisy;}  
+   int get_noisy(){return noisy;} 
+   int* get_parityerr(){return parityerr;}//Parity error of the clusters that make the hit
+   int* get_chiperr(){return chiperr;}//Chip error of the clusters that make the hit
+   int* get_overflow(){return overflow;}//overflow of the clusters that make the hit
+   int get_parityerr(int i){if(i<2)return parityerr[i];else return -1;}//Parity error of the clusters that make the hit
+   int get_chiperr(int i){if(i<2)return chiperr[i];else return -1;}//Chip error of the clusters that make the hit
+   int get_overflow(int i){if(i<2)return overflow[i];else return -1;}//overflow of the clusters that make the hit
+
    float get_x(){return x;}
    float get_y(){return y;}
    float get_z(){return z;}    
