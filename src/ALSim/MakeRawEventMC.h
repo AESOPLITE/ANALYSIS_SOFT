@@ -62,7 +62,7 @@
 
 int MakeRawEventMC(int typeT,int Ene,int cycle,string Inppath,string Inppath2,string Outpath,string startfile,string endfile);
 int MakeRawEventMCDisc(int ,int ,int,string,string,string,string,string);
-float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<float> Edep,int* fstrip,int*nstrip,float offsetLL, float offsetRL,bool MCflag);
+float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<float> cz,vector<float>type,vector<float> Edep,int*chip,int* fstrip,int* fstripID,int*nstrip,float offsetLL, float offsetRL,bool MCflag);
 float StriptoCoord(int strip,float OffsetLL,float OffsetRL,bool MCflag);
 int CoordtoStrip(float Coord,float SecCoord,float OffsetLL,float OffsetRL,bool MCflag);
 

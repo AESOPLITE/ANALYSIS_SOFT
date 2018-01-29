@@ -485,6 +485,11 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
  int iT3=0; 
  int iT4=0; 
  int ig=0;
+ 
+ float oldx=0;
+ float oldy=0;
+ float oldz=0;
+ 
 //Temporary variable for internal triggers 
  int*Titmp=new int[7];
  for (int i=0;i<7;i++)Titmp[i]=0;
@@ -498,19 +503,25 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
  vector<float> X;
  vector<float> Y;
  vector<float> Z;
+ vector<float> CZ;
+ vector<float> T;
  vector<float> EDEP;
- 
+ float CoordDisc=-999;
+ int fstrip=-1;
+ int fstripID=-1;
+ int nstrip=0;
+ int chip=-1;
  //Loop over the entries and create the events
  // This is the main loop
  for (int i=0;i<nentries;i++)
    {
     ntuple->GetEntry(i); //Load the entry i in the variables  
     if(i%100000==0) cout << "entry: " << i <<endl;
-
+    
     ////////////////////////////////// 
-    // Select the types of particle that produce hits
+    // Triggers
     ////////////////////////////////// 
-    if(prevreg==TrigReg[0] && prevreg!=mreg)//T1
+    if(prevreg==TrigReg[0] && (prevreg!=mreg || abs(oldx-x)>0.1 || abs(oldy-y)>0.1 || abs(oldz-z)>0.1))//T1
      {
       if(nT1>0)
        {
@@ -519,7 +530,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
         EneT1=0;timeT1=0;nT1=0;iT1=0;
        }
      }
-    if(prevreg==TrigReg[2] && prevreg!=mreg)//T3
+    if(prevreg==TrigReg[2] && (prevreg!=mreg || abs(oldx-x)>0.1 || abs(oldy-y)>0.1 || abs(oldz-z)>0.1))//T3
      {
       if(nT3>0)
        {
@@ -528,7 +539,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
         EneT3=0;timeT3=0;nT3=0;iT3=0;
        }
      }
-    if(prevreg==TrigReg[3] && prevreg!=mreg)//T4
+    if(prevreg==TrigReg[3] && (prevreg!=mreg || abs(oldx-x)>0.1 || abs(oldy-y)>0.1 || abs(oldz-z)>0.1))//T4
      {
       if(nT4>0)
        {
@@ -537,8 +548,9 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
         EneT4=0;timeT4=0;nT4=0;iT4=0;
        }
      }
-    if(prevreg==GReg[0] && prevreg!=mreg)//guard
-     {
+    if(prevreg==GReg[0] && (prevreg!=mreg || abs(oldx-x)>0.1 || abs(oldy-y)>0.1 || abs(oldz-z)>0.1))//guard
+
+    {
       if(ng>0)
        {
         e->add_Eneg(Eneg); e->add_timeg(timeg);
@@ -546,27 +558,52 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
         Eneg=0;timeg=0;ng=0;ig=0;
        }
      }
-    if(prevreg>=TckReg[0] && prevreg<=TckReg[6]&& prevreg!=mreg)
+
+    ////////////////////////////////// 
+    // Tracker
+    ////////////////////////////////// 
+     
+    if(prevreg>=TckReg[0] && prevreg<=TckReg[6]&& (prevreg!=mreg || abs(oldx-x)>0.1 || abs(oldy-y)>0.1 || abs(oldz-z)>0.1))
      {       
-      if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}
-      //APPLY DISCRETISATION
-      float CoordDisc=0;
-      int*fstrip;
-      int*nstrip;
-
-      CoordDisc=Discretize(h->get_L(),X,Y,Z,EDEP,fstrip,nstrip,OffsetLL,OffsetRL,true);
-
-      //Update parameters of the hit after discretisation
-      if(h->get_L()==0||h->get_L()==4||h->get_L()==6) h->set_x(CoordDisc); //Non bending plane
-      if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5) h->set_y(CoordDisc);//Bending plane
-      h->set_fstripID(*fstrip+1);//from 1 to 768
-      h->set_nstrips(*nstrip);//number of strips in cluster
       
-      //End of the hit.
-      //Add the hit to the event
-      nh++;
-      h->set_k(nh);
-      e->add_hit(h);
+      //APPLY DISCRETISATION
+      CoordDisc=-999.;
+      fstrip=-1;
+      nstrip=0;
+      chip=-1;
+      
+      if((int)X.size()!=0) 
+       {
+        CoordDisc=Discretize(h->get_L(),X,Y,Z,CZ,T,EDEP,&chip,&fstrip,&fstripID,&nstrip,OffsetLL,OffsetRL,true);
+        //cout << "CoordDisc=" <<  CoordDisc <<endl; 
+        if(CoordDisc!=-999.)
+         {   
+          //Update parameters of the hit after discretisation
+          if(h->get_L()==0||h->get_L()==4||h->get_L()==6) h->set_x(CoordDisc); //Non bending plane
+          if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5) h->set_y(CoordDisc);//Bending plane
+          h->set_fstripID(fstripID);//from 0 to 767
+          h->set_fstrip(fstrip);//from 0 to 63
+          h->set_nstrips(nstrip);//number of strips in cluster
+          h->set_chip(chip);//chip 0 to 11 of the first strip (strip lowest index)
+          if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}
+          //End of the hit.
+          //Add the hit to the event
+          nh++;
+          h->set_k(nh);
+          //if(h->get_x()==-999) cout << "X coord is -999. Event " << i <<endl;
+          //if(h->get_y()==-999) cout << "Y coord is -999. Event " << i <<endl;
+          //if(h->get_z()==-999) cout << "Z coord is -999. Event " << i <<endl;
+
+          e->add_hit(h);
+         } 
+        X.clear();
+        Y.clear();
+        Z.clear();
+        CZ.clear();
+        T.clear();
+        EDEP.clear();        
+       }
+ 
       //Check the layer for internal trigger
       for (int ij=0;ij<7;ij++)
         {
@@ -576,10 +613,6 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
       h=new ALTckhit();
       nL=0;
       iL=0;
-      X.clear();
-      Y.clear();
-      Z.clear();
-      EDEP.clear();
      }  
     if(ncase!=ievt)//Start a new event
      {
@@ -681,7 +714,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
       {
        if(mreg == TckReg[ii])
         {
-         if(i==iL+1) //if the segment of track is not the first of the hit 
+         if(i==iL+1 && abs(oldx-x)<=0.1 && abs(oldy-y)<=0.1 && abs(oldz-z)<=0.1 ) //if the segment of track is not the first of the hit 
           {
            h->set_DeltaE(h->get_DeltaE()+Edep);// Add the energy deposited in the segment
            h->set_cx(h->get_cx()+cx);
@@ -693,10 +726,12 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
            h->set_x((h->get_xin() + x)/2.);
            h->set_y((h->get_yin() + y)/2.);
            h->set_z((h->get_zin() + z)/2.);
-           //X->push_back(x);
-          // Y->push_back(y);
-          // Z->push_back(z);
-          // EDEP->push_back(Edep);
+           X.push_back(x);
+           Y.push_back(y);
+           Z.push_back(z);
+           T.push_back(type);
+           CZ.push_back(cz);
+           EDEP.push_back(Edep);
            nL++;//Increment the number of segments that compose the hit
           }//if
          else //if this segment of track is the first part of the hit
@@ -719,12 +754,16 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
            h->set_zin(z);
            h->set_xout(x);
            h->set_yout(y);   
-           h->set_zout(z); 
-           //X->push_back(x);
-           //Y->push_back(y);
-          // Z->push_back(z);
-          // EDEP->push_back(Edep);
-           
+           h->set_zout(z);
+           h->set_x(x);
+           h->set_y(y);
+           h->set_z(z);
+           X.push_back(x);
+           Y.push_back(y);
+           Z.push_back(z);
+           CZ.push_back(cz);
+           T.push_back(type);
+           EDEP.push_back(Edep);
            h->set_DeltaE(Edep);
            nL=1;
           } //else
@@ -733,6 +772,9 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
         }  //if
       }//ii
     prevreg=mreg;
+    oldx=x;
+    oldy=y;
+    oldz=z;
    }//i
 
   //Fill the last event
@@ -752,25 +794,44 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
 	 e->add_Eneg(Eneg);e->add_timeg(timeg);
 	 if (Eneg > TrigThresh[4]) e->set_guard(true);
  	}
- if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}//add the last hit
+ 
  
  //APPLY DISCRETISATION
- float CoordDisc=0;
- int*fstrip;
- int*nstrip;
- CoordDisc=Discretize(h->get_L(),X,Y,Z,EDEP,fstrip,nstrip,OffsetLL,OffsetRL,true);
-
- //Update parameters of the hit after discretisation
- if(h->get_L()==0||h->get_L()==4||h->get_L()==6) h->set_x(CoordDisc); //Non bending plane
- if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5) h->set_y(CoordDisc);//Bending plane
- h->set_fstripID(*fstrip+1);//from 1 to 768
- h->set_nstrips(*nstrip);//number of strips in cluster
-
- //End of the hit.
- //Add the hit to the event
- nh++;
- h->set_k(nh);
- e->add_hit(h);
+ CoordDisc=-999.;
+ fstrip=-1;
+ fstripID=-1;
+ nstrip=0;
+ chip=-1;
+ 
+ if((int)X.size()!=0) 
+  {
+   CoordDisc=Discretize(h->get_L(),X,Y,Z,CZ,T,EDEP,&chip,&fstrip,&fstripID,&nstrip,OffsetLL,OffsetRL,true);
+   //cout << "CoordDisc2=" <<  CoordDisc <<endl; 
+   
+   if(CoordDisc!=-999.)
+    {   
+     //Update parameters of the hit after discretisation
+     if(h->get_L()==0||h->get_L()==4||h->get_L()==6) h->set_x(CoordDisc); //Non bending plane
+     if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5) h->set_y(CoordDisc);//Bending plane
+     h->set_fstripID(fstripID);//from 0 to 767
+     h->set_fstrip(fstrip);//from 0 to 62
+     h->set_nstrips(nstrip);//number of strips in cluster
+     h->set_chip(chip);//chip 0 to 11
+     if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}//add the last hit 
+     //End of the hit.
+     //Add the hit to the event
+     nh++;
+     h->set_k(nh);
+     e->add_hit(h);
+    } 
+   X.clear();
+   Y.clear();
+   Z.clear();
+   CZ.clear();
+   T.clear();
+   EDEP.clear();
+      
+  }
  //Check the layer for internal trigger
  for (int ij=0;ij<7;ij++)
    {
@@ -780,8 +841,8 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
  for (int ij=0;ij<7;ij++) tt+=Titmp[ij]*(int)TMath::Power(2,ij);
  e->set_Ti(tt);	  
  tree->Fill(); 
- delete e;
- 
+ delete e; 
+
  //Write tree in output file 
  tree->Write();
  //Close files
@@ -792,12 +853,17 @@ int MakeRawEventMCDisc(int typeT,int Ene,int cycle,string Inppath,string Inppath
 
 
 
-float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<float> Edep,int* fstrip,int*nstrip,float offsetLL, float offsetRL,bool MCflag)
+float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<float> cz,vector<float>type,vector<float> Edep,int*chip,int* fstrip,int* fstripID,int*nstrip,float offsetLL, float offsetRL,bool MCflag)
 {
+ //cout << "In Discretize" <<endl;
  int Nn=(int )x.size(); 
+ // cout << "Number of segments: "  <<Nn << " in Layer "<< L << endl;
+
  float* X=new float[Nn];
  float* Y=new float[Nn];
  float* Z=new float[Nn];
+ float* CZ=new float[Nn];
+ float* T=new float[Nn];
  float* E=new float[Nn];
  float* xx=new float[Nn];
  float* Ss=new float[Nn];
@@ -805,7 +871,7 @@ float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<f
  float Xout=-999.;
  //Strip pitch in cm
  float  strippitch=0.0228; 
- 
+
  for(int i=0;i<Nn;i++)
   { 
    if(L==0||L==4||L==6)
@@ -820,7 +886,12 @@ float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<f
     }
    E[i]=Edep.at(i);  
    Z[i]=z.at(i); 
+   CZ[i]=cz.at(i); 
+   T[i]=type.at(i); 
    Ss[i]=-1; //Set to defaults
+   //cout << "X"<< i << "= " << X[i] << ", " ;
+   //cout << "Y"<< i << "= " << Y[i] << ", "  ;
+   //cout << "Z"<< i << "= " << Z[i] <<endl;
   }//i  
 
 //ASSUMPTION: the four frames are perfectly aligned without space between each of them
@@ -829,6 +900,7 @@ float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<f
 for(int i=0;i<Nn;i++)
  {  
   Ss[i]=CoordtoStrip(X[i],Y[i],offsetLL,offsetRL,MCflag);
+  //cout << "StripID="<< Ss[i] <<endl ;
  }//i
 
 //Check if there is any strip touched
@@ -837,16 +909,12 @@ for(int i=0;i<Nn;i++)
  {  
   if(Ss[i]>-1) {nostrip=false;i=Nn;}
  } //i
+ 
 if(nostrip)
  { 
-  *fstrip=-1;
-  *nstrip=0;
+ // cout << "No strip hitted" <<endl;
   return Xout;
  }
-
-//Check how many strips are crossed: A segment ends inside the region center of strip +/- DeltaMax
-
-vector <int> SID;
 
 //Get first and last a segment in one strip
 int kfirst=-1;
@@ -858,22 +926,37 @@ for(int i=0;i<Nn;i++)
    if(kfirst>-1 && Ss[i]>-1) klast=i;    
   }
   
-if(kfirst<0)
+if(kfirst<0 || klast<0)
  { 
-  *fstrip=-1;
-  *nstrip=0;
   return Xout; 
  }
 
- int Ifirst=0;
- Ifirst=Ss[kfirst];
- int Ilast=0;
- Ilast=Ss[klast];
+ Xout= (StriptoCoord(Ss[kfirst],offsetLL,offsetRL,MCflag)+StriptoCoord(Ss[klast],offsetLL,offsetRL,MCflag))/2.;
 
- if(Ifirst==Ilast) Xout= StriptoCoord(Ifirst,offsetLL,offsetRL,MCflag);
- if(Ifirst==Ilast-1) Xout= StriptoCoord(Ifirst,offsetLL,offsetRL,MCflag)+strippitch/2.;
- if(Ifirst==Ilast+1) Xout= StriptoCoord(Ilast,offsetLL,offsetRL,MCflag)-strippitch/2.;
+ if(Ss[klast]>=Ss[kfirst]) *fstripID=Ss[kfirst];
+ else *fstripID=Ss[klast];
+
+ *chip=(int)Ss[kfirst]%12;
+ *fstrip=(int)Ss[kfirst]%64;
  
+ *nstrip=(int) abs(Ss[klast]-Ss[kfirst])+1;
+ 
+// cout << "Xout="<< Xout <<endl ;
+
+ 
+ if(*nstrip>100)
+  {
+   cout << "Number of segments: "  <<Nn << " in Layer "<< L << endl;
+   for(int i=0;i<Nn;i++)
+     { 
+      cout << "X"<< i << "= " << X[i] << ", " ;
+      cout << "Y"<< i << "= " << Y[i] << ", "  ;
+      cout << "Z"<< i << "= " << Z[i] << ", ";
+      cout << "CZ"<< i << "= " << CZ[i] << ", ";
+      cout << "Type"<< i << "= " << T[i] << endl;
+      //cout << "Edep"<< i << "= " << Edep[i] <<endl;
+     }//i
+  }
  return Xout;
 }
 
