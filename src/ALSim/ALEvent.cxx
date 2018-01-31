@@ -205,6 +205,5 @@ int  ALEvent::get_Layer(int i)
 void  ALEvent::get_Layers(int*Lay)
  {
   uint8_t tmpTi=(uint8_t)Ti;
-  Lay=new int[7];
   for(int ij=0;ij<7;ij++) Lay[ij]=(int)((tmpTi >>ij) & 0x01);
  }
