@@ -105,6 +105,84 @@ class ALEvent:public TObject
    //\Sum\Limits_{k=0}^{6} 2^k
    int Ti=0;
    
+   //HOUSEKEEPING FROM COUNTERS 1 AND 3
+   //Data FROM "CT1" LINE
+   int yCT1;//Year from CT1 line linked to the event (last read CT1 line)
+   int mCT1;//Month from CT1 line linked to the event (last read CT1 line)
+   int dCT1;//Day from CT1 line linked to the event (last read CT1 line)
+   int hCT1;//Hour from CT1 line linked to the event (last read CT1 line)
+   int miCT1;//Minute from CT1 line linked to the event (last read CT1 line)
+   int sCT1;//Second from CT1 line linked to the event (last read CT1 line)
+   float TempCT1; //Temperature measured on the board CT1
+
+   int OnTimeCT1;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
+   int LastCT1;//The last command received by the payload, expressed as a decimal number (it is in HeX on the GUI display)
+   int CountCT1;//Count of commands received by the payload since power on
+   
+   //Barometer information: NOT INTERPRETED from line CT1
+   float Baro1T;//Barometer 1 Temperature
+   float Baro1P;//Barometer 1 Pressure
+   float Baro2T;//Barometer 2 Temperature
+   float Baro2P;//Barometer 2 Pressure
+   //Barometer information: INTERPRETED from line CT1
+   float TempB1;//Barometer 1 Temperature
+   float TempB2;//Barometer 2 Temperature
+   float PressB1;//Barometer 1 Pressure
+   float PressB2;//Barometer 2 Pressure
+   
+   float GOCT1;
+   float coinCT1;
+   
+   //Voltages
+   float Volt5VCT1;  // Positive 5V from line CT1
+   float Volt15VCT1; // Positive 15V from line CT1
+ 
+   //Data FROM "CT3" LINE
+   int yCT3;//Year from CT3 line linked to the event (last read CT3 line)
+   int mCT3;//Month from CT3 line linked to the event (last read CT3 line)
+   int dCT3;//Day from CT3 line linked to the event (last read CT3 line)
+   int hCT3;//Hour from CT3 line linked to the event (last read CT3 line)
+   int miCT3;//Minute from CT3 line linked to the event (last read CT3 line)
+   int sCT3;//Second from CT3 line linked to the event (last read CT3 line)
+   float TempCT3; //Temperature measured on the board CT3
+
+   int OnTimeCT3;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
+   int LastCT3;//The last command received by the payload, expressed as a decimal number (it is in HeX on the GUI display)
+   int CountCT3;//Count of commands received by the payload since power on
+  
+   //Voltages
+   float Volt5VCT3=-999;  // Positive 5V from line CT3
+   float Volt15VCT3=-999; // Positive 15V from line CT3
+  
+   //TRIGGER RATES (PHA AND LOGIC) from CT3
+   float T1L;
+   float T1A;
+   float T2L;
+   float T2A;
+   float T3L;
+   float T3A;
+   float T4L;
+   float T4A;
+   float GRDL;
+   float GRDA;
+  
+   //HOUSEKEEPING FROM POW
+   int yPOW;//Year from POW line linked to the event (last read POW line)
+   int mPOW;//Month from POW line linked to the event (last read POW line)
+   int dPOW;//Day from POW line linked to the event (last read POW line)
+   int hPOW;//Hour from POW line linked to the event (last read POW line)
+   int miPOW;//Minute from POW line linked to the event (last read POW line)
+   int sPOW;//Second from POW line linked to the event (last read POW line)
+   int OnTimePOW;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
+   float MainC;
+   float MainV;
+   float HeatC;
+   float HeatV;
+   float TrackC;
+   float TrackV;
+   
+   
+   
  public: 
    //Constructors
    ALEvent();// Default
@@ -243,6 +321,71 @@ class ALEvent:public TObject
    void add_timeg(double a){timeg.push_back(a);}   
    void set_Ti(int a){Ti=a;}
    
+   //HOUSEKEEPING FROM COUNTERS 1 AND 3   
+   void set_yCT1(int a){yCT1=a;}
+   void set_mCT1(int a){mCT1=a;}
+   void set_dCT1(int a){dCT1=a;}
+   void set_hCT1(int a){hCT1=a;}
+   void set_miCT1(int a){miCT1=a;}
+   void set_sCT1(int a){sCT1=a;}
+   void set_TempCT1(float a){TempCT1=a;}
+   void set_OnTimeCT1(int a){OnTimeCT1=a;}
+   void set_LastCT1(int a){LastCT1=a;}
+   void set_CountCT1(int a){CountCT1=a;}
+   void set_Baro1T(float a){Baro1T=a;}
+   void set_Baro1P(float a){Baro1P=a;}
+   void set_Baro2T(float a){Baro2T=a;}
+   void set_Baro2P(float a){Baro2P=a;}
+   void set_TempB1(float a){TempB1=a;} 
+   void set_TempB2(float a){TempB2=a;} 
+   void set_PressB1(float a){PressB1=a;}
+   void set_PressB2(float a){PressB2=a;}
+   void set_Volt5VCT1(float a){Volt5VCT1=a;}  
+   void set_Volt15VCT1(float a){Volt15VCT1=a;} 
+   void set_GOCT1(float a){GOCT1=a;} 
+   void set_coinCT1(float a){coinCT1=a;} 
+
+   //Data FROM "CT3" LINE
+   void set_yCT3(int a){yCT3=a;}
+   void set_mCT3(int a){mCT3=a;}
+   void set_dCT3(int a){dCT3=a;}
+   void set_hCT3(int a){hCT3=a;}
+   void set_miCT3(int a){miCT3=a;}
+   void set_sCT3(int a){sCT3=a;}
+   void set_TempCT3(float a){TempCT3=a;}
+   void set_OnTimeCT3(int a){OnTimeCT3=a;}
+   void set_LastCT3(int a){LastCT3=a;}
+   void set_CountCT3(int a){CountCT3=a;}
+   void set_T1L(float a){T1L=a;}
+   void set_T1A(float a){T1A=a;}
+   void set_T2L(float a){T2L=a;}
+   void set_T2A(float a){T2A=a;}
+   void set_T3A(float a){T3A=a;}
+   void set_T3L(float a){T3L=a;}
+   void set_T4A(float a){T4A=a;}
+   void set_T4L(float a){T4L=a;}
+   void set_GRDL(float a){GRDL=a;}
+   void set_GRDA(float a){GRDA=a;}
+   void set_Volt5VCT3(float a){Volt5VCT3=a;}  
+   void set_Volt15VCT3(float a){Volt15VCT3=a;}
+   
+   
+   void set_yPOW(int a){yPOW=a;}
+   void set_mPOW(int a){mPOW=a;}
+   void set_dPOW(int a){dPOW=a;}
+   void set_hPOW(int a){hPOW=a;}
+   void set_miPOW(int a){miPOW=a;}
+   void set_sPOW(int a){sPOW=a;}
+   void set_OnTimePOW(int a){OnTimePOW=a;}
+
+   void set_MainC(float a){MainC=a;}
+   void set_MainV(float a){MainV=a;}
+   void set_HeatC(float a){HeatC=a;}
+   void set_HeatV(float a){HeatV=a;}
+   void set_TrackC(float a){TrackC=a;}
+   void set_TrackV(float a){TrackV=a;}
+   
+       
    ////////////////////////////////
    //"Getting" member methods
    ////////////////////////////////
@@ -353,18 +496,77 @@ class ALEvent:public TObject
    std::vector<double>&  get_timeg(){return timeg;}
    int get_Ti(){return Ti;}
 
+   
+   //HOUSEKEEPING FROM COUNTERS 1 AND 3   
+   int get_yCT1(){return yCT1;}
+   int get_mCT1(){return mCT1;}
+   int get_dCT1(){return dCT1;}
+   int get_hCT1(){return hCT1;}
+   int get_miCT1(){return miCT1;}
+   int get_sCT1(){return sCT1;}
+   float get_TempCT1(){return TempCT1;}
+   int get_OnTimeCT1(){return OnTimeCT1;}
+   int get_LastCT1(){return LastCT1;}
+   int get_CountCT1(){return CountCT1;}
+   float get_Baro1T(){return Baro1T;}
+   float get_Baro1P(){return Baro1P;}
+   float get_Baro2T(){return Baro2T;}
+   float get_Baro2P(){return Baro2P;}
+   float get_TempB1(){return TempB1;} 
+   float get_TempB2(){return TempB2;} 
+   float get_PressB1(){return PressB1;}
+   float get_PressB2(){return PressB2;}
+   float get_Volt5VCT1(){return Volt5VCT1;}  
+   float get_Volt15VCT1(){return Volt15VCT1;} 
+   float get_GOCT1(){return GOCT1;} 
+   float get_coinCT1(){return coinCT1;} 
+
+   int get_yCT3(){return yCT3;}
+   int get_mCT3(){return mCT3;}
+   int get_dCT3(){return dCT3;}
+   int get_hCT3(){return hCT3;}
+   int get_miCT3(){return miCT3;}
+   int get_sCT3(){return sCT3;}
+   float get_TempCT3(){return TempCT3;}
+   int get_OnTimeCT3(){return OnTimeCT3;}
+   int get_LastCT3(){return LastCT3;}
+   int get_CountCT3(){return CountCT3;}
+   float get_T1L(){return T1L;}
+   float get_T1A(){return T1A;}
+   float get_T2L(){return T2L;}
+   float get_T2A(){return T2A;}
+   float get_T3L(){return T3L;}
+   float get_T3A(){return T3A;}
+   float get_T4L(){return T4L;}
+   float get_T4A(){return T4A;}
+   float get_GRDL(){return GRDL;}
+   float get_GRDA(){return GRDA;}
+   float get_Volt5VCT3(){return Volt5VCT3;}  
+   float get_Volt15VCT3(){return Volt15VCT3;} 
+
+   int get_yPOW(){return yPOW;}
+   int get_mPOW(){return mPOW;}
+   int get_dPOW(){return dPOW;}
+   int get_hPOW(){return hPOW;}
+   int get_miPOW(){return miPOW;}
+   int get_sPOW(){return sPOW;}
+   int get_OnTimePOW(){return OnTimePOW;}
+
+   float get_MainC(){return MainC;}
+   float get_MainV(){return MainV;}
+   float get_HeatC(){return HeatC;}
+   float get_HeatV(){return HeatV;}
+   float get_TrackC(){return TrackC;}
+   float get_TrackV(){return TrackV;}
 
    ////////////////////////////////
    //Methods to get number of layerS and layer with hits
    ////////////////////////////////
 
 
-   int  get_NLayers();
+   int get_NLayers();
    int get_Layer(int);
    void get_Layers(int*);
-
-
-
 
    ////////////////////////////////
    ClassDef(ALEvent,1)

@@ -70,6 +70,84 @@ ALEvent::ALEvent()// Default
  T4=false;
  guard=false;
  Ti=0;
+ 
+ 
+ //HOUSEKEEPING FROM COUNTERS 1 AND 3
+ //Data FROM "CT1" LINE
+ yCT1=-1;//Year from CT1 line linked to the event (last read CT1 line)
+ mCT1=-1;//Month from CT1 line linked to the event (last read CT1 line)
+ dCT1=-1;//Day from CT1 line linked to the event (last read CT1 line)
+ hCT1=-1;//Hour from CT1 line linked to the event (last read CT1 line)
+ miCT1=-1;//Minute from CT1 line linked to the event (last read CT1 line)
+ sCT1=-1;//Second from CT1 line linked to the event (last read CT1 line)
+ TempCT1=-999; //Temperature measured on the board CT1
+
+ OnTimeCT1=-1;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
+ LastCT1=-1;//The last command received by the payload, expressed as a decimal number (it is in HeX on the GUI display)
+ CountCT1=-1;//Count of commands received by the payload since power on
+ 
+ //Barometer information: NOT INTERPRETED from line CT1
+ Baro1T=-999;//Barometer 1 Temperature
+ Baro1P=-999;//Barometer 1 Pressure
+ Baro2T=-999;//Barometer 2 Temperature
+ Baro2P=-999;//Barometer 2 Pressure
+ //Barometer information: INTERPRETED from line CT1
+ TempB1=-999;//Barometer 1 Temperature
+ TempB2=-999;//Barometer 2 Temperature
+ PressB1=-999;//Barometer 1 Pressure
+ PressB2=-999;//Barometer 2 Pressure
+ 
+ GOCT1=-999;
+ coinCT1=-199;
+ 
+ //Voltages
+ Volt5VCT1=-999;  // Positive 5V from line CT1
+ Volt15VCT1=-999; // Positive 15V from line CT1
+
+ //Data FROM "CT3" LINE
+ yCT3=-1;//Year from CT3 line linked to the event (last read CT3 line)
+ mCT3=-1;//Month from CT3 line linked to the event (last read CT3 line)
+ dCT3=-1;//Day from CT3 line linked to the event (last read CT3 line)
+ hCT3=-1;//Hour from CT3 line linked to the event (last read CT3 line)
+ miCT3=-1;//Minute from CT3 line linked to the event (last read CT3 line)
+ sCT3=-1;//Second from CT3 line linked to the event (last read CT3 line)
+ TempCT3=-999; //Temperature measured on the board CT3
+
+ OnTimeCT3=-1;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
+ LastCT3=-1;//The last command received by the payload, expressed as a decimal number (it is in HeX on the GUI display)
+ CountCT3=-1;//Count of commands received by the payload since power on
+
+ Volt5VCT3=-999;  // Positive 5V from line CT3
+ Volt15VCT3=-999; // Positive 15V from line CT3
+ 
+ //TRIGGER RATES (PHA AND LOGIC) from CT3
+ T1L=-1;
+ T1A=-1;
+ T2L=-1;
+ T2A=-1;
+ T3L=-1;
+ T3A=-1;
+ T4L=-1;
+ T4A=-1;
+ GRDL=-1;
+ GRDA=-1;
+ 
+ //HOUSEKEEPING FROM POW
+ int yPOW=-1;//Year from POW line linked to the event (last read POW line)
+ int mPOW=-1;//Month from POW line linked to the event (last read POW line)
+ int dPOW=-1;//Day from POW line linked to the event (last read POW line)
+ int hPOW=-1;//Hour from POW line linked to the event (last read POW line)
+ int miPOW=-1;//Minute from POW line linked to the event (last read POW line)
+ int sPOW=-1;//Second from POW line linked to the event (last read POW line)
+ int OnTimePOW=-1;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
+ float MainC=-999;
+ float MainV=-999;
+ float HeatC=-999;
+ float HeatV=-999;
+ float TrackC=-999;
+ float TrackV=-999;
+   
+ 
 }
 
 
@@ -180,8 +258,70 @@ void ALEvent::Copy(ALEvent* e)
    //Vectors of ALTckhit
    for(int i=0;i<(int)(e->get_hits()).size();i++) hits.push_back((e->get_hits()).at(i));
 
-
+   //HOUSEKEEPING FROM COUNTERS 1 AND 3   
+   yCT1  = e->get_yCT1();
+   mCT1  = e->get_mCT1();
+   dCT1  = e->get_dCT1();
+   hCT1  = e->get_hCT1();
+   miCT1  = e->get_miCT1();
+   sCT1  = e->get_sCT1();
+   TempCT1  = e->get_TempCT1();
+   OnTimeCT1  = e->get_OnTimeCT1();
+   LastCT1  = e->get_LastCT1();
+   CountCT1  = e->get_CountCT1();
+   Baro1T  = e->get_Baro1T();
+   Baro1P  = e->get_Baro1P();
+   Baro2T  = e->get_Baro2T();
+   Baro2P  = e->get_Baro2P();
+   TempB1  = e->get_TempB1();
+   TempB2  = e->get_TempB2();
+   PressB1  = e->get_PressB1();
+   PressB2  = e->get_PressB2();
+   GOCT1=  e->get_GOCT1();
+   coinCT1=  e->get_coinCT1();
  
+   Volt5VCT1  = e->get_Volt5VCT1();
+   Volt15VCT1  = e->get_Volt15VCT1();
+   yCT3  = e->get_yCT3();
+   mCT3  = e->get_mCT3();
+   dCT3  = e->get_dCT3();
+   hCT3  = e->get_hCT3();
+   miCT3  = e->get_miCT3();
+   sCT3  = e->get_sCT3();
+   TempCT3  = e->get_TempCT3();
+   OnTimeCT3  = e->get_OnTimeCT3();
+   LastCT3  = e->get_LastCT3();
+   CountCT3  = e->get_CountCT3();
+   T1L  = e->get_T1L();
+   T1A  = e->get_T1A();
+   T2L  = e->get_T2L();
+   T2A  = e->get_T2A();
+   T3L  = e->get_T3L();
+   T3A  = e->get_T3A();
+   T4L  = e->get_T4L();
+   T4A  = e->get_T4A();
+   GRDL  = e->get_GRDL();
+   GRDA  = e->get_GRDA();
+   
+   Volt5VCT3  = e->get_Volt5VCT3();
+   Volt15VCT3  = e->get_Volt15VCT3();
+
+   //HOUSEKEEPING FROM POW
+   yPOW= e->get_yPOW();
+   mPOW= e->get_mPOW();
+   dPOW= e->get_dPOW();
+   hPOW= e->get_hPOW();
+   miPOW= e->get_miPOW();
+   sPOW= e->get_sPOW();
+   OnTimePOW= e->get_OnTimePOW();
+   MainC= e->get_MainC();
+   MainV= e->get_MainV();
+   HeatC= e->get_HeatC();
+   HeatV= e->get_HeatV();
+   TrackC= e->get_TrackC();
+   TrackV= e->get_TrackV();
+
+
 }
 
 ////////////////////////////////
