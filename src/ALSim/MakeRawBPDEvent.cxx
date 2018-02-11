@@ -610,12 +610,12 @@ int MakeRawBPDEventIT(string filename)
       //Format from Paul's email of Feb. 8, 2018
 
       OnTimePOW=s2i(&datalinePOW.at(3));
-      MainC=s2f(&datalinePOW.at(4));
-      MainV=s2f(&datalinePOW.at(5));
-      HeatC=s2f(&datalinePOW.at(6));
-      HeatV=s2f(&datalinePOW.at(7));
+      MainV=s2f(&datalinePOW.at(4));
+      MainC=s2f(&datalinePOW.at(5));
+      HeatV=s2f(&datalinePOW.at(6));
+      HeatC=s2f(&datalinePOW.at(7));
+      TrackV=s2f(&datalinePOW.at(8));
       TrackC=s2f(&datalinePOW.at(9));
-      TrackV=s2f(&datalinePOW.at(9));
 
     
 
