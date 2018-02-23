@@ -62,14 +62,21 @@
 #include "TSpline.h"
 #include "Math/Interpolator.h"
 #include "TMultiGraph.h"
-
+#include "LoadDataparameters.h"
+#include "LoadMCparameters.h"
+#include "TCollection.h"
+#include "TBox.h"
+#include <sstream>
+#include <bitset>
+#include <string>
+#include "tools.h"
 class ALPatternRecognition {
 	
 public:
 	ALPatternRecognition() {};
-	virtual ~ALPatternRecognition() {};
-	
-	 void FindPattern();
+	virtual ~ALPatternRecognition() {};	
+	int FindPattern(ALEvent *re, int DataType);
+	 void FindPatternPSM(ALEvent *re);
 	ClassDef(ALPatternRecognition, 1)
 };
 

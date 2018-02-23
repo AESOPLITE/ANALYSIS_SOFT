@@ -22,7 +22,6 @@
 #include "TMatrixD.h"
 
 class TVTrack;
-
 //_____________________________________________________________________
 //  -----------------------------------
 //  Plane Class
@@ -57,15 +56,6 @@ private:
 // inline functions
 //=======================================================
 
-
-Bool_t TPlane::IsOnSurface(const TVector3 &xx) const
-{
-#if 0
-   return (xx - fXc) * fNormal == 0. ? kTRUE : kFALSE; 
-#else
-   return kTRUE;
-#endif
-} 
 
 Bool_t TPlane::IsOutside(const TVector3 &xx) const
 {

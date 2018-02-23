@@ -40,7 +40,8 @@ public:
    // Utility methods
 
    virtual Bool_t AddAndFilter(TVKalSite &next);
-   virtual void   SmoothBackTo(Int_t k);
+   virtual void  SmoothBackTo(Int_t k);
+   virtual TVector3 SmoothBackLastSite(Int_t k);
    virtual void   SmoothAll();
    virtual void   InvFilter(Int_t k);
 

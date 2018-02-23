@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////// 
 ///    Author: Pierre-Simon Mangeard, psmangeard@gmail.com
-///    Department of Physics and Astronomy, University of Delaware, January 10, 2017
+///    Department of Physics and Astronomy, University of Delaware, September 8, 2017
 ////////////////////////////////////////////////////////////////////////////////////////// 
 
 
@@ -55,16 +55,22 @@
 #include "TRandom2.h"
 #include "TRandom1.h"
 #include "ALEvent.h"
-#include "LoadMCparameters.h"
-#include "tools.h"
 
 //ClassImp(ALTckhit)
 //ClassImp(ALEvent)
 
-int MakeRawEventMC(int typeT,int Ene,int cycle,string Inppath,string Inppath2,string Outpath,string startfile,string endfile);
-int MakeRawEventMCDisc(int ,int ,int,string,string,string,string,string);
-/*
-float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<float> cz,vector<float>type,vector<float> Edep,int*chip,int* fstrip,int* fstripID,int*nstrip,float offsetLL, float offsetRL,bool MCflag);
-float StriptoCoord(int strip,float OffsetLL,float OffsetRL,bool MCflag);
-int CoordtoStrip(float Coord,float SecCoord,float OffsetLL,float OffsetRL,bool MCflag);
-*/
+
+
+vector<string> split (string*,char);
+double s2lf(string*);
+float s2f(string*);
+int s2i(string*);
+int Partition(int ,int ,float []);
+void Quick_sort(int ,int ,float []);
+void extractdate(int *y,int*m,int*d,string*str);
+void extracttime(int *h,int*m,int*s,string*str);
+int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*);
+int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*);
+int MakeRawBPDEvent(string);
+int MakeRawBPDEventIT(string);
+
