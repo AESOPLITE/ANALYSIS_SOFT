@@ -22,18 +22,23 @@ int main(int argc, char* argv[]);
 int main(int argc, char* argv[])
 {
 //Check number of parameters 
- if(argc!=2)
+ if(argc!=3)
   {
    cout << "Wrong number of parameters!!!!" << endl;
-   cout << "The program needs 1 input parameter:"<< endl;
+   cout << "The program needs 2 input parameters:"<< endl;
    cout << "The first parameter is the filename"<< endl;
    cout << "that contains the BPD files paths"<< endl;
+   cout << "The second parameter is the geometry configuration file version"<< endl;
+
    return -1;
   }
  
 //Open input file
  ifstream filestr;
  filestr.open(argv[1]);
+  
+ int geoconf=stoi(argv[2]); 
+  
  if(!filestr.is_open())
   {
    cout << "The file " << argv[1] << " is not open ... "<< endl ;
@@ -53,14 +58,14 @@ int main(int argc, char* argv[])
     //Read the text file .BPD
     //Parse the information to create events
     //The events are stored in a root file line.root 
-    MakeRawBPDEvent(line);
+    MakeRawBPDEventIT(line);
     
     //Temporary Second Step
     //Read the rootfile previously created
     //Determine the coordinates of the clusters
     //in the X,Y,Z coordinates
     //this is where misalignement must be taken into account
-    //MakeEventData(line);
+    MakeEventData(line,geoconf);
 
 
     

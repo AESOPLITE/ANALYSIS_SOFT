@@ -2,46 +2,54 @@
 using namespace std;
 
 
-int main() 
+//This function transforms the rootfiles from the output of write99toroot to RawEvent 
+//This function reconstructs the raw events file per file 
+
+int main(int argc, char*argv[]) 
 {
- //This function transforms the rootfiles from the output of write99toroot to RawEvent 
- //This function reconstructs the raw events file per file 
+
+ if(argc!=5)
+  {
+   cout << "Wrong number of parameters!!!!" << endl;
+   cout << "The program needs 5 input parameters:"<< endl;
+   cout << "First is Fluka type of simulated particles" <<endl;
+   cout << "Second is energy in MeV" <<endl;
+   cout << "Third is first cycle to reconstruct (Starts at 1)" <<endl;
+   cout << "Fourth is the number of cycle to reconstruct" <<endl;
+   return -1;
+  }
+ //Fluka type of particle
+ int type=(int) atoi(argv[1]); //3 for electrons
+ int Ene=(int) atoi(argv[2]);   //Energy in MeV
+ int Ncycles=(int) atoi(argv[3]);   //first cycle to reconstruct
+ int Ncycles2=(int) atoi(argv[4]);   //last cycle
 
  //Input files 
- string Inppath="/data/psmangeard/AESOPLite/Fluka/UniB/V1";
+ string Inppath="/data/smechbal/Fluka/NonUniB/V3";
  string Inppath2="rootfiles";
- string startfile="aesopliteUniB_V1";
+ string startfile="aesopliteNonUniB_V3";
  string endfile="_fort.99";
  
  //Output files
- string Outpath="/home/psmangeard/MCproduction/AESOPLITE/rootfiles/UniB/V1";
+ string Outpath="/home/smechbal/MCproduction/AESOPLITE/rootfiles/NonUniB/V3/Disc";
+ //string Outpath="/home/smechbal/MCproduction/AESOPLITE/rootfiles/NonUniB/V2";
  
- 
- 
- //Fluka type of particle
- int type=3; //3 for electrons
- //Number of energies
- int Nene=12;
- //Energies
- int Ene[12]={10,20,30,40,50,60,70,80,90,100,200,300};
- //Number of cycles per energy
- int* Ncycles=new int[Nene]; 
- for(int i=0;i<Nene;i++)Ncycles[i]=100;  
- 
- 
- 
- for(int i=0;i<Nene;i++)//Energies
-   {
-    for(int j=0;j<Ncycles[i];j++)//Number of cycles
+
+//for(int j=0;j<1;j++)//Number of cycles
+ for(int j=Ncycles;j<Ncycles+Ncycles2;j++)//Number of cycles
       {
-       cout << Form("%s/%d/%s/%s_%d_%dMeV%03d%s.root",Inppath.c_str(),type,Inppath2.c_str(),startfile.c_str(),type,Ene[i],j+1,endfile.c_str()) <<endl;
+       if((type==3) || (type==4)) {
+       cout << Form("%s/%d/%s/%s_%d_%dMeV%03d%s.root",Inppath.c_str(),type,Inppath2.c_str(),startfile.c_str(),type,Ene,j,endfile.c_str()) <<endl;
+	}
+       else cout << Form("%s/%d/%s/%s_%d_%dGeV%03d%s.root",Inppath.c_str(),type,Inppath2.c_str(),startfile.c_str(),type,Ene,j,endfile.c_str()) <<endl;
+       	
        //Create the RawEvent
-       MakeRawEventMC(type,Ene[i],j+1,Inppath,Inppath2,Outpath,startfile,endfile);
-       //       ntuple =new TNtuple("Track","Track","ncase:mreg:mtrack:type:age:e:x:y:z:cx:cy:cz:Edep:flag");
+       MakeRawEventMCDisc(type,Ene,j,Inppath,Inppath2,Outpath,startfile,endfile);
+      // MakeRawEventMC(type,Ene,j,Inppath,Inppath2,Outpath,startfile,endfile);
       }//j
-    }//i
 
  
  
  return 0;
 }
+
