@@ -6,17 +6,22 @@
 //* (Description)
 //* 13/01/2017  S. Mechbal		Modified for AESOPLITE experiment
 //*
-//* This is the main program that executes the Kalman Filter. A helix is initialized using
-//* the information from the PatternRecognition. Smooth back at last site.
+//* This is the main program that executes the Kalman Filter. The first step is to load the ROOT 
+//* output tree to TObjArray, create ALHit structure, initialize helix with three points and
+//* do Kalman Filter. 
+//* In KalTest, they have an additional class EXEventGen, which creates hit points from the intersection
+//* of a generated helix with measurement surfaces. The points are added to a hit buffer, kalhits->
+
 //* (Requires)
 //* (Provides)
 //*     class ALKalTest
 //* (Update Recorded)
 //*
-//*
+//*   
 //***************************************************************************
 
 #include "ALKalman.h"		  // from ALKalman
+#include "TTrackFrame.h"
 #include <iomanip>
 #include <iostream>
 #include <cmath>
@@ -27,14 +32,16 @@ static const double kMelectron = 0.5109989461e-3;		//electron mass in GeV
 static const double kMuon = 0.105658371;				//muon mass in GeV
 static const double RestMassE   = 0.51099;				//mass electron in MeV
 static const double RestMassMu = 105.6584;				//mass muon in MeV
+static const double c = TMath::C()*1000;				//speed of light in mm/s  
 static const double average_B = 0.3;					//average magnetic field AESOPLITE	in [T]
 static const double CovMElement=1.0e4;					//initial covariant matrix elements
 static const Bool_t kDir = kIterForward;				//first hit to last (does not work as well...)
+//static const Bool_t kDir= kIterBackward;
 int uhitnid[7]={0,0,0,0,0,0,0};
  bool testlayer[7]={false,false,false,false,false,false,false};
-//Class constructor
+//Class constructor 
 
-ALKalman::ALKalman(ALEvent *re)
+ALKalman::ALKalman(ALEvent *re) 
 {
 		   cout <<endl;
    cout << "Calling class constructor ALKalman() " << endl;
@@ -43,59 +50,65 @@ ALKalman::ALKalman(ALEvent *re)
    //  Prepare a detector
    // ===================================================================
    //ALEvent re;
-   cradle = new TKalDetCradle();
+   cradle = new TKalDetCradle();				
    detector = new ALKalDetector();
-   cradle->Install(*detector);
+   cradle->Install(*detector); 	
    int nlayers = cradle->GetEntries();
   // cout << "Number of detectors in cradle = " << nlayers << endl;
 	kalhits = new TObjArray(7);
-
+	
 
    int nnhits = (int)re->get_Nhits();
+   //cout << "Event " << re->get_eventnumber() << "   number of hits = " << nnhits << endl;
    //Index of the hits used to reconstruct the track
 
    int ij = 0 ;
    int index;					//index of hits used
    int count = 0;
-
+	
    //Use information of PatternRecognition to choose hits
 
-   for(int j=0;j<nnhits;j++)
+   for(int j=0;j<nnhits;j++) 
   	 {
 	      bool flagPR = re->get_hits().at(j)->get_flagPR();
 	      bool fGhost = re->get_hits().at(j)->get_fGhost();
 	      int k = re->get_hits().at(j)->get_k();
-	      if(flagPR) {
+	      //cout << " Hit " << j << "  , flagPR? " << flagPR << endl;
+	      
+	      if(flagPR) {	
 	    count++;
 	    int L = re->get_hits().at(j)->get_L();
-		//coordinates from MC or data
+	    int nstrip = re->get_hits().at(j)->get_nstrips();
+		//coordinates fom MC or data
 	    Float_t x=(re->get_hits().at(j)->get_x())*10;			//in mm
             Float_t y=(re->get_hits().at(j)->get_y())*10;           //in mm
             Float_t z=(re->get_hits().at(j)->get_z())*10;			//in mm
 		//coordinate from PR fit
 	    Float_t xPR=(re->get_hits().at(j)->get_xPR())*10;		//in mm
-            Float_t yPR=(re->get_hits().at(j)->get_yPR())*10;       //in mm
-            Float_t zPR=(re->get_hits().at(j)->get_zPR())*10;		//in mm
-
+            Float_t yPR=(re->get_hits().at(j)->get_yPR())*10;       //in mm		
+            Float_t zPR=(re->get_hits().at(j)->get_zPR())*10;		//in mm	
+	    
 	  //  cout << "Ghost hit? = " << fGhost << endl;
-	   // cout << "MC or data coordinates x = " << x << "  y = " << y << "  z = " << z << endl;
-	   // cout << "PR coordinates xPR = " << xPR << "  yPR = " << yPR << "  zPR = " << zPR << endl;
-	    TVector3 xx;
-	    if(!fGhost) {
+	    //cout << "MC or data coordinates x = " << x << "  y = " << y << "  z = " << z << endl;
+	    //cout << "PR coordinates xPR = " << xPR << "  yPR = " << yPR << "  zPR = " << zPR << endl;
+	    TVector3 xx; 
+	    if(!fGhost) {	                     							
 		if(L==0||L==4||L==6)//non-bending plane
 		{
-           	xx.SetXYZ(x,yPR,z);
+           	xx.SetXYZ(x,yPR,z);	
 		}
-	    else
+	    else 
 			{
 			xx.SetXYZ(xPR,y,z);
-			}
+			}  
 		}
 	    else {
 	     xx.SetXYZ(xPR, yPR, zPR);
 	     }
-	 //   cout << "Hitxx " << j << ", index " << k << " x = "<< xx.Y() << "   y= "<< xx.Z()<< "   z= "<< xx.X() << endl;
-
+	    if(nstrip==-1) { 
+	    //cout << "Event = " <<  re->get_eventnumber() << endl;
+	   // cout << "Hitxx " << j << ", index " << k << "  nstrip = " << nstrip <<  " x = "<< xx.Y() << "   y= "<< xx.Z()<< "   z= "<< xx.X() << endl;
+	}	
 		//loop over layer to choose active ones over dummy ones to record hit in the right layer
 		for(int n=0; n<nlayers;n++) {
 			ALMeasLayer &ms = *static_cast<ALMeasLayer *>(cradle->At(n));
@@ -105,21 +118,21 @@ ALKalman::ALKalman(ALEvent *re)
 			TVector3 Xc = ms.GetXc();
 			if((isactive) && (!inuse)) {
 				ms.Set_InUseFlag();
-				ms.ProcessHit(xx, *kalhits, bending, L);
+				ms.ProcessHit(xx, *kalhits, bending, L,nstrip);
 				//cout << "called ms.ProcessHit " << endl;
 				testlayer[ij] = true;
-			//We record the index of the hit so we will be able to record the reconstructed variables at the right place
+			//We record the index of the hit so we will be able to record the reconstructed variables at the right place 
 				uhitnid[ij]=k;
 				ij++;
 				break;
 				}
 	    	} //end loop over layers
 	  	}//if flagPR
-  	} //end j
-
+  	} //end j	
+ 	
      //if we have found one hit in each layer then we stop looking for more
      if(testlayer[0]&&testlayer[1]&&testlayer[2]&&testlayer[3]&&testlayer[4]&&testlayer[5]&&testlayer[6]) cout << "retrieved the hits" <<endl;
-     if(testlayer[0]&&testlayer[1]&&testlayer[2]&&testlayer[3]&&testlayer[4]&&testlayer[5]&&testlayer[6]==false)
+     if(testlayer[0]&&testlayer[1]&&testlayer[2]&&testlayer[3]&&testlayer[4]&&testlayer[5]&&testlayer[6]==false) 
       {
        cout << "We did not find hits on all layer!!" <<endl;
       }
@@ -129,7 +142,8 @@ ALKalman::ALKalman(ALEvent *re)
    cout << "Indexes of the hits used in the reconstruction" << endl;
    for(int i=0;i<7;i++) cout << uhitnid[i] << " ";//Check the layer
    cout << endl;
-
+  // cout << "number of entries in kalhit buffer is " << kalhits->GetEntries() << endl;
+  
 }
 
 //class destructor
@@ -141,82 +155,75 @@ ALKalman::~ALKalman()
 
 }
 
-void ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int type, TKalMatrix &state, TKalMatrix &covariant)
+int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int DataType, TKalMatrix &state, TKalMatrix &covariant)	
 {
 	//Choose 3 hits for initial 3-points helix
 	cout << "InitializeHelix() " << endl;
-	double kappa_init, phi0_init, tanL_init,Q;
-    static TKalMatrix svd_first(kSdim,1);
-    svd_first(0,0) = 0.;
-    svd_first(3,0) = 0.;
-    if (kSdim == 6) svd_first(5,0) = 0.;
+	double kappa_init, phi0_init, tanL_init;
+	kappa_init=phi0_init=tanL_init=0;
+	double kappa_MC, phi0_MC, tanL_MC;
+	kappa_MC = phi0_MC=tanL_MC=0;
+	double kappa_PR, phi0_PR, tanL_PR;
+	kappa_PR = phi0_PR=tanL_PR=0;
+	double kappa_3, phi0_3,  tanL_3;
+	kappa_3=phi0_3=tanL_3=0;
+	int type;
+        double deflec = re->get_deflecPR();
+	double slope_PR = re->get_slopePR();
+	double Q =  TMath::Sign(1,deflec);
+	   if (DataType==1) { 
+	   if (re->get_T2()) {			//if CK fired, electrons or positrons
+	      if (Q>0) type=4;
+	      else type=3;
+	      }
+	    else   {			//if CK not fired
+	      if (Q>0) type=10;
+	      else type=11;	       			
+	    }
+	  } //if data
+	  //if MC	
+	   else type = re->get_typeMC();	//if MC				   
+		   
+        static TKalMatrix svd_first(kSdim,1);
+         svd_first(0,0) = 0.;
+         svd_first(3,0) = 0.;
+         if (kSdim == 6) svd_first(5,0) = 0.;
+	
 
-	 if(InitType == 0)  {					// 0 = MCInit
-	 cout << "doing MCInit" << endl;
-
-	  // ----------------------------------------
-      // Create initial helix using MC truth at L0
-      // ----------------------------------------
-	   double EkMC = re->get_EkMC();
-	//!!!!! Convert from FLUKA to KALTEST coordinates!!!!!
-	   double CX0 = re->get_CY0MC();
-	   double CY0 = re->get_CZ0MC();
-	   double CZ0 = re->get_CX0MC();
-	   TVector3 p0MC(EkMC*CX0, EkMC*CY0, EkMC*CZ0);
-	   for(int k=0;k<re->get_Nhits();k++)
+	   for(int k=0;k<re->get_Nhits();k++) 
 	    {
 	     int Lindex=(int)re->get_hits().at(k)->get_L();
-	     //LAYER L0, NB plane
-	     if(Lindex==0) {
+	     //LAYER L0, NB plane		
+	     if(Lindex==0) {								
 	       //Convert from FLUKA to KALTEST coordinates!!
 		double cxL0 = re->get_hits().at(k)->get_cy();
 		double cyL0 = re->get_hits().at(k)->get_cz();
 		double czL0 = re->get_hits().at(k)->get_cx();
-		double eMC =(re->get_hits().at(k)->get_eMC());
-	    if (type==3 || type == 4) double pMC = TMath::Sqrt(EkMC*EkMC - kMelectron*kMelectron);
-		else if(type==10 || type ==11) double pMC = TMath::Sqrt(EkMC*EkMC - kMuon*kMuon);
-		TVector3 p0(eMC*cxL0, eMC*cyL0, eMC*czL0);
-		// Q = TMath::Sign(1,kappa_init);
-	    double deflec = re->get_deflecPR();
- 	    Q = TMath::Sign(1,deflec);
-		phi0_init = TMath::ATan2(-p0.X(), p0.Y());
-		kappa_init = Q/TMath::Sqrt(p0.X()*p0.X() + p0.Y()*p0.Y());
-		tanL_init = p0.Z()/TMath::Sqrt(p0.X()*p0.X() + p0.Y()*p0.Y());
-		  	} // if L0
-		}  //end for
-
-	} //end if MC init
-
-//if PRinit
-	else if (InitType == 1) {
-	 cout << "doing PRInit " << endl;
-
-	 for(int k=0;k<re->get_Nhits();k++)
-	    {
-	     int Lindex=(int)re->get_hits().at(k)->get_L();
-	     //LAYER L0, NB plane
-	     if(Lindex==0) {
+		double eMC =(re->get_hits().at(k)->get_eMC());       	
+		TVector3 p0(eMC*cxL0, eMC*cyL0, eMC*czL0);                             		
+		phi0_MC = TMath::ATan2(-p0.X(), p0.Y());
+		kappa_MC = Q/TMath::Sqrt(p0.X()*p0.X() + p0.Y()*p0.Y());
+		tanL_MC = p0.Z()/TMath::Sqrt(p0.X()*p0.X() + p0.Y()*p0.Y());
+		
+	//get PR variables							
 	       //Convert from FLUKA to KALTEST coordinates!!
-		double cxL0 = re->get_hits().at(k)->get_cyPR();
-		double cyL0 = re->get_hits().at(k)->get_czPR();
-		double czL0 = re->get_hits().at(k)->get_cxPR();
-		double EkPR = re->get_EkPR();
+		double cxPR = re->get_hits().at(k)->get_cyPR();
+		double cyPR = re->get_hits().at(k)->get_czPR();
+		double czPR = re->get_hits().at(k)->get_cxPR();
+		double EkPR = re->get_EkPR();   
       // -----------------------------------------------
       // Create initial helix using PR parameters at L0
-      // -----------------------------------------------
+      // -----------------------------------------------  	   
+		
+	   TVector3 p0PR(EkPR*cxPR, EkPR*cyPR, EkPR*czPR);                               
+	   phi0_PR = TMath::ATan2(-p0PR.X(), p0PR.Y());
+	   kappa_PR = Q/TMath::Sqrt(p0PR.X()*p0PR.X() + p0PR.Y()*p0PR.Y());
+	   tanL_PR = p0PR.Z()/TMath::Sqrt(p0PR.X()*p0PR.X() + p0PR.Y()*p0PR.Y());
 
-	   TVector3 p0PR(EkPR*cxL0, EkPR*cyL0, EkPR*czL0);
-	   double deflec = re->get_deflecPR();
-	   Q = TMath::Sign(1,deflec);
-	   phi0_init = TMath::ATan2(-p0PR.X(), p0PR.Y());
-	   kappa_init = Q/TMath::Sqrt(p0PR.X()*p0PR.X() + p0PR.Y()*p0PR.Y());
-	   tanL_init = p0PR.Z()/TMath::Sqrt(p0PR.X()*p0PR.X() + p0PR.Y()*p0PR.Y());
-		 }	
-	  }
-	}
-       else if (InitType == 2) {		                    	      	      // 2 = 3ptHelix
-         cout << "doing 3ptHelix init" << endl;
-		 int i1, i2, i3;
+		 } //if L0
+	}	//end for k
+
+        int i1, i2, i3;
         if (kDir == kIterBackward) {
          i3 = 0;
          i1 = kalhits->GetEntries() - 1;
@@ -240,71 +247,85 @@ void ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int t
 		 Double_t init_bfield1 = h1.GetBfield();				  //in T
 		 Double_t init_bfield2= h2.GetBfield();
 		 Double_t init_bfield3 = h3.GetBfield();
-		 Double_t averageB = 0.3;						 //average AESOPLITE magnetic field in T
 		 THelicalTrack helstart(x1, x2, x3, init_bfield2 , kDir); // initial helix
-		 Double_t init_mom = helstart.GetMomentum();
-		 // cout << "Momentum from first helix fit p = " << init_mom * 1000 << " MeV" << endl;
-
-	     phi0_init = helstart.GetPhi0();
-	     kappa_init = helstart.GetKappa();
-	     tanL_init = helstart.GetTanLambda();
-
-	}
- //save initial helix parameters
-	   re->set_phi0_init(phi0_init);
-	   re->set_cpa_init(kappa_init);
-	   re->set_tanl_init(tanL_init);
+	    	 phi0_3 = helstart.GetPhi0();
+	     	 kappa_3 = helstart.GetKappa();
+	     	 tanL_3 = helstart.GetTanLambda();
+	     
+	     if(InitType==0) {				//MC init
+	     	kappa_init=kappa_MC;
+	     	tanL_init=tanL_MC;
+	     	phi0_init=phi0_MC;
+	     	}
+	     else if(InitType==1) {			//PR init
+	     	kappa_init=kappa_PR;
+	     	tanL_init=tanL_PR;
+	     	phi0_init=phi0_PR;
+		}
+	     else {
+	     phi0_init=phi0_3;
+	     kappa_init=kappa_3;
+	     tanL_init=tanL_3;
+		}
+        
 
 	  svd_first(1,0) = phi0_init;
 	  svd_first(2,0) = kappa_init;
-      svd_first(4,0) = tanL_init;
-      static TKalMatrix C_first(kSdim,kSdim);
-      for (Int_t k=0; k<kSdim; k++) {
-         C_first(k,k) = CovMElement;   								// huge error matrix to start with
-      }
-
+          svd_first(4,0) = tanL_init;
+	  cout << "phi_init = " << phi0_init << "  cpa_init = " << kappa_init << "  tanL = " << tanL_init << endl;
+	  cout << "phi_MC = " << phi0_MC << "  cpa_MC = " << kappa_MC << "  tanL_MC = " << tanL_MC << endl;
+	  cout << "phi_PR = " << phi0_PR << "  cpa_PR = " << kappa_PR << "  tanL_PR = " << tanL_PR << endl;
+	  cout << "phi_3 = " << phi0_3 << "  cpa_3 = " << kappa_3 << "  tanL_3 = " << tanL_3 << endl;
+          static TKalMatrix C_first(kSdim,kSdim);
+          for (Int_t k=0; k<kSdim; k++) C_first(k,k) = CovMElement;  //huge error matrix to start with
+        	   								
+      	
+    
 
 //for two iterations
 	if(secondIter) {
-
+	
    //  Do Kalman Filter with initial helix, return state vector and covariant matrix at last site
-
+  
    TKalMatrix svd_last(kSdim,1);
    TKalMatrix C_last(kSdim,kSdim);
    InitialFit(svd_first, C_first, svd_last, C_last, type);
 
    state = svd_last;
    covariant = C_last;
-
+   
 	}  //end if 2nd iteration
 
 //if only one iteration
  else {
-
+	 
     state = svd_first;
     covariant =  C_first;
- }
+     //save initial helix parameters
 
+ }
+	 
 //save initial state vector and covariant matrix
 	re->set_phi0_init(state(1,0));
 	re->set_cpa_init(state(2,0));
 	re->set_tanl_init(state(4,0));
-    re->set_Cov_init(covariant);
-    covariant.DebugPrint("initial cov matrix");
+        re->set_Cov_init(covariant);
+	state.DebugPrint("initial state vector");
+    //covariant.DebugPrint("initial cov matrix");
+     return type;
 
+}	
+	
+	 
 
-}
-
-
-
- void ALKalman::InitialFit(TKalMatrix &svd_first, TKalMatrix &C_first, TKalMatrix &svd_last,TKalMatrix &C_last,int type)
+ void ALKalman::InitialFit(TKalMatrix &svd_first, TKalMatrix &C_first, TKalMatrix &svd_last,TKalMatrix &C_last, int type)	 
 {
-	 //cout << "InitialFit called, doing first iteration KF " << endl;
-
+	cout << "InitialFit called, doing first iteration KF " << endl;  
+	
 // cout << " number of entries kalhit buffer = " << kalhits->GetEntries() << endl;
-	kalhits->SetOwner(false);
+	kalhits->SetOwner(false);						
 
-
+      
       // ---------------------------
       //  Create a dummy site: sited
       // ---------------------------
@@ -313,12 +334,12 @@ void ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int t
       hitd(0,1) = 1.e6;   // give a huge error to x
       hitd(1,1) = 1.e6;   // give a huge error to y
       TKalTrackSite &sited = *new TKalTrackSite(hitd);
-      sited.SetOwner();               //site own states
+      sited.SetOwner();               //site own states   
 
       // ---------------------------
       //  Set dummy state to sited
       // ---------------------------
-
+      
 
       // svd_first.DebugPrint("initial state vector");
       // C_first.DebugPrint("initial covariant matrix");
@@ -335,28 +356,28 @@ void ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int t
       kalfirst.SetOwner();   // kaltrack owns sites
       kalfirst.Add(&sited);  // add the dummy site to the track
 
-
+      
       TIter first(kalhits, kDir);
       ALHit *hitp =  0;
 
       while ((hitp = dynamic_cast<ALHit *>(first())))
         {
-          const ALMeasLayer &ml = dynamic_cast<const ALMeasLayer &>(hitp->GetMeasLayer());
+          const ALMeasLayer &ml = dynamic_cast<const ALMeasLayer &>(hitp->GetMeasLayer());	
           TVector3 xv = ml.HitToXv(*hitp);
           TKalTrackSite  &site = *new TKalTrackSite(*hitp); // create a site for this hit
           TVector3 bfield = TBField::GetGlobalBfield(xv);
           if (!kalfirst.AddAndFilter(site))
            { // add and filter this site
             delete &site;
-           }
+           }   
          }
-
-   //kalfirst.SmoothBackTo(1);                          // smooth back to first site
+   
+   kalfirst.SmoothBackTo(1);                          // smooth back to first site
 
   // ============================================================
   //  Get the last site then return it back
   // ============================================================
-
+    
    TKalTrackState *theLastState = dynamic_cast<TKalTrackState*> (&(kalfirst.GetCurSite().GetCurState()));
    THelicalTrack Hel_last = theLastState->GetHelix();
    svd_last(0,0) = 0.0;
@@ -365,36 +386,36 @@ void ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int t
    svd_last(4,0) = Hel_last.GetTanLambda();
    svd_last(5,0) = 0.0;
    if (kSdim == 6) svd_last(5,0) = 0.;
-
+ //  svd_last.DebugPrint("state vector from 1st KF iteration");
    C_last = theLastState->GetCovMat();
    Double_t mom = Hel_last.GetMomentum();
-   cout << "Momentum from fist filter iteration p = " << mom * 1000 << " MeV" << endl;
+   //cout << "Momentum from fist filter iteration p = " << mom * 1000 << " MeV" << endl; 
 
 }
 
 
 
 
-int ALKalman::DoKF(ALEvent *re, int type, int InitType, bool secondIter)
-{
-
-  //cout << "DoKF() function called" << endl;
+int ALKalman::DoKF(ALEvent *re, int DataType, int InitType, bool secondIter)
+{	
+	
+  //cout << "DoKF() function called" << endl; 
   static TKalMatrix state(kSdim,1);
   static TKalMatrix covariant(kSdim,kSdim);
-  InitializeHelix(re, InitType, secondIter, type, state, covariant);
+  int type = InitializeHelix(re, InitType, secondIter, DataType, state, covariant);
+ 	
 
-
-
+		
       // ---------------------------
       //  Create a dummy site: sited
       // ---------------------------
-	  int i1 = (kDir == kIterForward) ? 0 : kalhits->GetEntries()-1;
+      int i1 = (kDir == kIterForward) ? 0 : kalhits->GetEntries()-1;
       ALHit hitd = *dynamic_cast<ALHit *>(kalhits->At(i1));
       hitd(0,1) = 1.e6;   // give a huge error to x
       hitd(1,1) = 1.e6;   // give a huge error to y
       TKalTrackSite &sited = *new TKalTrackSite(hitd);
       sited.SetOwner();               //site own states
-
+		
 	  // ---------------------------
       //  Set dummy state to sited
       // ---------------------------
@@ -416,51 +437,53 @@ TIter next(kalhits, kDir);
 ALHit *hitp = 0;
 int hit_index;
 //hit_index must follow direction of filter
- if (kDir == kIterBackward) hit_index = 6;
+ if (kDir == kIterBackward) hit_index = 6;	
 	else hit_index= 0;
 
        while ((hitp = dynamic_cast<ALHit *>(next()))) {
       cout << "-----------------------Next Hit--------------------------- " << endl;
-      const ALMeasLayer &ml = dynamic_cast<const ALMeasLayer &>(hitp->GetMeasLayer());
+      const ALMeasLayer &ml = dynamic_cast<const ALMeasLayer &>(hitp->GetMeasLayer());	
       Bool_t isactive = ml.IsActive();
       Bool_t bend = ml.IsBending();
       TVector3 xv = ml.HitToXv(*hitp);
       TVector3 xraw = hitp->GetRawXv();
       TKalTrackSite  &site = *new TKalTrackSite(*hitp); // create a site for this hit
       TVector3 TVbfield = TBField::GetGlobalBfield(xv);
+      double B = TVbfield.Mag();
      cout << "x = "  << xv.X() << " y ="  << xv.Y() << " z ="  << xv.Z() << endl;
       cout << "B = (" << TVbfield.X() << "," << TVbfield.Y() << "," << TVbfield.Z() << ")"  << endl;
-
+	  		 	 
       if (!kaltrack.AddAndFilter(site))
        { // add and filter this site
-        site.DebugPrint();
-        kaltrack.GetState(TVKalSite::kFiltered).DebugPrint();
+       // site.DebugPrint();
+        //kaltrack.GetState(TVKalSite::kFiltered).DebugPrint();
         cerr << " site discarded!" << endl;
         delete &site;
-       }
+       } 
 /////////////////////////////////IF SITE ACCEPTED/////////////////////////////////
-      else
+      else 
        {
-
-	    TVKalState *state_fil = (TVKalState*) &(site.GetCurState());
+        
+	TVKalState *state_fil = (TVKalState*) &(site.GetCurState());
         THelicalTrack hel_fil = (dynamic_cast<TKalTrackState *>(state_fil))->GetHelix();
         TVector3 x_fil=hel_fil.CalcXAt(0.0);
-        Double_t mom = hel_fil.GetMomentum();
+        Double_t mom = hel_fil.GetMomentum();	
         TVector3 x_glob = site.GetGlobalX();
+	//TVector3 loctoloc = 
+ 
+		   
+		  //smooth back
 
-
-		  // smooth back
-
-	     ;
-	 	  TVKalState *state_smoothed = (TVKalState*) &(site.GetCurState());
-                  THelicalTrack hel_smoothed = (dynamic_cast<TKalTrackState *>(state_smoothed))->GetHelix();
-                  TVector3 x_smoothed=hel_smoothed.CalcXAt(0.0);
+	        //   TVector3 x_smoothed = kaltrack.SmoothBackLastSite(hit_index+1);                  
+	 	//  TVKalState &state_smoothed = site.GetState(TVKalSite::kSmoothed);
+                //  THelicalTrack hel_smoothed = (dynamic_cast<TKalTrackState &>(state_smoothed)).GetHelix();
+                  //TVector3 x_smoothed=hel_smoothed.CalcXAt(0.0);  
 		  cout << "\t xraw   =("<< xraw.X()<<",  "<<xraw.Y()<<", "<<xraw.Z()<<"): \n";
                   cout << "\t x_fil=("<< x_fil.X()<<",  "<<x_fil.Y()<<", "<<x_fil.Z()<<"): \n";
-                  cout << "\t x_smoothed=("<< x_smoothed.X()<<",  "<<x_smoothed.Y()<<", "<<x_smoothed.Z()<<"): \n";
-	          cout << "\t x_glob=("<< x_glob.X()<<",  "<<x_glob.Y()<<", "<<x_glob.Z()<<"): \n";
-
-
+                //  cout << "\t x_smoothed=("<< x_smoothed.X()<<",  "<<x_smoothed.Y()<<", "<<x_smoothed.Z()<<"): \n";
+	          cout << "\t x_glob=("<< x_glob.X()<<",  "<<x_glob.Y()<<", "<<x_glob.Z()<<"): \n";	
+		   
+    
    // -------------------------------------------------------------------------------
    //  Add correspondance between ALTckhit structure and ALHit, only if active layer
    // -------------------------------------------------------------------------------
@@ -476,25 +499,35 @@ int hit_index;
 	 else {
 	 xreco = x_glob.Z();
          yreco = x_glob.X();
-	 zreco = x_glob.Y();
+	 zreco = x_glob.Y();	
 	 }
-
-		//directional cosines, find tangent to filtered state of helix
+		
+        //directional cosines, find tangent to momentum vector
+	double deflec = re->get_deflecPR();
+	double Q =  TMath::Sign(1,deflec);
         TVector3 pivot = hel_fil.CalcXAt(0.0);
-        TMatrixD dxdphi = hel_fil.CalcDxDphi(0.0);					// tangent vector at destination surface
-        TVector3 vtan(dxdphi(0,0),dxdphi(1,0),dxdphi(2,0));				// convert matrix diagonal to vector
-	    float theta = vtan.Theta();
+        TMatrixD dxdphi = hel_fil.CalcDxDphi(0.0);
+	float alpha = 1/(c*B);				// in s/mm/T					
+        TVector3 momentum((-Q/alpha)*dxdphi(0,0),(-Q/alpha)*dxdphi(1,0),(-Q/alpha)*dxdphi(2,0));	        // convert matrix diagonal to momentum vector
+	TVector3 vtan = momentum.Unit();
+	float mag = vtan.Mag();
+	float theta = vtan.Theta();
         float phi   = vtan.Phi();
         //!!!!!!  CONVERT BACK TO FLUKA COORDINATES !!!!!!!
-        float cxreco = sin(theta) * sin(phi);
-        float cyreco = cos(theta);
-        float czreco = sin(theta) * cos(phi);
+        float cxreco = (vtan.Z())/mag;
+	float cyreco = (vtan.X())/mag;
+	float czreco = (vtan.Y())/mag;
 
-	//kinetic energy of particle
+	float tot=(cxreco*cxreco) + (cyreco*cyreco) + (czreco*czreco);
+	cout << "tot = " << tot << "  cxreco = " << cxreco << "  cyreco = " << cyreco << "  czreco = " << czreco << endl;
+	cout << "cxMC = " << re->get_hits().at(hit_index)->get_cx() << " cyMC = " << re->get_hits().at(hit_index)->get_cy() << "  czMC = " << re->get_hits().at(hit_index)->get_cz() <<endl;
+		cout << "cxPR = " << re->get_hits().at(hit_index)->get_cxPR() << " cyPR = " << re->get_hits().at(hit_index)->get_cyPR() << "  czPR = " << re->get_hits().at(hit_index)->get_czPR() <<endl;
+		   
+	//kinetic energy of particle   
 	    if(type==3 || type==4)  ereco = sqrt(mom*mom + (RestMassE)*(RestMassE))  - RestMassE;   //for electrons
 	  else if (type ==10 || type == 11) ereco = sqrt(mom*mom + (RestMassMu)*(RestMassMu))  - RestMassMu;   //for muons
-	//fill variables
-
+	//fill variables 
+    
 	re->set_hxreco(uhitnid[hit_index],xreco);
 	re->set_hyreco(uhitnid[hit_index],yreco);
 	re->set_hzreco(uhitnid[hit_index],zreco);
@@ -502,24 +535,28 @@ int hit_index;
 	re->set_hcyreco(uhitnid[hit_index],cyreco);
 	re->set_hczreco(uhitnid[hit_index],czreco);
 	re->set_hereco(uhitnid[hit_index], ereco);
+	re->get_hits().at(uhitnid[hit_index])->set_fUsed(true);	
 	cout << "reconstructed info added hit_index = " << hit_index << " at index " << uhitnid[hit_index] << endl;
-    if (kDir == kIterBackward) hit_index--;
-	else hit_index++;
+	cout << "zreco = " << zreco << "  fUsed bool set to true" << endl;
+
  		} //end if active
- }//end else
+ }//end else  
 
-
+	    if (kDir == kIterBackward) hit_index--;
+	else hit_index++;	   
       } //end while
+	
+     //Smooth Back
+int isite =1 ;
+ kaltrack.SmoothBackTo(isite);
 
-  //Smooth Back
-
-  kaltrack.SmoothBackTo(1);
-
+  TVKalSite &cursite = static_cast<TVKalSite &>(*kaltrack[isite]);
+	  
    // =======================================================================
    //  Find tangent to helix at first site and extrapolate injection point
-   // =======================================================================
+   // =======================================================================   
   // cout << "Find tangent to helix at first site and extrapolate injection point" <<endl;
-   TVKalState *state_first =(TVKalState*) &(kaltrack.GetCurSite().GetCurState());
+   TVKalState *state_first =(TVKalState*) &(cursite.GetCurState());
    THelicalTrack hel_first = (dynamic_cast<TKalTrackState *>(state_first))->GetHelix();
    TVector3 pivot = hel_first.CalcXAt(0.0);
    TMatrixD dxdphi = hel_first.CalcDxDphi(0.0);					// tangent vector at destination surface
@@ -527,13 +564,13 @@ int hit_index;
    //cout << "Tangent vector vtan=("<< vtan.X()<<",  "<<vtan.Y()<<", "<<vtan.Z()<<"): \n";
 
    //Parametric equation of tangent line
-   Double_t yinjection = 35;
+   Double_t yinjection = 35; 
    Double_t t = (yinjection - pivot.Y())/(vtan.Y());
    //!!!!!!  CONVERT BACK TO FLUKA COORDINATES !!!!!!!
    double X0reco = pivot.Z() + vtan.Z() * t;
    double Y0reco = pivot.X() + vtan.X() * t;
    double Z0reco = pivot.Y() + vtan.Y() * t;
-
+  
    //Get directional cosines of tangent line
    Double_t theta = vtan.Theta();
    Double_t phi   = vtan.Phi();
@@ -544,10 +581,11 @@ int hit_index;
    // ============================================================
    //  Fill reconstructed variables
    // ============================================================
-
-   re->set_X0reco(X0reco);
-   re->set_Y0reco(Y0reco);
-   re->set_Z0reco(Z0reco);
+  
+    
+   re->set_X0reco(X0reco); 
+   re->set_Y0reco(Y0reco); 
+   re->set_Z0reco(Z0reco); 
    re->set_CX0reco(CX0reco);
    re->set_CY0reco(CY0reco);
    re->set_CZ0reco(CZ0reco);
@@ -557,18 +595,18 @@ int hit_index;
    re->set_chi2(chi2);
    double cl   = TMath::Prob(chi2, ndf);
    re->set_cl(cl);
-   double cpa  = kaltrack.GetCurSite().GetCurState()(2, 0);
+   double cpa  = cursite.GetCurState()(2, 0);
    re->set_cpa(cpa);
-   double tanl  = kaltrack.GetCurSite().GetCurState()(4, 0);
+   double tanl  = cursite.GetCurState()(4, 0);
    re->set_tanl(tanl);
-   double phi0  = kaltrack.GetCurSite().GetCurState()(1, 0);
+   double phi0  = cursite.GetCurState()(1, 0);
    re->set_phi0(phi0);
-   double rho =  kaltrack.GetCurSite().GetCurState()(0, 0);
+   double rho =  cursite.GetCurState()(0, 0);
    re->set_d0(rho);
-   double dz =  kaltrack.GetCurSite().GetCurState()(5, 0);
+   double dz =  cursite.GetCurState()(5, 0);
    re->set_dz(dz);
    //Cov_final = kaltrack.GetCurSite().GetCurState().GetCovMat();
-     TVKalState *theLastState = (TVKalState*) &(kaltrack.GetCurSite().GetCurState());
+     TVKalState *theLastState = (TVKalState*) &(cursite.GetCurState());
      const TKalMatrix Cov_final = theLastState->GetCovMat();
    double rhoerr2 = Cov_final(0,0);
    re->set_d0err2(rhoerr2);
@@ -580,23 +618,24 @@ int hit_index;
    re->set_dzerr2(dzerr2);
    double tanlerr2 = Cov_final(4,4);
    re->set_tanlerr2(tanlerr2);
+   cout << "phi0last = " << phi0 << "  cpalast = " << cpa << "  tanl_last " << tanl << endl;
    cout << "phi0err2 = " << phi0err2 << "  cpaerr2 = " << cpaerr2 << "  tanlerr2 = " << tanlerr2 << endl;
    re->set_Cov_last(Cov_final);
    double pt = 0;
    if(cpa!=0)pt=fabs(1.0/cpa);
    double pz = pt * tanl;
-   double p0  = 1000 * pt * sqrt(1+tanl*tanl);   //p = pt / sinTheta
+   double p0  = 1000 * pt * sqrt(1+tanl*tanl);   //p = pt / sinTheta 	
    re->set_p0reco(p0);
    double Ekreco;
    if(type==3 || type ==4 ) Ekreco =  sqrt(p0*p0 + (RestMassE)*(RestMassE))  - RestMassE;			//for electrons
    else if(type==10 || type ==11) Ekreco =  sqrt(p0*p0 + (RestMassMu)*(RestMassMu))  - RestMassMu;			//for muons
    re->set_Ekreco(Ekreco);
-
-   cout << "EkReco = " << Ekreco << " MeV" << endl;
+   
+   cout << "EkReco = " << Ekreco << " MeV" << endl; 
    cout << "chi2   =  " << chi2 << endl;
    cout <<  "ndf   =  " << ndf << endl;
    cout << "End of MakeRecoEventMC" <<endl;
-
+   
 	return 0;
  }
 
@@ -606,5 +645,5 @@ int hit_index;
 
 
 
-
+	
 

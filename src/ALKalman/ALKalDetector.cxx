@@ -33,7 +33,7 @@ const int DetLayer = 7;
 //const Double_t TckZPosBottom[]= {-15.0, -35.0, -95.0, -155.0, -175.0, -195.0, -215.0};	        //in mm
 const Double_t width = 90;					  //width from center of layer in mm
 const Double_t thick = -0.4;					 //thickness of layer in mm
-const Double_t step = -5;					//step between dummy layers in mm
+const Double_t step = -1;					//step between dummy layers in mm
 const Double_t xoffset[] = {}; 
 const Double_t yoffset[] = {};
 Double_t ALKalDetector::fgBfield = 0.3;			//in T	
@@ -104,14 +104,7 @@ ALKalDetector::ALKalDetector(Int_t m): TVKalDetector(m)
 			TVector3 xc(0., TckZPosTop[layer], 0.);	
 			TVector3 normal(0., 1.0, 0.);		
 		    Add(new ALMeasLayer(Si, Ni, xc, normal, active, nonbending, notinuse));
-		//    cout << "active ALKalDetector created at z = " << TckZPosTop[layer] << endl;	
-	/*	
-			TVector3 xdummy;
-			double temp = TckZPosBottom[layer];
-			xdummy.SetXYZ(0, temp, 0);
-		    Add(new ALMeasLayer(Ni, Si, xdummy, normal, dummy, nonbending, notinuse));	
-
-*/
+		//  cout << "active ALKalDetector created at z = " << TckZPosTop[layer] << endl;	
 			
 		//add dummy layers, start from bottom of previous active layer
 			if(layer==6) break;
@@ -123,7 +116,7 @@ ALKalDetector::ALKalDetector(Int_t m): TVKalDetector(m)
 			xdummy.SetXYZ(0, temp, 0);
 			Add(new ALMeasLayer(Ni, Ni, xdummy, normal,dummy, nonbending, notinuse));
 			//cout << "Dummy ALKalDetector created at z = " << temp << endl;
-            temp+=step; 
+            		temp+=step; 
 		} 
 
 	}
@@ -132,12 +125,6 @@ ALKalDetector::ALKalDetector(Int_t m): TVKalDetector(m)
 		TVector3 normal(0.,1.0, 0);			
 		Add(new ALMeasLayer(Si, Ni, xc, normal, active, bending, notinuse));
 		//cout << "Active ALKalDetector created at z = " << TckZPosTop[layer] << endl;
-	/*	
-		TVector3 xdummy;
-		double temp = TckZPosBottom[layer];
-		xdummy.SetXYZ(0, temp, 0);
-		Add(new ALMeasLayer(Ni, Si, xdummy, normal, dummy, bending, notinuse));
- */
 			
 			
 //add dummy layers, start from bottom of previous active layer

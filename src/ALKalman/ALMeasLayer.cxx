@@ -41,8 +41,8 @@ Bool_t	 ALMeasLayer::kBending = kTRUE;
 Bool_t   ALMeasLayer::kNonBending = kFALSE;
 Bool_t   ALMeasLayer::kInUse     = kTRUE;
 Bool_t   ALMeasLayer::kNotInUse  = kFALSE;
-Double_t ALMeasLayer::fSigmaX = 0.066;				//in mm	
-Double_t ALMeasLayer::fSigmaY = 0.15;			    //in mm 
+Double_t ALMeasLayer::fSigmaX = 0.066;			    //in mm	
+Double_t ALMeasLayer::fSigmaY = 0.2; 			    //in mm 
 Double_t ALMeasLayer::fSigmaZ = 0.066; 			    //in mm
 
 ClassImp(ALMeasLayer)
@@ -184,7 +184,7 @@ void ALMeasLayer::CalcDhDa(const TVTrackHit &vht, const TVector3 &xxv,
 
 
 
-void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbending, Int_t index)
+void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbending, Int_t index, Int_t nstrip)
 {
 	//we proceed to a change of coordinate here to fit the helix parametric equation. The magnetic field points now in the +z direction.
 	//bending plane is the XY plane
@@ -196,18 +196,16 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	TKalMatrix h = XvToMv(xx, isbending); 
 	Int_t m = 2;
 	Double_t xraw = xx.Y();						//change of coordinates
-    Double_t yraw = xx.Z();						//change of coordinates 	
+        Double_t yraw = xx.Z();						//change of coordinates 	
 	Double_t zraw = xx.X();						//change of coordinates 
 	TVector3 xv;
 	xv.SetXYZ(xraw,yraw,zraw);
 	Double_t x = h(0,0);
 	Double_t y = h(1,0);
+	if(nstrip>=2) fSigmaX = 0.066/(TMath::Sqrt(2.));
 	Double_t dx = GetSigmaX();				//rms of x in cm
 	Double_t dy = GetSigmaY();				//rms of y in cm (400um/sqrt(12))
-	Double_t realistic_dy = 0.15;			//rms of y in mm
-    x  += gRandom->Gaus(0., dx);   // smearing x
-    y += gRandom->Gaus(0., realistic_dy);   // smearing y
-//	  y += gRandom->Gaus(0., dy);   // smearing y
+        //cout << "dx = " << dx << "  dy = " << dy << endl;
 	Double_t meas[2];
 	Double_t dmeas[2];
 	meas[0] = x;
@@ -217,7 +215,7 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
   // cout << "In function ProcessHits, calling ALKalDetector::GetBField function " << endl;
 	TVector3 bfield = TBField::GetGlobalBfield(xv);
 	Double_t b = bfield.Mag();
-    cout << "index " << index << "  x =( "<< xv.X() << ","<< xv.Y()<< ","<< xv.Z() << ")" << endl;
+   // cout << "index " << index << "  x =( "<< xv.X() << ","<< xv.Y()<< ","<< xv.Z() << ")" << endl;
     //cout << " B =(" << bfield.X() << "," << bfield.Y() << "," << bfield.Z() << ")"  << endl;
 	ALHit *aHit = new ALHit(*this, meas, dmeas, xx, b, m);
        //cout << "ALHit object created " << endl;
@@ -230,18 +228,16 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	TKalMatrix h = XvToMv(xx, isbending);
 	Int_t m = 2;
 	Double_t xraw = xx.Y();						//change of coordinates
-    Double_t yraw = xx.Z();						//change of coordinates 	
+        Double_t yraw = xx.Z();						//change of coordinates 	
 	Double_t zraw = xx.X();						//change of coordinates 
 	TVector3 xv;
 	xv.SetXYZ(xraw,yraw,zraw);
 	Double_t y = h(0,0);
 	Double_t z = h(1,0);
+	if(nstrip>=2) fSigmaZ = 0.066/(TMath::Sqrt(2.));
 	Double_t dy = GetSigmaY();				
 	Double_t dz = GetSigmaZ();
-	Double_t realistic_dy = 0.15;			//rms of y in mm
-   y  += gRandom->Gaus(0., realistic_dy);   // smearing rphi
-	//  y += gRandom->Gaus(0., dy);   // smearing y	
-    z += gRandom->Gaus(0., dz);   // smearing z	
+	//cout << "dy = " << dy << " dz = " << dz << endl;
 	Double_t meas[2];
 	Double_t dmeas[2];
 	meas[0] = y;
@@ -249,7 +245,7 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	dmeas[0] = dy;
 	dmeas[1] = dz;	
 	TVector3 bfield = TBField::GetGlobalBfield(xv);
-    cout << "index " << index << "   x =( "<< xv.X() << ","<< xv.Y()<< ","<< xv.Z() << ")" << endl;
+ //   cout << "index " << index << "   x =( "<< xv.X() << ","<< xv.Y()<< ","<< xv.Z() << ")" << endl;
   //  cout << " B = (" << bfield.X() << "," << bfield.Y() << "," << bfield.Z() << ")"  << endl;
   //  cout << "In function ProcessHits, calling ALKalDetector::GetBField function " << endl;
 	Double_t b = bfield.Mag();			//get magnitude of vector

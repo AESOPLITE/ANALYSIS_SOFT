@@ -84,9 +84,9 @@ public:
     ALKalman(ALEvent *re) ; 
 	virtual ~ALKalman();
 	
-	 void InitializeHelix(ALEvent *re, int InitType, bool secondIter, int type, TKalMatrix &state, TKalMatrix &covariant);	//InitType 0 = MCInit, 1 = PRInit, 2 = 3ptHelix	 
-	 void InitialFit(TKalMatrix &svd_first,  TKalMatrix &C_first, TKalMatrix &svd_last, TKalMatrix &C_last,int type);
-     int DoKF(ALEvent *re, int type, int InitType, bool secondIter);
+	 int InitializeHelix(ALEvent *re, int InitType, bool secondIter, int DataType, TKalMatrix &state, TKalMatrix &covariant);	//InitType 0 = MCInit, 1 = PRInit, 2 = 3ptHelix	 
+	 void InitialFit(TKalMatrix &svd_first,  TKalMatrix &C_first, TKalMatrix &svd_last, TKalMatrix &C_last, int type);
+     int DoKF(ALEvent *re, int DataType, int InitType, bool secondIter);
 	
 	//class member
 
