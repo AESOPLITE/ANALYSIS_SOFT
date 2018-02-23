@@ -10,8 +10,7 @@ SOREV         = 2005.01
 PACKAGENAME   = ALSim
 
 SRCS          =  MakeRawBPDEvent.$(SrcSuf)  \
-			 TriggerRE.$(SrcSuf)  \
-			  MakeRawEventMC.$(SrcSuf)  \
+	                 MakeRawEventMC.$(SrcSuf)  \
 			  MakeEventData.$(SrcSuf)  \
 			ALEvent.$(SrcSuf)  \
 			 LoadMCparameters.$(SrcSuf)  \
