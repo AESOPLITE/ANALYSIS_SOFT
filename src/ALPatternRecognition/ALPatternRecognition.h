@@ -69,6 +69,7 @@
 #include <sstream>
 #include <bitset>
 #include <string>
+#include "tools.h"
 class ALPatternRecognition {
 	
 public:

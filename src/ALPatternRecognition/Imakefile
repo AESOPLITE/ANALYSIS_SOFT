@@ -12,8 +12,9 @@ INSTALLDIR    = ../..
 SOREV         = 2005.01
 PACKAGENAME   = S4ALPatternReco
 
-SRCS          = ALPatternRecognition.$(SrcSuf) 
-	
+SRCS          = ALPatternRecognition.$(SrcSuf)	\
+		$(INSTALLDIR)/tools.$(SrcSuf)
+
 
 OBJS	      =	$(subst .$(SrcSuf),.$(ObjSuf),$(SRCS)) \
 		$(PACKAGENAME)Dict.$(ObjSuf)

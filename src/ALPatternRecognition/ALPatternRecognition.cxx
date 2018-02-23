@@ -38,10 +38,10 @@ static const double kMuon = 0.105658371;				//muon mass in GeV
  TF1*tmpfB2;
 
 int ALPatternRecognition::FindPattern(ALEvent *re, int DataType) {
-cout << "Calling function FindPattern() " << endl;	
+//cout << "Calling function FindPattern() " << endl;	
 	
 int nnhits = re->get_Nhits(); 
-int i = re->get_eventnumber();
+//int i = re->get_eventnumber();
 double E0 = re->get_EkMC();
 TObjArray *xnonbend = new TObjArray();
 TObjArray *xbend = new TObjArray();
@@ -55,7 +55,8 @@ TObjArray *xbend3 = new TObjArray();
 TObjArray *xbend4 = new TObjArray();
 vector<int> ibend1, ibend2, ibend3, ibend4;//keep track of index of hit
 vector<int> itop, imid, ibottom;	//keep track of index of hit
-
+vector<int> nstrip1, nstrip2, nstrip3,nstrip4;   //keep track of number of strips that make up a hit
+vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strips of make up a hit
  //Load region numbers used in the MC geometry 
  int*TckReg=new int[7];
  int*TrigReg=new int[4];
@@ -73,59 +74,61 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
  float*zL=new float[7];
  float*OffsetLL=new float[7];
  float*OffsetRL=new float[7];
- int*valthres=new int[4];
+ float*valthres=new float[5];
  for(int i=0;i<7;i++)zL[i]=OffsetLL[i]=OffsetRL[i]=0;
- for(int i=0;i<4;i++)valthres[i]=0;
+ for(int i=0;i<5;i++)valthres[i]=0;
 	
   
 
 //MC or data file
- if(DataType==0) {//MC file	
+	
  string MCparamfile="../src/ALSim/MCparameters.dat"; 
  LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg,TckZPos,TrigThresh,GuardThresh);
- 	}
- else {
+	 
  string DataFile="../src/ALSim/Dataparameters.dat";	 
  LoadDataparameters(DataFile,zL,OffsetLL,OffsetRL,valthres);
- }
+ 
  
  int*LayerWithHit= new int[7];
  for(int i=0;i<7;i++)LayerWithHit[i]=0;
  re->get_Layers(LayerWithHit);
+ //for(int i=0;i<7;i++) cout << LayerWithHit[i];
+ //cout << endl;
  uint8_t Ti=(uint8_t)re->get_Ti();
+ //cout << " Ti = " << re->get_Ti() << "  unsigned Ti = " << unsigned(Ti) << endl;
+ 
  //Number of layers with hit(s)
  int NL= re->get_NLayers();
  //Number of layers with hit(s) in bending/non-bending plane
- int NLB = re->get_Layer(1) + re->get_Layer(2) + re->get_Layer(2) + re->get_Layer(5);
+ int NLB = re->get_Layer(1) + re->get_Layer(2) + re->get_Layer(3) + re->get_Layer(5);
  int NLNB =  re->get_Layer(0) + re->get_Layer(4) + re->get_Layer(6);
-
+ //cout << "NL = " << NL << "  NLB = " << NLB << "  NLNB = " << NLNB << endl;
   //if not less than 5 layers were touched then don't try pattern recognition
   if(NL<5) return 0;  
 
-
+ //cout << "nnhits = " << nnhits << endl;
 	for(int j=0;j<nnhits;j++) { 
 		
       	Double_t xx=(re->get_hits().at(j))->get_x();
         Double_t yy=(re->get_hits().at(j))->get_y();
         Double_t zz=(re->get_hits().at(j))->get_z();
-//Smear the coordinate to simulate the finite resolution of the detector, before discretization
-	xx  += gRandom->Gaus(0., sigma_reso);   // smearing x
-        yy += gRandom->Gaus(0., sigma_reso);   // smearing y
 	int kk = re->get_hits().at(j)->get_k();
+	int nstrip = re->get_hits().at(j)->get_nstrips();
 	TVector3 *X = new TVector3(xx,yy,zz);
 	allhits->AddAt(X,kk);
- //add region of hit
+	 //add region of hit
 	int L = re->get_hits().at(j)->get_L();
-        cout << "Hit " << j << "  , layer" << L << ", index " << kk << "    x=" << xx << "  y=" << yy << "  z=" << zz << endl;
-
+	if(nstrip==-1) {
+      // cout << "Hit " << j << "  , layer" << L << ", index " << kk << "  nstrip =  " << nstrip << "    x=" << xx << "  y=" << yy << "  z=" << zz << endl;
+     }
 	if(L==0||L==4||L==6)//non-bending plane
          {
           xnonbend->Add(X);
           switch(L)
            {
-            case 0: xtoplayer->Add(X);    itop.push_back(kk);    break;
-            case 4: xmid->Add(X);         imid.push_back(kk);    break;
-            case 6: xbottomlayer->Add(X); ibottom.push_back(kk); break;   
+            case 0: xtoplayer->Add(X);itop.push_back(kk); nstriptop.push_back(nstrip);break;
+            case 4: xmid->Add(X);imid.push_back(kk);  nstripmid.push_back(nstrip);break;
+            case 6: xbottomlayer->Add(X);ibottom.push_back(kk); nstripbottom.push_back(nstrip);break;   
            }  
          }//if NB
        else//bending plane
@@ -133,10 +136,10 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
           xbend->Add(X);
           switch(L)
            {
-            case 1: xbend1->Add(X);ibend1.push_back(kk);break;
-            case 2: xbend2->Add(X);ibend2.push_back(kk);break;
-            case 3: xbend3->Add(X);ibend3.push_back(kk);break;   
-            case 5: xbend4->Add(X);ibend4.push_back(kk);break;   
+            case 1: xbend1->Add(X);ibend1.push_back(kk);nstrip1.push_back(nstrip);break;
+            case 2: xbend2->Add(X);ibend2.push_back(kk);nstrip2.push_back(nstrip);break;
+            case 3: xbend3->Add(X);ibend3.push_back(kk);nstrip3.push_back(nstrip);break;   
+            case 5: xbend4->Add(X);ibend4.push_back(kk);nstrip4.push_back(nstrip);break;   
            }  
          }//else       
       }  //j 
@@ -147,13 +150,13 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
     int npointsB, layer1, layer2, layer3, layer4, ncomb;
 	layer1=layer2=layer3=layer4=1;
     npointsB = xbend->GetEntries();
-    if(xbend1->GetEntries()!=0) layer1 = xbend1->GetEntries() ; 
-    if(xbend2->GetEntries()!=0) layer2 = xbend2->GetEntries() ; 
-    if(xbend3->GetEntries()!=0) layer3 = xbend3->GetEntries() ; 
-    if(xbend4->GetEntries()!=0) layer4 = xbend4->GetEntries() ; 
-   // cout << "entries in layer1 = " << xbend1->GetEntries() << "  , layer2 = " << xbend2->GetEntries() << "  , layer3 = " << xbend3->GetEntries() << "  , layer4= " << xbend4->GetEntries() << endl;
+    if((xbend1->GetEntries())!=0) layer1 = xbend1->GetEntries() ; 
+    if((xbend2->GetEntries())!=0) layer2 = xbend2->GetEntries() ; 
+    if((xbend3->GetEntries())!=0) layer3 = xbend3->GetEntries() ; 
+    if((xbend4->GetEntries())!=0) layer4 = xbend4->GetEntries() ; 
+ //   cout << "entries in layer1 = " << xbend1->GetEntries() << "  , layer2 = " << xbend2->GetEntries() << "  , layer3 = " << xbend3->GetEntries() << "  , layer4= " << xbend4->GetEntries() << endl;
      ncomb   = layer1*layer2*layer3*layer4; 
-	
+	//cout << "ncomb = " << ncomb << "  l1 = " << layer1 << "  l2 = " << layer2 << "  l3 = " << layer3 << "  l4 = " << layer4 << endl;
 // if less then 3 layers with hits in bending plane, can't reconstruct
 	if(NLB < 3) {
 	//cout << "NLB < 3, quitting function" << endl;
@@ -173,10 +176,11 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
     TGraphErrors**gBendingInverted = new TGraphErrors*[ncomb];
     TF1**parabolas = new TF1*[ncomb];  //arrays of fit functions for B plane 
     TF1**invertedparabolas = new TF1*[ncomb];
+    double sigma1,sigma2,sigma3,sigma4;
 	
     //fit all possible parabolas 
     int ncombination = 0;
-	//cout << "BENDING PLANE " << endl;
+//	cout << "BENDING PLANE " << endl;
     for(int m=0; m<layer1; m++)
       {   
        for(int n=0; n<layer2; n++)
@@ -190,40 +194,61 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
                 gBendingInverted[ncombination] = new TGraphErrors();
                 if(xbend1->GetEntries()!=0)
                  {
+		//  cout << " xbend1 " << endl;
                   TVector3 *xx1 =(TVector3*)xbend1->At(m);
                   gBending[ncombination]->SetPoint(gBending[ncombination]->GetN(), xx1->Y(), xx1->Z());//first layer
                   gBendingInverted[ncombination]->SetPoint(gBendingInverted[ncombination]->GetN(), xx1->Z(), xx1->Y());//first layer
-	          nhitB[ncombination]++;
+		  if(nstrip1.at(m)>=2) sigma1= sigma_reso/(TMath::Sqrt(2.));
+		  else sigma1=sigma_reso;
+		//  cout << "nstrip1 = " << nstrip1.at(m) << " sigma1 = " << sigma1 << endl;
+		  gBending[ncombination]->SetPointError(gBending[ncombination]->GetN()-1,sigma1,0.);
+		  gBendingInverted[ncombination]->SetPointError(gBendingInverted[ncombination]->GetN()-1,0.,sigma1);        
+		  nhitB[ncombination]++;
                  }
                 if(xbend2->GetEntries()!=0)
                  {
+		  //cout << "xbend2 " << endl;
                   TVector3 *xx2 =(TVector3*)xbend2->At(n);
                   gBending[ncombination]->SetPoint(gBending[ncombination]->GetN(), xx2->Y(), xx2->Z());//second layer
                   gBendingInverted[ncombination]->SetPoint(gBendingInverted[ncombination]->GetN(), xx2->Z(), xx2->Y());//second layer
-	          nhitB[ncombination]++;
+		  if(nstrip2.at(n)>=2) sigma2= sigma_reso/(TMath::Sqrt(2.));
+		  else sigma2=sigma_reso;
+		//  cout << "nstrip2 = " << nstrip2.at(n) << " sigma2 = " << sigma2 << endl;
+		  gBending[ncombination]->SetPointError(gBending[ncombination]->GetN()-1,sigma2,0.);
+		  gBendingInverted[ncombination]->SetPointError(gBendingInverted[ncombination]->GetN()-1,0.,sigma2);
+		  nhitB[ncombination]++;
                  }
+	
                 if(xbend3->GetEntries()!=0)
                  {
+		 // cout << "xbend3" << endl;
                   TVector3 *xx3 =(TVector3*)xbend3->At(o);
                   gBending[ncombination]->SetPoint(gBending[ncombination]->GetN(), xx3->Y(), xx3->Z());//third layer
                   gBendingInverted[ncombination]->SetPoint(gBendingInverted[ncombination]->GetN(), xx3->Z(), xx3->Y());//third layer
-	          nhitB[ncombination]++;
+		  if(nstrip3.at(o)>=2) sigma3= sigma_reso/(TMath::Sqrt(2.));
+		  else sigma3=sigma_reso;
+		  //cout << "nstrip3 = " << nstrip3.at(o) << " sigma3 = " << sigma3 << endl;
+		  gBending[ncombination]->SetPointError(gBending[ncombination]->GetN()-1,sigma3,0.);
+		  gBendingInverted[ncombination]->SetPointError(gBendingInverted[ncombination]->GetN()-1,0.,sigma3);
+		  nhitB[ncombination]++;
                  }
                 if(xbend4->GetEntries()!=0)
                  {
+		 // cout << " xbend4 " << endl;
                   TVector3 *xx4 =(TVector3*)xbend4->At(p);
                   gBending[ncombination]->SetPoint(gBending[ncombination]->GetN(), xx4->Y(), xx4->Z());//fourth layer
                   gBendingInverted[ncombination]->SetPoint(gBendingInverted[ncombination]->GetN(), xx4->Z(), xx4->Y());//fourth layer
+		  if(nstrip4.at(p)>=2) sigma4= sigma_reso/(TMath::Sqrt(2.));
+		  else sigma4=sigma_reso;
+		 // cout << "nstrip4 = " << nstrip4.at(p) << " sigma4 = " << sigma4 << endl;
+		  gBending[ncombination]->SetPointError(gBending[ncombination]->GetN()-1,sigma4,0.);
+		  gBendingInverted[ncombination]->SetPointError(gBendingInverted[ncombination]->GetN()-1,0.,sigma4);
 		  nhitB[ncombination]++;
                  }
- 
-                
-                 for(int ijk=0;ijk<gBending[ncombination]->GetN();ijk++)gBending[ncombination]->SetPointError(ijk,strippitch/TMath::Sqrt(12.),0.);
+        
                 gBending[ncombination]->SetTitle(Form("Bending config %d", ncombination));
                 gBending[ncombination]->SetMarkerStyle(kCircle);
                 gBending[ncombination]->SetMarkerColor(kBlue);
-
-                for(int ijk=0;ijk<gBendingInverted[ncombination]->GetN();ijk++)gBendingInverted[ncombination]->SetPointError(ijk,0.,strippitch/TMath::Sqrt(12.));
                 gBendingInverted[ncombination]->SetMarkerStyle(kCircle);
 
                 //fit function
@@ -237,19 +262,20 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
                 gBendingInverted[ncombination]->Fit(invertedparabolas[ncombination],"QSN");
                 double chi2=invertedparabolas[ncombination]->GetChisquare();
                 chisquareB.push_back(chi2);
+		//cout << "chi2 bending = " << chi2 << endl;
 		
 		        //Order hits
 				int point=0;
 				if(xbend4->GetEntries()!=0) {			   
 				  int k4 = ibend4.at(p);
 				  indicesB[ncombination]->AddAt(k4,point);
-				  //cout << "PR, bending plane, point added at index " << k4 << endl;
+				//  cout << "PR, bending plane, point added at index " << k4 << endl;
 				  point++;
 						 }
 				if(xbend3->GetEntries()!=0) {
 					int k3 = ibend3.at(o);
 				 	indicesB[ncombination]->AddAt(k3,point);
-					//cout << "PR, bending plane, point added at index " << k3 << endl;
+				//	cout << "PR, bending plane, point added at index " << k3 << endl;
 					point++;
 				    }
 				if(xbend2->GetEntries()!=0) {
@@ -278,9 +304,10 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
     if(xtoplayer->GetEntries()!=0) ntop = xtoplayer->GetEntries(); //else cout << "non-bending plane top layer no hits " << endl;
     if(xmid->GetEntries()!=0) nmid = xmid->GetEntries(); //else cout << "non-bending plane middle layer no hits " << endl;
     if(xbottomlayer->GetEntries()!=0) nbottom = xbottomlayer->GetEntries(); //else cout << "non-bending plane botttom layer no hits " << endl;
-   //cout << "entries in toplayer = " << ntop << "  , midlayer = " << nmid << "  , nbottom = " << nbottom << endl;
-    //cout << "npointsNB = " << npointsNB << endl;
+  // cout << "entries in toplayer = " << ntop << "  , midlayer = " << nmid << "  , nbottom = " << nbottom << endl;
+  //  cout << "npointsNB = " << npointsNB << endl;
 	NConf = nbottom*ntop*nmid; 
+    double sigmatop,sigmamid,sigmabottom;
 	
 // if less then 2 hits in non-bending plane, can't reconstruct
 	if(NLNB < 2)return 0;
@@ -289,7 +316,7 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
       
     
   
-    //cout << "There are " << NConf << " possible combinations in the non-bending plane " << endl;
+   // cout << "There are " << NConf << " possible combinations in the non-bending plane " << endl;
     vector<double> chisquare;      
     TArrayI**indicesNB = new TArrayI*[NConf];//array of TVector3 corresponding to "good" hits in NB plane
     int*nhitNB=new int[NConf];
@@ -315,6 +342,12 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
                TVector3 *xx1 = (TVector3*)xtoplayer->At(m);
                gNonBending2[NConfig]->SetPoint(gNonBending2[NConfig]->GetN(), xx1->X(), xx1->Z());
                gNonBending[NConfig]->SetPoint(gNonBending[NConfig]->GetN(), xx1->Z(), xx1->X());
+	       if(nstriptop.at(m)>=2) sigmatop=sigma_reso/(TMath::Sqrt(2.));
+	       else sigmatop=sigma_reso;
+	       //cout << " nstriptop = " << nstriptop.at(m) << " sigmatop = " << sigmatop << endl;
+	       //cout << "x = " << xx1->X() << " z = " << xx1->Z() << endl;
+	       gNonBending2[NConfig]->SetPointError(gNonBending2[NConfig]->GetN()-1,sigmatop,0);  
+	       gNonBending[NConfig]->SetPointError(gNonBending[NConfig]->GetN()-1,0,sigmatop);
                nhitNB[NConfig]++;
               }
              if(xbottomlayer->GetEntries()!=0) 
@@ -322,6 +355,12 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
                TVector3 *xx2 = (TVector3*)xbottomlayer->At(n);
                gNonBending2[NConfig]->SetPoint(gNonBending2[NConfig]->GetN(), xx2->X(), xx2->Z());
                gNonBending[NConfig]->SetPoint(gNonBending[NConfig]->GetN(), xx2->Z(), xx2->X());
+	       if(nstripbottom.at(n)>=2) sigmabottom=sigma_reso/(TMath::Sqrt(2.));
+	       else sigmabottom=sigma_reso;
+	      // cout << " nstripbottom = " << nstripbottom.at(n) << " sigmabottom = " << sigmabottom << endl;
+	       //cout << "x = " << xx2->X() << " z = " << xx2->Z() << endl;
+	       gNonBending2[NConfig]->SetPointError(gNonBending2[NConfig]->GetN()-1,sigmabottom,0);  
+	       gNonBending[NConfig]->SetPointError(gNonBending[NConfig]->GetN()-1,0,sigmabottom);
                nhitNB[NConfig]++;
               }
              if(xmid->GetEntries()!=0) 
@@ -329,13 +368,15 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
                TVector3 *xx3 = (TVector3*)xmid->At(o);
                gNonBending2[NConfig]->SetPoint(gNonBending2[NConfig]->GetN(), xx3->X(), xx3->Z());
                gNonBending[NConfig]->SetPoint(gNonBending[NConfig]->GetN(), xx3->Z(), xx3->X());
+	       if(nstripmid.at(o)>=2) sigmamid=sigma_reso/(TMath::Sqrt(2.));
+	       else sigmamid=sigma_reso;
+	     //  cout << " nstripmid = " << nstripmid.at(o) << " sigmamid = " << sigmamid << endl;
+	       //cout << "x = " << xx3->X() << " z = " << xx3->Z() << endl;
+	       gNonBending2[NConfig]->SetPointError(gNonBending2[NConfig]->GetN()-1,sigmamid,0);  
+	       gNonBending[NConfig]->SetPointError(gNonBending[NConfig]->GetN()-1,0,sigmamid);
                nhitNB[NConfig]++;
               }
                 
-             //Same error on the measure X for every hits (may change in the future)   
-             for(int ijk=0;ijk<gNonBending2[NConfig]->GetN();ijk++)gNonBending2[NConfig]->SetPointError(ijk,strippitch/TMath::Sqrt(12.),0);  
-                
-             for(int ijk=0;ijk<gNonBending[NConfig]->GetN();ijk++)gNonBending[NConfig]->SetPointError(ijk,0,strippitch/TMath::Sqrt(12.));
              
              //Display options
              gNonBending[NConfig]->SetTitle(Form("Non-bending config %d",  NConfig));
@@ -346,37 +387,38 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
              gNonBending2[NConfig]->SetMarkerColor(kBlue);
              
              //fit function
-             line[NConfig] =  new TF1(Form("NBConfig%d",NConfig),"pol1",-40,40);
+             line[NConfig] =  new TF1(Form("NBConfig%d",NConfig),"pol1",-20,20);
              line[NConfig]->SetLineColor(kBlue);
              line[NConfig]->SetLineWidth(1);
              line[NConfig]->SetLineStyle(3);
-             
+              
+	     
              //FIT             
-             gNonBending[NConfig]->Fit(line[NConfig],"QSN");  
+             gNonBending[NConfig]->Fit(line[NConfig],"QSN"); 
              double chi2=line[NConfig]->GetChisquare();
              chisquare.push_back(chi2);
-
+             //cout << " chi2 = " << chi2 << endl;
              //Order hits 
              int index=0;
              if(xmid->GetEntries()!=0)
               {
                int k3 = imid.at(o);
                indicesNB[NConfig]->AddAt(k3,index);
-	       //cout << "PR, non-bending plane, point added at index " << k3 << endl;
+	     //  cout << "PR, non-bending plane, point added at index " << k3 << endl;
                index++;
               }
              if(xbottomlayer->GetEntries()!=0)
               {
                int k2 = ibottom.at(n);
                indicesNB[NConfig]->AddAt(k2,index);
-	       //cout << "PR, non-bending plane, point added at index " << k2 << endl;
+	    //   cout << "PR, non-bending plane, point added at index " << k2 << endl;
                index++;
               }
              if(xtoplayer->GetEntries()!=0)
               {
                int k1 = itop.at(m);
                indicesNB[NConfig]->AddAt(k1,index);
-	       //cout << "PR, non-bending plane, point added at index " << k1 << endl;
+	   //    cout << "PR, non-bending plane, point added at index " << k1 << endl;
                index++;
               }
                         
@@ -400,8 +442,8 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
     re->set_aPR(a);
     re->set_bPR(b);
     re->set_cPR(c);
-
     
+     
     //Incoming Straight particle    
     float lim=TckZPos[1];//z position of 2nd layer
     float diff=2*a*lim+2*a*zz0+b;
@@ -415,7 +457,7 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
     re->set_deflecPR(deflection);
 
     //NON-BENDING
-    //  cout << " index of min chisquare in NB plane i = " << index << endl; 	  
+   //   cout << " index of min chisquare in NB plane i = " << index << endl; 	  
     Double_t p0 = line[index]->GetParameter(0);                                     
     Double_t p1 = line[index]->GetParameter(1);						//p1 = 1/tanl 
     TF1*inverseline=new TF1("inverseline","(x-[0])/([1])",-10,10);
@@ -432,30 +474,33 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
       {
        int kk = indicesB[indexB]->At(l);
        re->get_hits().at(kk)->set_flagPR(true);
-       //cout << "In PR, hit index " << kk << " set_flagPR " << endl;
+      // cout << "In PR, hit index " << kk << " set_flagPR " << endl;
        re->get_hits().at(kk)->set_yPR(invertedparabolas[indexB]->Eval(re->get_hits().at(kk)->get_z()));   
        re->get_hits().at(kk)->set_zPR(re->get_hits().at(kk)->get_z());
        //extrapolate the xPR from the fit in the non bending plane
        if(NLNB>=2)re->get_hits().at(kk)->set_xPR(line[index]->Eval(re->get_hits().at(kk)->get_z()));       
       }//l
 	
-
+//cout <<"Interpolation in NB plane done " << endl;
     for(int l=0; l<nhitNB[index]; l++)
       {
        //index of chosen points given by array indicesNB
        int kk = indicesNB[index]->At(l);
+       //cout << "kk = " << kk << endl;
        re->get_hits().at(kk)->set_flagPR(true);
-      // cout << "In PR, hit index " << kk << " set_flagPR " << endl;
+       //cout << "In PR, hit index " << kk << " set_flagPR " << endl;
        if(p1!=0) 
 	re->get_hits().at(kk)->set_zPR(re->get_hits().at(kk)->get_z());
         re->get_hits().at(kk)->set_xPR(p1*re->get_hits().at(kk)->get_z()+p0);
        //extrapolate the yPR from the fit in the bending plane
         if(NLB>=3)re->get_hits().at(kk)->set_yPR(invertedparabolas[indexB]->Eval(re->get_hits().at(kk)->get_z()));
-
+//        cout << "next one " << endl;
      }
+//cout << "Interpolation in B plane done" << endl;	
 		
  //For events with <1 hit per layer: create ghost hit
     int kold = re->get_Nhits();
+    
     vector<ALTckhit*> Hh;
 	ALTckhit *h = new ALTckhit();
 	for(int l=0;l<7;l++) {
@@ -463,11 +508,29 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 			double z = TckZPos[l];
 			double x = line[index]->Eval(z);
 			double y = invertedparabolas[indexB]->Eval(z);
+			float coord=0.;
+			float secondcoord=0.;
+			if(l==0 || l==4 || l==6) { coord = (float)x; secondcoord=(float)y;}
+ 			if(l==1|| l==2 || l==3 || l==5) { coord = (float)y; secondcoord=(float)x; }
+			int nstrip = CoordtoStrip(coord,secondcoord,OffsetLL[l],OffsetRL[l],true);
+			coord = StriptoCoord(nstrip,OffsetLL[l],OffsetRL[l],true);
 			h = new ALTckhit();
+			if(nstrip==-1) {
 			h->set_xPR(x);
 			h->set_yPR(y);
+			}
+			else {
+			h->set_nstrips(nstrip);
+			if(l==0 || l==4 || l==6) {
+			h->set_xPR(coord);
+			h->set_yPR(y);
+			}
+			else {
+			h->set_xPR(x);
+			h->set_yPR(coord);
+				}
+			}
 			h->set_zPR(z);
-			//cout << "created ghost track for layer " << l << " zPR = " << z << endl;
 			h->set_fGhost(true);
 			h->set_flagPR(true);
 			h->set_L(l); 
@@ -537,6 +600,7 @@ vector<int> itop, imid, ibottom;	//keep track of index of hit
 		    float cxPR = TMath::Cos(TMath::Pi()*0.5+thetaNB);
 		    float cyPR = TMath::Cos(TMath::Pi()*0.5-thetaB);
 		    float czPR = TMath::Cos(TMath::Pi()-thetaNB);
+		   // cout << "cxPR = " << cxPR << " cyPR = " << cyPR << " czPR = " << czPR << endl;
 		    re->get_hits().at(k)->set_cxPR(cxPR);
 		    re->get_hits().at(k)->set_cyPR(cyPR);
 		    re->get_hits().at(k)->set_czPR(czPR);
