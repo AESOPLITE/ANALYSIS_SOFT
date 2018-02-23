@@ -121,9 +121,12 @@ Int_t TKalTrackSite::CalcExpectedMeasVec(const TVKalState &a, TKalMatrix &h)
    Double_t phi = 0.;
    TVector3 xxv;
    if (!CalcXexp(a,xxv,phi)) return 0;	// no hit
-	Bool_t isbending;
-	   h = GetHit().XvToMv(xxv,isbending);
- 
+	//cout << " TKalTrackSite CalExpectedMeasVec x = " << xxv.X() << "  y = " << xxv.Y() << "  z = " << xxv.Z() << endl;
+	SetGlobalX(xxv);
+	Bool_t isbending;	   
+       h = GetHit().XvToMv(xxv,isbending);
+      // h.DebugPrint("from kaltracksite");
+
    return 1;
 }
 
@@ -165,11 +168,12 @@ TVector3 TKalTrackSite::GetLocalPivot() const
 	if(!TBField::IsUsingUniformBfield()) {
 		//get the local pviot in a non-uniform magnetic field
   		TVector3 localPivot = fFrame.Transform(fX0, TTrackFrame::kGlobalToLocal);
-  	
+//	 cout << "In TKaltTrackSite globalPivot x = " << fX0.X() << ", y = " << fX0.Y() << " z = " << fX0.Z() << endl;	
+  //   cout << "In TKaltTrackSite localPivot x = " << localPivot.X() << ", y = " << localPivot.Y() << " z = " << localPivot.Z() << endl;
   		return localPivot;
 	}
 	else {
-		//return global pivot if magetic field is uniform
+		//return global pivot if magnetic field is uniform
 		return fX0;
 	}
 }

@@ -65,7 +65,7 @@ public:
 
    inline       TVector3     GetGlobalPivot() const { return fX0;     }
    inline       void         SetBfield (Double_t b) { fBfield = b;    }
-
+	
    Double_t     GetBfield () const 
    { 
 	   if(!TBField::IsUsingUniformBfield()) {
@@ -75,6 +75,9 @@ public:
 		   return fHitPtr->GetBfield();
 	   }
    }
+	
+	inline void SetGlobalX (const TVector3 &x) {fX = x; }
+	inline TVector3 GetGlobalX () const { return fX;  }
 
 private:
    TVKalState & CreateState(const TKalMatrix &sv, Int_t type = 0);
@@ -94,6 +97,7 @@ private:
          TTrackFrame  fFrame;         // site specific local frame
 
          Double_t        fBfield;
+	      TVector3   fX;					//global filtered hit in non-uniform field case
 
    ClassDef(TKalTrackSite,1)  // sample measurement site class
 };

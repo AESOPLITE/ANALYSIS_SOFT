@@ -5,9 +5,9 @@
 #include "TTrackFrame.h"
 #include "TMath.h"
 
-
+using namespace std;
 ClassImp(TTrackFrame)
-
+int counter; 
 //-------------------------------------------------------
 // Ctors and Dtor
 //-------------------------------------------------------
@@ -18,6 +18,7 @@ TTrackFrame::TTrackFrame(const TTrackFrame &orig)
 				fDeltaRotMat(orig.fDeltaRotMat),
 				fDeltaShift(orig.fDeltaShift)
 {
+	counter=0;
 }
 
 TTrackFrame::TTrackFrame(const TTrackFrame& lastFrame, 
@@ -28,7 +29,7 @@ TTrackFrame::TTrackFrame(const TTrackFrame& lastFrame,
 {
 	//Calculate local B field
 	TVector3 localBField = fRotMat * b;
-
+	//cout<< "TTrackFrame localBField  Bx = " << localBField.X() << "  By = " << localBField.Y() << " Bz = " << localBField.Z() << endl;
 	//Calculate local transformation matrix and shift vector
 	double theta = localBField.Theta();
 	double phi = localBField.Phi();
@@ -46,7 +47,7 @@ TTrackFrame::TTrackFrame(const TTrackFrame& lastFrame,
 
 //transform vector
 TVector3 TTrackFrame::Transform(const TVector3 &v, TRType transformType) const
-{
+{   
     TRotation invRotMat = fRotMat.Inverse();
     TVector3  transVector;
 
@@ -55,14 +56,19 @@ TVector3 TTrackFrame::Transform(const TVector3 &v, TRType transformType) const
 	    //LocalToLocal means from last local frame to this local frame
         case kLocalToLocal: 
 			 transVector = fDeltaRotMat * (v - fDeltaShift);
+	//	cout<< "TTrackFrame localtolocal  x = " << transVector.X() << "  y = " << transVector.Y() << " z = " << transVector.Z() << endl;
 			 break;
 
         case kLocalToGlobal:
              transVector = invRotMat * v + fShift;
+	//	cout<< "TTrackFrame localtoglobal  x = " << transVector.X() << "  y = " << transVector.Y() << " z = " << transVector.Z() << endl;
+
 			 break;
 
         case kGlobalToLocal:
 			 transVector = fRotMat * (v - fShift);
+	//	cout<< "TTrackFrame globaltolocal  x = " << transVector.X() << "  y = " << transVector.Y() << " z = " << transVector.Z() << endl;
+
 			break;
 
 		default:
@@ -74,7 +80,7 @@ TVector3 TTrackFrame::Transform(const TVector3 &v, TRType transformType) const
 
 //transform vector
 TVector3 TTrackFrame::TransformBfield(const TVector3 &b, TRType transformType)
-{
+{   
     TRotation invRotMat = fRotMat.Inverse();
     TVector3  transVector;
 
@@ -103,11 +109,13 @@ TVector3 TTrackFrame::TransformBfield(const TVector3 &b, TRType transformType)
 //transform matrix
 void TTrackFrame::Transform(TKalMatrix* sv, TKalMatrix* Fr)
 {
+		counter++;
+
 //#define __DEBUG__
 #ifdef __DEBUG__
-	std::cout << "TTrackFrame::Transform:" << std::endl;
+	cout << "TTrackFrame::Transform:" << std::endl;
 #endif
-
+    
 	TKalMatrix localRot(fDeltaRotMat);
 
 	//charge of particle
@@ -291,6 +299,7 @@ void TTrackFrame::Transform(TKalMatrix* sv, TKalMatrix* Fr)
 #ifdef __DEBUG__
 		std::cout << "Transformation completed" << std::endl;
 #endif
+	//  cout << "Transformation # " << counter << " completed" << endl;
 }
 
 void TTrackFrame::CalcDtrDt(TKalMatrix& dtrdt, const TKalMatrix& R)

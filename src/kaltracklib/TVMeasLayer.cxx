@@ -113,7 +113,7 @@ Double_t TVMeasLayer::GetEnergyLoss(      Bool_t    isoutgoing,
                  : TMath::Abs(df)*cslinv;
    //cout << "GetEnergyLoss:  path crossed in material with Z = " << Z << "  is l = " << path << " cm" << endl;
    //fg: switched from using cm to mm in KalTest - material (density) and energy still in GeV and cm
- // path /= 10. ; 
+  path /= 10. ; 
 
    Double_t edep = dedx * dnsty * path;
   // cout << "Energy deposited Edep = " << edep << " GeV" << endl;
@@ -171,7 +171,7 @@ void TVMeasLayer::CalcQms(      Bool_t       isoutgoing,
   // cout << "CalcQMS: path crossed in material with Z = " << Z << "  is l = " << path << " cm" << endl;
 
    //fg: switched from using cm to mm in KalTest - material (density) and energy still in GeV and cm
-   //path /= 10. ; 
+   path /= 10. ; 
 
    Double_t xl   = path * x0inv;
    // ------------------------------------------------------------------

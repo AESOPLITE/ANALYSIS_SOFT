@@ -87,8 +87,10 @@ TKalTrackState * TKalTrackState::MoveTo(TVKalSite  &to,
             TKalDetCradle &det    = const_cast<TKalDetCradle &>
                                        (static_cast<const TKalDetCradle &>
                                           (from.GetHit().GetMeasLayer().GetParent()));
+
       Int_t sdim = GetDimension();
       TKalMatrix sv(sdim,1);
+   //  cout << "TKalTrackState calling Transport function" << endl;
       det.Transport(from, siteto, sv, F, *QPtr); // siteto's pivot might be modified
       if (sdim == 6) {
          sv(5,0) = (*this)(5,0);

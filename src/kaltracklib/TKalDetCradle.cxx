@@ -37,6 +37,8 @@
 
 ClassImp(TKalDetCradle)
 
+using namespace std;
+	
 //_________________________________________________________________________
 //  ----------------------------------
 //   Ctors and Dtor
@@ -101,6 +103,8 @@ void TKalDetCradle::Transport(const TKalTrackSite  &from,   // site from
     const TVMeasLayer& ml_to = to.GetHit().GetMeasLayer() ;
     
     TVector3  x0; // local pivot at the "to" site
+//	cout << " In TKalDetCradle Transport,  local pivot is x = " << x0.X() << " , y = " << x0.Y() << "  , z = " << x0.Z() << endl;
+
     this->Transport(from, ml_to, x0, sv, F, Q, help);
 
     TVTrack &hel = *help;
@@ -115,7 +119,7 @@ void TKalDetCradle::Transport(const TKalTrackSite  &from,   // site from
         Int_t sdim = sv.GetNrows();              // number of track parameters
 	if(to.GetHit().GetBfield()!=0.) {
         TKalMatrix DF(sdim, sdim);               // propagator matrix segment
-        
+  //      cout << " In TKalDetCradle void Transport(), calling function THelicalTrack MoveTo() " << endl;
         hel.MoveTo(to.GetGlobalPivot(), fid, &DF, 0, kFALSE);     // move pivot to actual hit (to)
 
         F = DF * F;                              // update F accordingly
@@ -135,7 +139,8 @@ void TKalDetCradle::Transport(const TKalTrackSite  &from,   // site from
 
         if(!TBField::IsUsingUniformBfield()) {
 		   	x0g = (hel.GetFrame()).Transform(x0, TTrackFrame::kLocalToGlobal);
-        }
+//	cout << " In TKalDetCradle Transport, transformed global pivot is x = " << x0g.X() << " , y = " << x0g.Y() << "  , z = " << x0g.Z() << endl;
+		}
 
         to.SetPivot(x0g);                         // if it is a 1-dim hit
     }
@@ -207,6 +212,7 @@ int TKalDetCradle::Transport(const TKalTrackSite  &from,  // site from
 	if(!TBField::IsUsingUniformBfield()) {
 		eps = 1.e-5;
 	}
+//  cout << "TKalDetCradle Transport() function called, from site " << fridx << " to layer " << toidx << endl;
 
     sfp->CalcXingPointWith(hel, xto, fito, 0, eps);
 
@@ -248,9 +254,9 @@ int TKalDetCradle::Transport(const TKalTrackSite  &from,  // site from
     for (Int_t ito=fridx; (di>0 && ito<=toidx)||(di<0 && ito>=toidx); ito += di) {
         
         Double_t fid_temp = fid; // deflection angle from the last layer crossing
-        
+        //cout << "in kaldetcradle crossing surface ifrom = " << ifr <<" to ito = " << ito <<  endl;
+
         int mode = ito!=fridx ? di : 0; // need to move to the from site as the helix may not be on the crossing point yet, meaning that the eloss and ms will be incorrectely attributed ...
-        
         if (dynamic_cast<TVSurface *>(At(ito))->CalcXingPointWith(hel, xx, fid, mode, eps)) { // if we have a crossing point at this surface, note di specifies if we are moving forwards or backwards
 
             //=====================
@@ -271,14 +277,14 @@ int TKalDetCradle::Transport(const TKalTrackSite  &from,  // site from
             //=====================
 
             const TVMeasLayer   &ml  = *dynamic_cast<TVMeasLayer *>(At(ifr)); // get the last layer
-      
+
             
             TKalMatrix Qms(sdim, sdim);
             if (IsMSOn()&& ito!=fridx ){
                 
                 ml.CalcQms(isout, hel, fid, Qms); // Qms for this step, using the fact that the material was found to be outgoing or incomming above, and the distance from the last layer
             }
-            
+        //    cout << " In TKalDetCradle int Transport(), calling function THelicalTrack MoveTo() " << endl;
             hel.MoveTo(xx, fid, &DF);         // move the helix to the present crossing point, DF will simply have its values overwritten so it could be explicitly set to unity here
             if (sdim == 6) DF(5, 5) = 1.;     // t0 stays the same
             F = DF * F;                       // update F
@@ -301,6 +307,7 @@ int TKalDetCradle::Transport(const TKalTrackSite  &from,  // site from
             fid = 0. ; 
 
         } else {
+		//	cout << "did not cross surface " << endl;
             fid = fid_temp;
         }
     } // end of loop over surfaces
