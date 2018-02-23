@@ -18,6 +18,7 @@
 #include <iostream>
 #include "THelicalTrack.h"
 #include "TBField.h"
+#include "ALHit.h"
 
 using namespace std;
 
@@ -94,14 +95,19 @@ void THelicalTrack::MoveTo(const TVector3 &globalPivot, // new global pivot
    //   Define some numerical constants.
    //
 
+//cout << "CALLING FUNCTION THELICALTRACK.MOVETO() " << endl;
    static const Double_t kPi    = TMath::Pi();
    static const Double_t kTwoPi = 2.0*kPi;
 
    TVector3 xv0to = globalPivot;
+   TVector3 xtest = globalPivot;
 
    if(!TBField::IsUsingUniformBfield()) {
 	   //Get the local pivot
+	//  cout << "THelicalTrack globalPivot x = " << xv0to.X() << " ,y = " << xv0to.Y() << " , z = " << xv0to.Z() << endl;
 	   xv0to = fFrame.Transform(globalPivot, TTrackFrame::kGlobalToLocal);
+       xtest = fFrame.Transform(globalPivot, TTrackFrame::kLocalToGlobal);
+
    }
 
    //   Copy helix parmeters to local variables
@@ -120,6 +126,9 @@ void THelicalTrack::MoveTo(const TVector3 &globalPivot, // new global pivot
    Double_t xv    = xv0to.X();
    Double_t yv    = xv0to.Y();
    Double_t zv    = xv0to.Z();
+	   
+	 //cout << "THelicalTrack.MoveTo() x0 = " << x0 << " , y0 = " << y0 << " , z0 = " << z0 << endl;
+	 //cout << "THelicalTrack.MoveTo() xv = " << xv << " , yv = " << yv << " , zv = " << zv << endl;
 
    // ---------------------------------------------------
    // (1) Calculate a' = f_k-1(a_k-1)
@@ -170,10 +179,13 @@ void THelicalTrack::MoveTo(const TVector3 &globalPivot, // new global pivot
 
    THelicalTrack helto(av,xv0to);
    helto.fAlpha = fAlpha;
+   TVector3 xhelto = helto.CalcXAt(0.0);
+   //cout << "\t In THelicalTrack, before transformation xhelto=("<< xhelto.X()<<",  "<<xhelto.Y()<<", "<<xhelto.Z()<<"): \n";
 
    if(!TBField::IsUsingUniformBfield()) {
 	   helto.SetFrame(fFrame);
-           helto.SetMagField(GetMagField());
+	   double bfield = GetMagField();
+       helto.SetMagField(GetMagField());
    }
 
 
@@ -240,16 +252,23 @@ void THelicalTrack::MoveTo(const TVector3 &globalPivot, // new global pivot
    { 
        Int_t sdim = F.GetNrows();
        TKalMatrix Fr(sdim,sdim);
+//  cout << "THelicalTrack MoveTo calling GetGlobalBField" << endl;
        TVector3 globalBfield = TBField::GetGlobalBfield(globalPivot);
+	  //  cout << "THelical create a track frame for new pivot" << endl;
+
        TTrackFrame frameOfNewPivot(fFrame, xv0to, globalBfield);
 	
        helto.SetFrame(frameOfNewPivot);
        helto.SetMagField(globalBfield.Mag());
 
-       TVector3 pivot = frameOfNewPivot.Transform(xv0to, TTrackFrame::kLocalToLocal); 
-
+      TVector3 pivot = frameOfNewPivot.Transform(xv0to, TTrackFrame::kLocalToLocal); 
+//cout << "THelicalTrack.MoveTo()  pivot xv0to = " << xv0to.X() << " , y = " << xv0to.Y() << " , z = " << xv0to.Z() << endl;
+//cout << "THelicalTrack.MoveTo() final pivot x = " << pivot.X() << " , y = " << pivot.Y() << " , z = " << pivot.Z() << endl;
+ 
        frameOfNewPivot.Transform(&av, &Fr);
        helto.SetTo(av, pivot);
+	   TVector3 xheltrans = helto.CalcXAt(0.0);
+   //cout << "\t In THelicalTrack, after transformation xheltrans=("<< xheltrans.X()<<",  "<<xheltrans.Y()<<", "<<xheltrans.Z()<<"): \n";
        
        F = Fr * F;
 }
@@ -273,6 +292,7 @@ void THelicalTrack::MoveTo(const TVector3 &globalPivot, // new global pivot
 
 TVector3 THelicalTrack::CalcXAt(Double_t phi) const
 {
+   
    Double_t csf0 = TMath::Cos(fPhi0);
    Double_t snf0 = TMath::Sin(fPhi0);
    Double_t snfd = TMath::Sin(fPhi0 + phi);
@@ -302,13 +322,16 @@ TVector3 THelicalTrack::CalcXAt(Double_t phi) const
    if(!TBField::IsUsingUniformBfield()) { 
 	   //A local point on helix if B field is non-uniform
 	   TVector3 localX(x,y,z);
-	   
+	  //cout << "In CalcXAt function, localX x = " << localX.X() << ", y = " << localX.Y() << " z = " << localX.Z() << endl;
 		//Transform local coodinate to global
 	   globalX = fFrame.Transform(localX, TTrackFrame::kLocalToGlobal);
+	    // cout << "THelicalTrack, globalX x = " << globalX.X() << ", y = " << globalX.Y() << " z = " << globalX.Z() << endl;
    }
-
+   
+  
    return globalX;
 }
+
 
 TMatrixD THelicalTrack::CalcDxDa(Double_t phi) const
 {

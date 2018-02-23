@@ -48,14 +48,14 @@ Int_t TVSurface::CalcXingPointWith(const TVTrack  &hel,
 				         Int_t     mode,
 				         Double_t  eps) const
 {
-
+//   cout << "Calling CalcXingPointWith() function, mode = " << mode << endl;
    static const Int_t       maxcount   = 100;
    static const Double_t    initlambda = 1.e-10;
    static const Double_t    lambdaincr = 10.;
    static const Double_t    lambdadecr = 0.1;
    
+   //cout << "Initial xx at surface x = " << xx.X() << "  y = " << xx.Y() << "  z = " << xx.Z() << endl;
    xx = hel.CalcXAt(phi);
-  //  cout << "Initial xx at surface x = " << xx.X() << "  y = " << xx.Y() << "  z = " << xx.Z() << endl;
    Double_t  lastphi =  phi;
    Double_t  lasts   =  1.e10;
    Double_t  lambda  =  initlambda;
@@ -81,6 +81,7 @@ Int_t TVSurface::CalcXingPointWith(const TVTrack  &hel,
 			  << "   eps    : " << eps    << endl
               << "   lambda : " << lambda << endl;
 #endif
+		//  cout << "TVSurface has reached the max number of count, return 0 " << endl;
          return 0;
       }
       count++;
@@ -109,12 +110,15 @@ Int_t TVSurface::CalcXingPointWith(const TVTrack  &hel,
    if( mode!=0 && hel.IsInB()){ // (+1,-1) = (fwd,bwd)
      const Int_t chg = (Int_t)TMath::Sign(1.1, hel.GetKappa());
      if( chg*phi*mode/hel.GetPtoR() > 0){
+	//	 cout << "quit function at line 112 " << endl; 
        return 0;
      }
    }
-  // cout << "TVSurface vector xx x = " << xx.X() << "  y = " << xx.Y() << " z = " << xx.Z() << endl;
+   //cout << "TVSurface vector xx x = " << xx.X() << "  y = " << xx.Y() << " z = " << xx.Z() << endl;
    
+  // cout << "TVSurface calling IsOnSurface() " << endl;
    return (IsOnSurface(xx) ? 1 : 0);
+  
 }
 
 //_____________________________________________________________________

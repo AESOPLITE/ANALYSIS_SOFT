@@ -16,7 +16,9 @@
 //*************************************************************************
 //
 #include "TPlane.h"
+#include<iostream>
 
+using namespace std;
 
 //_____________________________________________________________________
 //  -----------------------------------
@@ -63,5 +65,17 @@ TMatrixD TPlane::CalcDSDx(const TVector3 &xx) const
    dsdx(0,2) = fNormal.Z();
    return dsdx;
 }
+
+Bool_t TPlane::IsOnSurface(const TVector3 &xx) const
+{
+	//cout << "Calling TPlane IsOnSurface() " << endl;
+//	cout << "center vector of surface fXc("<<fXc.X()<<","<<fXc.Y()<<","<<fXc.Z()<<")"<<endl;
+
+#if 0
+   return (xx - fXc) * fNormal == 0. ? kTRUE : kFALSE; 
+#else
+   return kTRUE;
+#endif
+} 
 
 
