@@ -21,7 +21,8 @@
 #include <cstdlib>
 #include "TVKalSite.h"
 #include "TVKalState.h"
-
+#include "THelicalTrack.h"
+#include "TKalTrackState.h"
 using namespace std;
 //_____________________________________________________________________
 //  ------------------------------
@@ -56,13 +57,22 @@ TVKalSite::~TVKalSite()
 
 Bool_t TVKalSite::Filter()
 {
+	//cout << "TVKalSite Filter() called" << endl;
    // prea and preC should be preset by TVKalState::Propagate()
    TVKalState &prea = GetState(TVKalSite::kPredicted);
+   TVKalState *predicted = &prea;
+   THelicalTrack hel_predicted = (dynamic_cast<TKalTrackState *>(predicted))->GetHelix();
+   TVector3 x_predicted=hel_predicted.CalcXAt(0.0);	
+  // cout << "\t From TVKalSite Filter() x_predicted=("<< x_predicted.X()<<",  "<<x_predicted.Y()<<", "<<x_predicted.Z()<<"): \n";
    TKalMatrix h = fM; 
+  //fM.DebugPrint("measurement vector fM beginning of function Filter()");
+	
    if (!CalcExpectedMeasVec(prea,h)) return kFALSE;
    TKalMatrix pull  = fM - h;
    TKalMatrix preC  = GetState(TVKalSite::kPredicted).GetCovMat();
-	   // Calculate fH and fHt
+	//preC.DebugPrint("predicted state covariance matrix");
+
+	// Calculate fH and fHt
 	//cout << " where are we right now? " << endl;
 
    if (!CalcMeasVecDerivative(prea,fH)) return kFALSE;
@@ -77,8 +87,7 @@ Bool_t TVKalSite::Filter()
 
    TKalMatrix preCinv = TKalMatrix(TKalMatrix::kInverted, preC);
    TKalMatrix G       = TKalMatrix(TKalMatrix::kInverted, fV);
- //  fV.DebugPrint("error matrix");
-   //G.DebugPrint("inverted error matrix");
+  // fV.DebugPrint("error matrix");
 
    // Calculate filtered state vector
 
@@ -89,23 +98,34 @@ Bool_t TVKalSite::Filter()
    TKalMatrix Kpull  = K * pull;
    TKalMatrix Kpullt = TKalMatrix(TKalMatrix::kTransposed,Kpull);
    TKalMatrix av     = prea + Kpull;
+   //cout << " Creating filtered state"  << endl;
    TVKalState &a     = CreateState(av,curC,TVKalSite::kFiltered);
    TVKalState *aPtr  = &a;
-
+   THelicalTrack hel_filtered = (dynamic_cast<TKalTrackState *>(aPtr))->GetHelix();
+   TVector3 x_filtered=hel_filtered.CalcXAt(0.0);	
+  // cout << "\t From TVKalSite Filter() x_filtered=("<< x_filtered.X()<<",  "<<x_filtered.Y()<<", "<<x_filtered.Z()<<"): \n";
    Add(aPtr);
    SetOwner();
 
    // Calculate chi2 increment
 
    fR      = fV - fH * curC *fHt;
+ //  cout << "Crossing point..." << endl;
    if (!CalcExpectedMeasVec(a,h)) return kFALSE;
    fResVec = fM - h;
    TKalMatrix curResVect = TKalMatrix(TKalMatrix::kTransposed, fResVec);
    fDeltaChi2 = (curResVect * G * fResVec + Kpullt * preCinv * Kpull)(0,0);
- //  fM.DebugPrint("measurement vector fM");
-   //h.DebugPrint("expected measurement vector h");
-   //fResVec.DebugPrint("residual vector");
-   //cout << "deltachi = " << fDeltaChi2 << endl;
+	
+ // fM.DebugPrint("measurement vector fM");
+//  h.DebugPrint("expected measurement vector h");
+ // curResVect.DebugPrint("transposed res. vector");
+//   G.DebugPrint("inverted error matrix");
+//  fResVec.DebugPrint("residual vector");
+  TKalMatrix FirstTerm = curResVect * G * fResVec;
+  TKalMatrix SecondTerm =  Kpullt * preCinv * Kpull;
+  //FirstTerm.DebugPrint("First Term");
+ // SecondTerm.DebugPrint("Second Term");
+  //cout << "deltachi = " << fDeltaChi2 << endl;
 
    if (fDeltaChi2 <25.0) {
 	  // cout << "deltachi2 = " << fDeltaChi2 << ", site accepted " << endl;

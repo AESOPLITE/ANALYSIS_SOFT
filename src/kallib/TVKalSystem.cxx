@@ -20,6 +20,8 @@
 #include <cstdlib>
 #include "TVKalSystem.h"
 #include "TVKalState.h"
+#include "THelicalTrack.h"
+#include "TKalTrackState.h"
 using namespace std;
 
 //_____________________________________________________________________
@@ -96,6 +98,37 @@ Int_t TVKalSystem::GetNDF(Bool_t self)
 // SmoothBackTo 
 //-------------------------------------------------------
 
+TVector3 TVKalSystem::SmoothBackLastSite(Int_t k)
+{
+   TIter previous(this,kIterBackward);
+   TIter cur     (this,kIterBackward);
+
+   TVKalSite  *prePtr;
+   TVKalSite  *curPtr = static_cast<TVKalSite *>(cur());
+   TVKalState &cura   = curPtr->GetState(TVKalSite::kFiltered);
+   TVKalState &scura  = curPtr->GetState(TVKalSite::kSmoothed); 
+   if (!&scura) {
+      curPtr->Add(&curPtr->CreateState(cura, cura.GetCovMat(),
+                                       TVKalSite::kSmoothed));
+   }
+
+   while ((curPtr = static_cast<TVKalSite *>(cur())) && 
+          (prePtr = static_cast<TVKalSite *>(previous()))) {
+      curPtr->Smooth(*prePtr);
+      fCurSitePtr = curPtr;
+       TVKalState *state_smoothed = (TVKalState*) &(curPtr->GetCurState());
+       THelicalTrack hel_smoothed = (dynamic_cast<TKalTrackState *>(state_smoothed))->GetHelix();
+       TVector3 x_smoothed=hel_smoothed.CalcXAt(0.0);  
+      cout << "\t x_smoothed=("<< x_smoothed.X()<<",  "<<x_smoothed.Y()<<", "<<x_smoothed.Z()<<"): \n";
+      return x_smoothed;
+       if (IndexOf(curPtr) == k) break;
+    
+   }
+   
+}
+
+//-------------------------------------------------------
+
 void TVKalSystem::SmoothBackTo(Int_t k)
 {
    TIter previous(this,kIterBackward);
@@ -114,10 +147,12 @@ void TVKalSystem::SmoothBackTo(Int_t k)
           (prePtr = static_cast<TVKalSite *>(previous()))) {
       curPtr->Smooth(*prePtr);
       fCurSitePtr = curPtr;
+	
       if (IndexOf(curPtr) == k) break;
+    
    }
+   
 }
-
 
 //-------------------------------------------------------
 // SmoothAll 

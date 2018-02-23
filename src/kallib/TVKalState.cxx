@@ -22,7 +22,8 @@
 //  ------------------------------
 //
 ClassImp(TVKalState)
-
+using namespace std;
+	
 TVKalState::TVKalState(Int_t type, Int_t p)
                   : TKalMatrix(p,1),
                     fType(type),
@@ -102,7 +103,7 @@ void TVKalState::Propagate(TVKalSite &to)
    //    prea:	predicted state vector      : a^k-1_k = f_k-1(a_k-1)
    //    fF:    propagator derivative       : F_k-1   = (@f_k-1/@a_k-1)
    //    fQ:    process noise from k-1 to k : Q_k-1)
-
+//cout << "TVKalState MoveTo creating predicted state " << endl;
    TVKalState &prea    = MoveTo(to,fF,fQ);
    TVKalState *preaPtr = &prea;
 
@@ -113,7 +114,6 @@ void TVKalState::Propagate(TVKalSite &to)
    TKalMatrix preC = fF * fC * fFt + fQ;
 
    // Set predicted state vector and covariance matrix to next site
-
    prea.SetCovMat(preC);
    to.Add(preaPtr);
    to.SetOwner();
