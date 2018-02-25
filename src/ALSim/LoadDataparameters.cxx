@@ -5,7 +5,7 @@
 
 #include "LoadDataparameters.h"
 
-void LoadDataparameters(string filename,float*zL,float*OffsetLL,float*OffsetRL,int*TrigThresh)
+void LoadDataparameters(string filename,float*zL,float*OffsetLL,float*OffsetRL,float*TrigThresh)
 {
 //Read the file filename and load the detector geometry information
 //For each of the  7 layers of the tracker 
@@ -26,7 +26,7 @@ void LoadDataparameters(string filename,float*zL,float*OffsetLL,float*OffsetRL,i
  int j=0;
  for(string line; getline(file, line); )   //read stream line by line
    {
-    cout << line << endl;
+    //cout << line << endl;
     istringstream in(line);      //make a stream for the line itself
     string prefix;
     in >> prefix;                  //and read the first whitespace-separated token
