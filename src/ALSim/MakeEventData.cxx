@@ -17,8 +17,9 @@ int MakeEventData(string filename,int geoconfig)
  float* zL=new float[7];
  float*OffsetLL=new float[7];
  float*OffsetRL=new float[7];
- int*TrigThresh=new int[5];
+ float*TrigThresh=new float[5];
  for(int i=0;i<7;i++)zL[i]=OffsetLL[i]=OffsetRL[i]=0;
+ for(int i=0;i<5;i++)TrigThresh[i]=0;
  string paramfile=Form("../src/ALSim/Dataparameters%d.dat",geoconfig); 
 
  LoadDataparameters(paramfile,zL,OffsetLL,OffsetRL,TrigThresh);
@@ -254,7 +255,7 @@ int MakeEventData(string filename,int geoconfig)
       continue;
       }
    
-  
+  cout << "Event " << k << " deflecPR = " << de->get_deflecPR() << endl;
     /////////////////////    
     //RECONSTRUCTION
     /////////////////////    
