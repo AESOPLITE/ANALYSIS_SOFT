@@ -23,7 +23,8 @@ void LoadMCparameters(string filename,int*TckReg,int*TrigReg,int*GReg, float*Tck
  int j=0;
  for(string line; getline(file, line); )   //read stream line by line
    {
-    cout << line << endl;
+     //cout << "Load MC parameters " << endl;
+    //cout << line << endl;
     istringstream in(line);      //make a stream for the line itself
     string prefix;
     in >> prefix;                  //and read the first whitespace-separated token
