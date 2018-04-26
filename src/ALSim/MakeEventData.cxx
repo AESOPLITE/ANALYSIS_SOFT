@@ -11,7 +11,7 @@
 #include "TBox.h"
 #include "headers.h"
 
-int MakeEventData(string filename,int geoconfig)
+int MakeEventData(string filename,int geoconfig, int FieldConf, bool TwoIter,string RecoID)
 {
  //Load configuration parameter
  float* zL=new float[7];
@@ -26,10 +26,17 @@ int MakeEventData(string filename,int geoconfig)
 
 //Load magnetic field map 
 //Set Magnetic field map
- TFile*file_map=new TFile("../prod/fieldmap.root","READ");
- TBField *bfield = new TBField();
+// TFile*file_map=new TFile("../prod/fieldmap.root","READ");
+//load 1mm grid magnetic field map
+ TFile*file_map=new TFile("/home/sarah/AESOPLITE/ANALYSIS_SOFT/prod/fieldmap1mm.root","READ");
+TBField *bfield = new TBField();
 
-  bool FlagMagF=false;
+ bool FlagMagF=false;  
+ cout << "Field Conf bool set to " << FieldConf << endl;
+
+ bfield->SetUseUniformBfield(FieldConf);
+ 
+
  FlagMagF=bfield->SetMagField();
  if(FlagMagF)cout << "Field Map loaded" << endl;
  else 
@@ -37,6 +44,7 @@ int MakeEventData(string filename,int geoconfig)
    cout << "There is an issue when loading the Field Map" << endl;
    return 1;
   }
+ 
 	
  for(int i=0;i<7;i++)
    {
@@ -79,7 +87,7 @@ int MakeEventData(string filename,int geoconfig)
  cout << "Input file is open" <<endl;
 
  //Input root file 
- TFile*fileout=new TFile(Form("%s.EVENT.root",input.at(0).c_str()),"RECREATE");
+ TFile*fileout=new TFile(Form("%s.EVENT_%s.root",input.at(0).c_str(),RecoID.c_str()),"RECREATE");
  cout << "Output file is created" <<endl;
  
  
@@ -255,14 +263,19 @@ int MakeEventData(string filename,int geoconfig)
       continue;
       }
    
-  cout << "Event " << k << " deflecPR = " << de->get_deflecPR() << endl;
+//  cout << "Event " << k << " deflecPR = " << de->get_deflecPR() << endl;
     /////////////////////    
     //RECONSTRUCTION
     /////////////////////    
      
     ALKalman* KF = new ALKalman(de);
-    KF->DoKF(de, DataType, 1, false);
-   // delete KF;
+    int EventKF=  KF->DoKF(de, DataType, 1, TwoIter);
+    if(EventKF==0) {		   // delete KF;
+	DEtree->Fill();
+	//Free memory
+	delete de;
+	continue;
+	}
     
     /////////////////////    
     //Fill the output file 
