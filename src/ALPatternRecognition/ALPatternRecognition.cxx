@@ -561,8 +561,8 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
          curv[ij]= fcurv->Eval(zzz[ij]);   
 	    CurvMean+=	curv[ij]/4;
 		}   
-	   double Rmean=1./curv[2];
-	   if(CurvMean!=0)	 Rmean=1./CurvMean;			 
+	   double Rmean=fabs(1./curv[2]);
+	   if(CurvMean!=0)	 Rmean=fabs(1./CurvMean);			 
 	   //Extract a simple estimation of energy from the average of the 4 curvature a radius	 
 	   double B=0.3; //in T	
 	   double Pt=0.3 * B *	0.01*Rmean; //in GeV
