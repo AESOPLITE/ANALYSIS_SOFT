@@ -119,7 +119,7 @@ class ALTckhit:public TObject
    void set_fUsed(bool a){fUsed=a;}
    void set_k(int a){k=a;}
    ////////////////////////////////
-   void set_year(int a){y=a;}
+   void set_year(int a){year=a;}
    void set_m(int a){m=a;}
    void set_d(int a){d=a;}
    void set_h(int a){h=a;}
