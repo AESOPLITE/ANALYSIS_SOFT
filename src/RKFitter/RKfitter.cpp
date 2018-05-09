@@ -4,10 +4,14 @@
 double RKfitter::chi2(double a[]) {
 	//cout << "RKfitter::chi2: entering with a=" << a[0] << " " << a[1] << " " << a[2] << " " << a[3] << " " << a[4] << endl;
 	// estimate how far to integrate, to cover all layers
+	double arg = 1.0 - a[2] * a[2] - a[3] * a[3];
+	if (arg <= 0.) {
+		return 9.9e9;
+	}
 	double Delta_z = z0 - (tD->zLayer[tD->nLayers - 1]);
-	double ctz = -sqrt(1.0 - a[2] * a[2] - a[3] * a[3]);
+	double ctz = -sqrt(arg);
 	double s = -Delta_z / ctz + 200.0;
-	//cout << " z0 = " << z0 << " -  (tD->zLayer[tD->nLayers - 1]) " << (tD->zLayer[tD->nLayers - 1])<< "  delta_z = " << Delta_z << " distance s to integrate is s = " << s << endl;
+	if (s > 500. || s < 0.) s = 500.;
 
 	// Set up the input parameters needed by the integrator
 	double Q;
@@ -46,7 +50,7 @@ double RKfitter::chi2(double a[]) {
 			double incr = pow((xInterp - xMeas) / sigma, 2);
 			result += incr;	
 			delete[] rInterp;
-	//		cout << "   Layer " << lyr << " flag=" << flag << " xInterp=" << xInterp << " xMeas=" << xMeas << " chi2_inc=" << incr << endl;
+			//cout << "   Layer " << lyr << " flag=" << flag << " xInterp=" << xInterp << " xMeas=" << xMeas << " chi2_inc=" << incr << endl;
 		}
 		else {
 			double *rInterp = rk4->getX(tD->zLayer[lyr], &flag);
@@ -154,13 +158,8 @@ void RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelecti
 	// if genStartGuess is true, then the program will generate an initial guess from a linear fit
 
 	if (hitSelection.size() != tD->nLayers) cout << "RKfitter:fitIt, wrong number of hits specified, need " << tD->nLayers << endl;
-	for (int lyr = 0; lyr < tD->nLayers; lyr++) 
-	{
-		hits[lyr] = hitSelection[lyr];
-		cout << " print hits, layer " << lyr << " hits[lyr] = " << hits[lyr] << endl; 
-	}
-	double *temp = new double[5];	
-
+	for (int lyr = 0; lyr < tD->nLayers; lyr++) hits[lyr] = hitSelection[lyr];
+	double *temp = new double[5];
 
 	// estimate some reasonable values for the initial step in each of the parameters
 	// and copy the initial guess, since the minimization routine may overwrite it
