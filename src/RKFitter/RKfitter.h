@@ -37,7 +37,6 @@ class RKfitter
 	int icount;
 	int numres;
 	int ifault;
-	double chi2(double a[]);
 	int maxCalls;
 	int *hits;
 	double z0;    // Starting point in z for the track
@@ -48,13 +47,14 @@ class RKfitter
 	double chi2pm(int i, double di, int j, double dj);
 	void hessian(double h[5]);
 	double H[5][5];
-	void invert(double **a, int n);
+	int invert(double **a, int n);
 	double **C;
 	int linearFit(double x[], double y[], int nhits, int ibp, double *a, double *b, double *c, double *xsq);
 
 public:
 	RKfitter(bool verbose, double z0, FieldMap *fM, TkrData *tD);
-	void fitIt(bool genStartGuess, double guess[5], vector<int> hitSelection);
+	double chi2(double a[]);
+	int fitIt(bool genStartGuess, double guess[5], vector<int> hitSelection);
 	void getIntercept(int Layer, double r[3]);
 	double chiSqr() { return chiSquared; }
 	void tkrParams(double prm[5]) {
@@ -76,4 +76,4 @@ public:
 	~RKfitter();
 };
 
-#endif RKFITTER_h
+#endif

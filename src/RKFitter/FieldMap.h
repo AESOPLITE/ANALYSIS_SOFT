@@ -37,4 +37,4 @@ public:
 	~FieldMap();
 };
 
-#endif FIELDMAP_h
+#endif

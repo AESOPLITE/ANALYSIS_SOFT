@@ -65,6 +65,9 @@ FieldMap::FieldMap(string FileName, string Type, int nPoints)
 			cout << "FieldMap: y0=" << y0 << "  dy=" << dy << endl;
 			cout << "FieldMap: z0=" << z0 << "  dz=" << dz << endl;
 		}
+		else {
+			cout << "failed to open the field map" << endl;
+		}
 	}
 	else { // Option "text" for reading the field map from a text file. Machine-independent but quite slow.
 		cout << "    Reading the field map from a text file." << endl;
@@ -164,8 +167,8 @@ float *FieldMap::getEntry(int i) {
 		i = 0;
 		xmag = x0;
 	}
-	if (i > nFldPnt - 1) {
-		i = nFldPnt - 1;
+	if (i > nFldPnt - 2) {
+		i = nFldPnt - 2;
 		xmag = x0 + nFldPnt*dx;
 	}
 	int j = (int)floor((ymag - y0) / dy);
@@ -173,8 +176,8 @@ float *FieldMap::getEntry(int i) {
 		j = 0;
 		ymag = y0;
 	}
-	if (j > nFldPnt - 1) {
-		j = nFldPnt - 1;
+	if (j > nFldPnt - 2) {
+		j = nFldPnt - 2;
 		ymag = y0 + nFldPnt*dy;
 	}
 	int k = (int)floor((zmag - z0) / dz);
@@ -182,8 +185,8 @@ float *FieldMap::getEntry(int i) {
 		k = 0;
 		zmag = z0;
 	}
-	if (k > nFldPnt - 1) {
-		k = nFldPnt - 1;
+	if (k > nFldPnt - 2) {
+		k = nFldPnt - 2;
 		zmag = z0 + nFldPnt*dz;
 	}
 	double xd = (xmag - (x0+i*dx)) / dx;

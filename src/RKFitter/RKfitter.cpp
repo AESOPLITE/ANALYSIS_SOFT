@@ -2,6 +2,7 @@
 
 // Calculate the chi^2 of the fit for a given track. This is what we try to minimize.
 double RKfitter::chi2(double a[]) {
+	bool multScat = true;    // Whether to include multiple scattering in the chi^2 calculation
 	//cout << "RKfitter::chi2: entering with a=" << a[0] << " " << a[1] << " " << a[2] << " " << a[3] << " " << a[4] << endl;
 	// estimate how far to integrate, to cover all layers
 	double arg = 1.0 - a[2] * a[2] - a[3] * a[3];
@@ -29,9 +30,13 @@ double RKfitter::chi2(double a[]) {
 	if (verbose) cout << "completed integration at xEnd=" << xEnd[0] << " " << xEnd[1] << " " << xEnd[2]  << endl;
 	delete[] xEnd;
 
+	// Calculate the multiple-scattering angle for a layer of silicon
+	//double theta0 = sqrt((X / radLen) / ct) * (0.0136 / pmom.mag()) * (1.0 + 0.038 * log((X / radLen) / ct));
+
 	// Loop over layers and add up the chi^2
 	double result = 0.;
 	for (int lyr = 0; lyr < tD->nLayers; lyr++) {
+		//cout << "lyr=" << lyr << " # hits=" << tD->hits[lyr].size() << " orient=" << tD->orientation[lyr] << endl;
 		if (tD->hits[lyr].size() == 0) continue;  // skip if no hits on the layer
 		if (hits[lyr] < 0) continue;              // allow user to skip layer
 		bool flag;
@@ -127,6 +132,7 @@ RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD) {
 	this->fM = fM;
 	this->tD = tD;
 	hits = new int[tD->nLayers];
+	for (int i = 0; i < tD->nLayers; i++) hits[i] = 0;
 	xIntercept = new double[tD->nLayers];
 	yIntercept = new double[tD->nLayers];
 	zIntercept = new double[tD->nLayers];
@@ -136,12 +142,13 @@ RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD) {
 	maxCalls = 800;   // Maximum function calls allowed in the minimization search
 	reqmin = 0.0001;    // convergence check parameter
 	step = new double[5];
-	step[0] = 0.3;    // initial step for x position in the minimization search
-	step[1] = 0.3;    // initial step for y position
-	step[2] = 0.005;  // initial step size for x direction cosine
-	step[3] = 0.005;  // initial step size for y direction cosine
-	step[4] = 5.0;    // initial step size for 1/p as a percentage
+	step[0] = 0.5;    // initial step for x position in the minimization search
+	step[1] = 0.5;    // initial step for y position
+	step[2] = 0.01;  // initial step size for x direction cosine
+	step[3] = 0.01;  // initial step size for y direction cosine
+	step[4] = 15.0;    // initial step size for 1/p as a percentage
 	stepSize = 5.0;   // Runge-Kutta integration step size (comparable to the B field map precision)
+
 	rk4 = new RungeKutta4(stepSize, fM);
 	sigma = tD->stripPitch / sqrt(12.0);  // Assumed resolution of the AESOP tracker
 	a = new double[5];
@@ -152,13 +159,17 @@ RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD) {
 }
 
 // Execute the brute-force track fit using a non-derivative simplex minimization method
-void RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelection) {
+int RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelection) {
 	// hitSelection specifies which hit to use from each layer of the TkrData structure
 	// guess[5] is the externally supplied starting guess for the track
 	// if genStartGuess is true, then the program will generate an initial guess from a linear fit
 
-	if (hitSelection.size() != tD->nLayers) cout << "RKfitter:fitIt, wrong number of hits specified, need " << tD->nLayers << endl;
-	for (int lyr = 0; lyr < tD->nLayers; lyr++) hits[lyr] = hitSelection[lyr];
+	//cout << "RKfitter::fitIt: guess=" << guess[0] << " " << guess[1] << " " << guess[2] << " " << guess[3] << " " << guess[4] << endl;
+	if (hitSelection.size() != tD->nLayers) {
+		cout << "RKfitter:fitIt, wrong number of hits specified, need " << tD->nLayers << endl;
+		return -1;
+	}
+	for (int lyr = 0; lyr < tD->nLayers; lyr++) hits[lyr] = hitSelection.at(lyr);
 	double *temp = new double[5];
 
 	// estimate some reasonable values for the initial step in each of the parameters
@@ -181,6 +192,7 @@ void RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelecti
 		int Nn = 0;
 		int Nb = 0;
 		for (int lyr = 0; lyr < tD->nLayers; lyr++) {
+			if (tD->hits[lyr].size() < 1) continue;
 			if (verbose) cout << "    Layer " << lyr;
 			if (tD->orientation[lyr] == 'n') {
 				zn[Nn] = tD->zLayer[lyr];
@@ -232,7 +244,7 @@ void RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelecti
 	// call the canned simplex minimization routine
 	nelmin(nVar, temp, a, &ynewlo, reqmin, initStep, Konvge, maxCalls, &icount, &numres, &ifault);
 	//cout << "RKfitter::fitIt: from nelmin, newlo=" << ynewlo << " count=" << icount << " numres=" << numres << " error=" << ifault << endl;
-
+	//if (ifault != 0) cout << "ifault=" << ifault << " returned by nelmin" << endl;
 	// Propagation of errors:
 	double h[5] = { 0.00000001, 0.00000001, 0.00000001, 0.00000001, 0.00000001*abs(a[4]) };
 	hessian(h);
@@ -245,7 +257,7 @@ void RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelecti
 		}
 	}
 
-	invert(C,5);  // Invert the hessian matrix (times -0.5) to get the covariance matrix
+	int err = invert(C,5);  // Invert the hessian matrix (times -0.5) to get the covariance matrix
 
 /*
     // Check the matrix inversion
@@ -274,6 +286,7 @@ void RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelecti
 	if (verbose) {
 		cout << "RKfitter::fitIt: final fit chi^2 = " << chiSquared << endl;
 		for (int lyr = 0; lyr < tD->nLayers; lyr++) {
+			if (hits[lyr] < 1) continue;
 			double r[3];
 			getIntercept(lyr, r);
 			double residual;
@@ -287,13 +300,14 @@ void RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelecti
 	}
 
 	delete[] temp;
+	return ifault;
 }
 
 // Return the position at each silicon plane interpolated from the Runge-Kutta integration
 void RKfitter::getIntercept(int Layer, double r[3]) {
 	r[0] = xIntercept[Layer];
 	r[1] = yIntercept[Layer];
-	r[3] = zIntercept[Layer];
+	r[2] = zIntercept[Layer];
 }
 
 void RKfitter::print(string s) {
@@ -329,7 +343,7 @@ void RKfitter::print(string s) {
 }
 
 #define SWAP(a,b) {temp=(a);(a)=(b);(b)=temp;}
-void RKfitter::invert(double **a, int n) { // code slightly modified from Numerical Recipes in C "gaussj"
+int RKfitter::invert(double **a, int n) { // code slightly modified from Numerical Recipes in C "gaussj"
 	int i, icol, irow, j, k, l, ll;
 	double big, dum, pivinv, temp;
 	int *indxc = new int[n];
@@ -355,7 +369,10 @@ void RKfitter::invert(double **a, int n) { // code slightly modified from Numeri
 		}
 		indxr[i] = irow;
 		indxc[i] = icol;
-		if (a[icol][icol] == 0.0) throw("gaussj: Singular Matrix");
+		if (a[icol][icol] == 0.0) {
+			cout << "gaussj: singular matrix encountered; aborting the matrix inversion" << endl;
+			return -1;
+		}
 		pivinv = 1.0 / a[icol][icol];
 		a[icol][icol] = 1.0;
 		for (l = 0; l<n; l++) a[icol][l] *= pivinv;
@@ -375,6 +392,7 @@ void RKfitter::invert(double **a, int n) { // code slightly modified from Numeri
 	delete[] ipiv;
 	delete[] indxr;
 	delete[] indxc;
+	return 0;
 }
 #undef SWAP
 

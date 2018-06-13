@@ -4,6 +4,11 @@ TkrData::TkrData()
 {
 	nLayers = 0;
 	stripPitch = 0.228;
+	zLayer.reserve(7);
+	orientation.reserve(7);
+	ladderOffsetLeft.reserve(7);
+	ladderOffsetRight.reserve(7);
+	hits.reserve(7);
 }
 
 void TkrData::addLyr(char orient, double z, double offsetLeft, double offsetRight) {
@@ -46,4 +51,10 @@ void TkrData::clrHits() {
 
 TkrData::~TkrData()
 {
+	zLayer.clear();
+	orientation.clear();
+	ladderOffsetLeft.clear();
+	ladderOffsetRight.clear();
+	for (int lyr = 0; lyr < nLayers; lyr++) hits.at(lyr).clear();
+	hits.clear();
 }

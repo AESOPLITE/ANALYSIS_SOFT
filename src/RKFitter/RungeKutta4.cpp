@@ -1,6 +1,6 @@
 #include "RungeKutta4.h"
 
-RungeKutta4::RungeKutta4(double dz, FieldMap *fM) {
+RungeKutta4::RungeKutta4(double dz, FieldMap *fM) {  // Version with no scattering
 	// dz is the step size
 	// fM is the magnetic field map
 	this->fM = fM;
@@ -12,22 +12,64 @@ RungeKutta4::RungeKutta4(double dz, FieldMap *fM) {
 	yA = new double[aSize];
 	zA = new double[aSize];
 	sA = new double[aSize];
+	double rho = 2.329;            // Density of silicon in g/cm^2
+	X0 = (21.82 / rho) * 10.0;
+	//	for (int i = 0; i < 100; i++) {
+	//		double num = distribution(generator);
+	//		cout << " random number = " << num << endl;
+	//	}
+	this->nScat = 0;
+	this->zScat = new double;
+	scatAng = new double;
+}
+
+RungeKutta4::RungeKutta4(double dz, FieldMap *fM, int nScat, double zScat[]) {
+	// dz is the step size
+	// fM is the magnetic field map
+	this->fM = fM;
+	h = dz;
+	h2 = h*h;
+	nStep = 0;
+	aSize = 150;
+	xA = new double[aSize];
+	yA = new double[aSize];
+	zA = new double[aSize];
+	sA = new double[aSize];
+	double rho = 2.329;            // Density of silicon in g/cm^2
+	X0 = (21.82 / rho) * 10.0;
+//	for (int i = 0; i < 100; i++) {
+//		double num = distribution(generator);
+//		cout << " random number = " << num << endl;
+//	}
+	this->nScat = nScat;
+	if (nScat > 0) {
+		this->zScat = new double[nScat];
+		scatAng = new double[nScat];
+		for (int i = 0; i < nScat; i++) this->zScat[i] = zScat[i];
+	}
 }
 
 // Do a Runge-Kutta 4th-order integration through the field map starting from r0 and p0 and for distance s
+// First, a version that can be called when no random scattering is performed (see the constructors)
 double *RungeKutta4::Integrate(double Q, double r0[3], double p0[3], double s, double deltaZ) {
+	double *rN;
+	rN = NULL;
+	return Integrate(Q, r0, p0, s, deltaZ, rN);
+}
+
+double *RungeKutta4::Integrate(double Q, double r0[3], double p0[3], double s, double deltaZ, double ranNorm[]) {
 	// Q is the charge sign
 	// r0 is the initial point in mm
 	// p0 is the initial momentum in GeV/c
 	// s is the distance to propagate (approximate to distance dx)
 	// deltaZ is the maximum absolute value change in z.  Set very large to ignore.
+	// ranNorm is a set of normally distributed random numbers for the scattering in each plane
 	alpha = Q * 2.99792458e-4;
 	double *r = new double[6];
 	for (int i = 0; i < 3; i++) {
 		r[i] = r0[i];
 		r[i + 3] = p0[i];
 	}
-
 	nStep = (int)(s / h) + 1;
 	if (nStep > aSize) {
 		delete[] xA;
@@ -42,6 +84,7 @@ double *RungeKutta4::Integrate(double Q, double r0[3], double p0[3], double s, d
 		cout << "RungeKutta4::integrate: INCREASING ARRAY SIZE TO " << aSize << endl;
 	}
 	double sNow = 0.;
+	int iScat = 0;
 	for (int step = 0; step < nStep; step++) {
 		double ri[3] = { r[0], r[1], r[2] };
 		double pi[3] = { r[3], r[4], r[5] };
@@ -71,8 +114,44 @@ double *RungeKutta4::Integrate(double Q, double r0[3], double p0[3], double s, d
 			nStep = step + 1;
 			break;
 		}
+		if (iScat < nScat) {
+			if (step > 0) {
+				//cout << step << " " << zScat[iScat] << " " << zA[step] << " " << zA[step - 1] << endl;
+				if ((zScat[iScat] > zA[step - 1] && zScat[iScat] <= zA[step]) || (zScat[iScat] < zA[step - 1] && zScat[iScat] >= zA[step])) {
+					double pmom = sqrt(r[3] * r[3] + r[4] * r[4] + r[5] * r[5]);
+					double ct = abs(r[5]) / pmom;
+					double radLens = 0.4 / X0 / ct;
+					double theta0 = (sqrt(radLens) * 0.0136 / pmom) * (1.0 + 0.038 * log(radLens));
+					double thetax = theta0*ranNorm[iScat];
+					double thetay = theta0*ranNorm[iScat];
+					double t[3];
+					for (int i = 0; i < 3; i++) t[i] = r[i + 3] / pmom;
+					double u[3] = { t[1] / sqrt(t[0] * t[0] + t[1] * t[1]) , -t[0] / sqrt(t[0] * t[0] + t[1] * t[1]), 0. };
+					double v[3] = { -t[2] * u[1] , t[2] * u[0], t[0] * u[1] - t[1] * u[0] };
+					double tp[3];
+					tp[0] = sin(thetax);
+					tp[1] = sin(thetay);
+					tp[2] = sqrt(1.0 - tp[0] * tp[0] - tp[1] * tp[1]);
+					//cout << "p=" << pmom << " ct=" << ct << " theta0=" << theta0 << " thetax=" << thetax << " thetay=" << thetay << endl;
+					//cout << " t=" << t[0] << " " << t[1] << " " << t[2] << endl;
+					//cout << " u=" << u[0] << " " << u[1] << " " << u[2] << endl;
+					//cout << " v=" << v[0] << " " << v[1] << " " << v[2] << endl;
+					//cout << " tp=" << tp[0] << " " << tp[1] << " " << tp[2] << endl;
+					double dot = 0;
+					for (int i = 0; i < 3; i++) {
+						double tRot = u[i] * tp[0] + v[i] * tp[1] + t[i] * tp[2];
+						r[3 + i] = tRot*pmom;  // Rotated momentum vector
+						dot += t[i] * tRot;
+						//cout << "   i=" << i << " p[i]=" << r[3 + i] << " tRot=" << tRot << endl;
+					}
+					scatAng[iScat] = acos(dot);
+					//cout << "Layer " << iScat << "; zA = " << zA[step] << " " << zA[step-1] << "   scattering angle = " << scatAng[iScat] << endl;
+					iScat++;
+				}
+			}
+		}
 	}
-	cout << "about to return r end of rk4->integrate" << endl;
+	for (int i = iScat; i < nScat; i++) scatAng[iScat] = -99.;
 	return r;
 }
 
@@ -189,6 +268,15 @@ double *RungeKutta4::f(double x[3], double p[3]) { // Return all the derivatives
 	return d;
 }
 
+double RungeKutta4::getScat(int i) {
+	if (i < nScat) {
+		return scatAng[i];
+	}
+	else {
+		return -99.;
+	}
+}
+
 RungeKutta4::~RungeKutta4()
 {
 	//cout << "************** RungeKutta4 cleaning up arrays ************" << endl;
@@ -200,4 +288,8 @@ RungeKutta4::~RungeKutta4()
 	zA = NULL;
 	delete[] sA;
 	sA = NULL;
+	delete[] scatAng;
+	scatAng = NULL;
+	delete[] zScat;
+	zScat = NULL;
 }

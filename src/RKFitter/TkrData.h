@@ -31,4 +31,4 @@ public:
 	~TkrData();
 };
 
-#endif TKRDATA_h
+#endif
