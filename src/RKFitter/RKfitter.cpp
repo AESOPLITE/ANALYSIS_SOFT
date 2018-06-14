@@ -139,14 +139,14 @@ RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD) {
 	for (int lyr = 0; lyr < tD->nLayers; lyr++) {
 		zIntercept[lyr] = tD->zLayer[lyr];
 	}
-	maxCalls = 800;   // Maximum function calls allowed in the minimization search
-	reqmin = 0.0001;    // convergence check parameter
+	maxCalls = 1000;   // Maximum function calls allowed in the minimization search
+	reqmin = 0.001;    // convergence check parameter
 	step = new double[5];
 	step[0] = 0.5;    // initial step for x position in the minimization search
 	step[1] = 0.5;    // initial step for y position
-	step[2] = 0.01;  // initial step size for x direction cosine
-	step[3] = 0.01;  // initial step size for y direction cosine
-	step[4] = 15.0;    // initial step size for 1/p as a percentage
+	step[2] = 0.02;  // initial step size for x direction cosine
+	step[3] = 0.02;  // initial step size for y direction cosine
+	step[4] = 10.0;    // initial step size for 1/p as a percentage
 	stepSize = 5.0;   // Runge-Kutta integration step size (comparable to the B field map precision)
 
 	rk4 = new RungeKutta4(stepSize, fM);
@@ -179,7 +179,10 @@ int RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelectio
 		temp[i] = guess[i];
 		initStep[i] = step[i];
 	}
-	initStep[4] = initStep[4] * a[4] / 100.;
+	initStep[4] = initStep[4] * guess[4] / 100.;
+	//cout << "RKfitter::fitIt: initial step sizes= ";
+	//for (int i = 0; i < 5; i++) cout << initStep[i] << " ";
+	//cout << endl;
 
 	// if requested, cook up an initial guess here, instead of using the one supplied
 	if (verbose) cout << "RKfitter::fitIt: supplied initial guess= " << temp[0] << " " << temp[1] << " " << temp[2] << " " << temp[3] << " " << temp[4] << endl;

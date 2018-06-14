@@ -108,7 +108,7 @@ int main()
 	normal_distribution<double> distribution3(0., 1.0);
 	int nIterations = 500;
 	int itrPrnt = 0;
-	int nScatters = 6;
+	int nScatters = 0;
 	double *ranNorm = new double[nScatters+1];
 	FILE *fPict;
 	double xStart[5];
@@ -138,7 +138,7 @@ int main()
 		guess[1] = xStart[1] + 0.25*distribution3(generator3);
 		guess[2] = dcos[0] + 0.004*distribution3(generator3);
 		guess[3] = dcos[1] + 0.004*distribution3(generator3);
-		guess[4] = K*(1.0 + 0.025*distribution3(generator3));
+		guess[4] = K*(1.0 + 0.05*distribution3(generator3));
 		if (iter < 10) cout << "Iteration " << iter << " x=" << xStart[0] << " y=" << xStart[1] << " phi=" << phi << " theta=" << theta << endl;
 
 		double dz = 5.0;
