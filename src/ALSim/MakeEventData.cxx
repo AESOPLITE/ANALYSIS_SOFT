@@ -11,24 +11,15 @@
 #include "TBox.h"
 #include "headers.h"
 
-int MakeEventData(string filename,int geoconfig, int FieldConf, bool TwoIter,string RecoID)
+int MakeEventData(string filename,int geoconfig,float* zL,float* OffsetLL,float* OffsetRL,float* TrigThresh, int FieldConf, bool TwoIter,string RecoID)
 {
- //Load configuration parameter
- float* zL=new float[7];
- float*OffsetLL=new float[7];
- float*OffsetRL=new float[7];
- float*TrigThresh=new float[5];
- for(int i=0;i<7;i++)zL[i]=OffsetLL[i]=OffsetRL[i]=0;
- for(int i=0;i<5;i++)TrigThresh[i]=0;
- string paramfile=Form("../src/ALSim/Dataparameters%d.dat",geoconfig); 
-
- LoadDataparameters(paramfile,zL,OffsetLL,OffsetRL,TrigThresh);
 
 //Load magnetic field map 
 //Set Magnetic field map
 // TFile*file_map=new TFile("../prod/fieldmap.root","READ");
 //load 1mm grid magnetic field map
- TFile*file_map=new TFile("/home/sarah/AESOPLITE/ANALYSIS_SOFT/prod/fieldmap1mm.root","READ");
+/*
+TFile*file_map=new TFile("/home/sarah/AESOPLITE/ANALYSIS_SOFT/prod/fieldmap1mm.root","READ");
 TBField *bfield = new TBField();
 
  bool FlagMagF=false;  
@@ -45,18 +36,8 @@ TBField *bfield = new TBField();
    return 1;
   }
  
-	
- for(int i=0;i<7;i++)
-   {
-    cout << "L"<<i <<", zL:" << zL[i] ;
-    cout << ", OffsetLL:" << OffsetLL[i] ;
-    cout << ", OffsetRL:" << OffsetRL[i] << endl;
-   }  
- cout << "T1 threshold: " << TrigThresh[0] <<endl;
- cout << "T2 threshold: " << TrigThresh[1] <<endl;
- cout << "T3 threshold: " << TrigThresh[2] <<endl;
- cout << "T4 threshold: " << TrigThresh[3] <<endl;
- cout << "Guard threshold: " << TrigThresh[4] <<endl;
+*/	
+
 
 
  //Maximum of configuration to try fitting
@@ -255,7 +236,7 @@ TBField *bfield = new TBField();
     ////////////////////////////////////
    int DataType = 1; 
    ALPatternRecognition* PR = new ALPatternRecognition();
-   int EventPR = PR->FindPattern(de,DataType);
+   int EventPR = PR->FindPattern(de,DataType,zL,OffsetLL,OffsetRL,TrigThresh);
    if(EventPR==0) {
          DEtree->Fill();
       //Free memory    
@@ -264,19 +245,21 @@ TBField *bfield = new TBField();
       }
    
 //  cout << "Event " << k << " deflecPR = " << de->get_deflecPR() << endl;
-    /////////////////////    
+  /* 
+	/////////////////////    
     //RECONSTRUCTION
     /////////////////////    
      
     ALKalman* KF = new ALKalman(de);
     int EventKF=  KF->DoKF(de, DataType, 1, TwoIter);
+//      int EventKF=  KF->DoKF(de, DataType, 2, TwoIter);  
     if(EventKF==0) {		   // delete KF;
 	DEtree->Fill();
 	//Free memory
 	delete de;
 	continue;
 	}
-    
+    */
     /////////////////////    
     //Fill the output file 
     /////////////////////
