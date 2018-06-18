@@ -37,7 +37,7 @@ static const double kMuon = 0.105658371;				//muon mass in GeV
  TF1*tmpfB;
  TF1*tmpfB2;
 
-int ALPatternRecognition::FindPattern(ALEvent *re, int DataType) {
+int ALPatternRecognition::FindPattern(ALEvent *re, int DataType, float* zL,float* OffsetLL,float* OffsetRL,float* TrigThresh) {
 //cout << "Calling function FindPattern() " << endl;	
 	
 int nnhits = re->get_Nhits(); 
@@ -57,37 +57,6 @@ vector<int> ibend1, ibend2, ibend3, ibend4;//keep track of index of hit
 vector<int> itop, imid, ibottom;	//keep track of index of hit
 vector<int> nstrip1, nstrip2, nstrip3,nstrip4;   //keep track of number of strips that make up a hit
 vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strips of make up a hit
- //Load region numbers used in the MC geometry 
- int*TckReg=new int[7];
- int*TrigReg=new int[4];
- int*GReg=new int[1];
- float*TckZPos=new float[7];
- float*TrigThresh=new float[4];
- float*GuardThresh=new float[1];
- for(int i=0;i<7;i++)TckReg[i]=0;
- for(int i=0;i<4;i++)TrigReg[i]=0;
- for(int i=0;i<1;i++)GReg[i]=0;
- for(int i=0;i<7;i++)TckZPos[i]=0;
- for(int i=0;i<4;i++)TrigThresh[i]=0;
- for(int i=0;i<1;i++)GuardThresh[i]=0;
- //Load detector geometry parameters
- float*zL=new float[7];
- float*OffsetLL=new float[7];
- float*OffsetRL=new float[7];
- float*valthres=new float[5];
- for(int i=0;i<7;i++)zL[i]=OffsetLL[i]=OffsetRL[i]=0;
- for(int i=0;i<5;i++)valthres[i]=0;
-	
-  
-
-//MC or data file
-	
- string MCparamfile="../src/ALSim/MCparameters.dat"; 
- LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg,TckZPos,TrigThresh,GuardThresh);
-	 
- string DataFile="../src/ALSim/Dataparameters.dat";	 
- LoadDataparameters(DataFile,zL,OffsetLL,OffsetRL,valthres);
- 
  
  int*LayerWithHit= new int[7];
  for(int i=0;i<7;i++)LayerWithHit[i]=0;
@@ -445,11 +414,11 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
     
      
     //Incoming Straight particle    
-    float lim=TckZPos[1];//z position of 2nd layer
+    float lim=zL[1];//z position of 2nd layer
     float diff=2*a*lim+2*a*zz0+b;
     
     //Outcoming Straight particle    
-    float limo=TckZPos[5];//z position of 6th layer
+    float limo=zL[5];//z position of 6th layer
     float diffout=2*a*limo+2*a*zz0+b;
     
     //Set Deflection
@@ -505,7 +474,7 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
 	ALTckhit *h = new ALTckhit();
 	for(int l=0;l<7;l++) {
 	 	if(LayerWithHit[l]==0) {		//if there is a layer without a hit
-			double z = TckZPos[l];
+			double z = zL[l];
 			double x = line[index]->Eval(z);
 			double y = invertedparabolas[indexB]->Eval(z);
 			float coord=0.;
@@ -550,7 +519,7 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
 	   double bPR = re->get_bPR();
 	   double cPR = re->get_cPR();
 	   //Signed curvature at the 4 points of the bending plane
-	   double zzz[4]={TckZPos[5],TckZPos[3],TckZPos[2],TckZPos[1]};
+	   double zzz[4]={zL[5],zL[3],zL[2],zL[1]};
 	   double curv[4]={0,0,0,0};
 	   TF1* fcurv=new TF1("fcurv","2*[0]/TMath::Power(1+TMath::Power(2*[0]*x+[1],2),3./2.)",-20,20);
 	   fcurv->SetParameter(0,aPR);
@@ -606,7 +575,7 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
 		    re->get_hits().at(k)->set_czPR(czPR);
 		} //if flag
 	}	//end for
-
+//cout << "end of PR function " << endl;
 return 1;
  
 }

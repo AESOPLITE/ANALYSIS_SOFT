@@ -60,7 +60,6 @@
 #include "TRandom1.h"
 #include "TVector3.h"
 #include "TSpline.h"
-#include "Math/Interpolator.h"
 #include "TMultiGraph.h"
 #include "LoadDataparameters.h"
 #include "LoadMCparameters.h"
@@ -75,7 +74,7 @@ class ALPatternRecognition {
 public:
 	ALPatternRecognition() {};
 	virtual ~ALPatternRecognition() {};	
-	int FindPattern(ALEvent *re, int DataType);
+	int FindPattern(ALEvent *re, int DataType, float*,float*,float*,float*);
 	 void FindPatternPSM(ALEvent *re);
 	ClassDef(ALPatternRecognition, 1)
 };
