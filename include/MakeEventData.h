@@ -60,7 +60,7 @@
 //ClassImp(ALEvent)
 
 
-int MakeEventData(string,int);
+int MakeEventData(string,int,float*,float*,float*,float*,int,bool,string);
 
 
 
