@@ -1,3 +1,4 @@
+
 #include "MainRecoEventMC.h"
 
 using namespace std;
@@ -24,7 +25,7 @@ int main(int argc, char*argv[])
  int DataType= 0;                    //datatype, 0=MC, 1 = data
  string RecoInd=argv[5];            //string Reco Index: allows to distinct between types of reconstruction
  int InitType=1;		   //0=MC, 1=PR, 2=3pt helix
- bool secondIter=true;
+ bool secondIter=false;
  
  //Load region numbers used in the MC geometry 
  int*TckReg=new int[7];
@@ -91,7 +92,7 @@ int main(int argc, char*argv[])
        file=new TFile(Form("%s/%d/RawEvent_%s_%d_%dGeV%03d%s.root",Inppath.c_str(),type,startfile.c_str(),type,Ene,j,endfile.c_str()),"READ");
        cout << "Input file is open" <<endl;
        //output file
-       fileout=new TFile(Form("%s/%d/Reco_%s_%d_%dGeV%03d%s_%s.root",Outpath.c_str(),type,startfile.c_str(),type,Ene,j,endfile.c_str(),RecoInd.c_str()),"RECREATE");
+       fileout=new TFile(Form("%s/%d/RecoEvent_%s_%d_%dGeV%03d%s_%s.root",Outpath.c_str(),type,startfile.c_str(),type,Ene,j,endfile.c_str(),RecoInd.c_str()),"RECREATE");
  }
        //Get Tree from the input file
        TTree *tree = (TTree*)file->Get("MC");
@@ -128,7 +129,7 @@ int main(int argc, char*argv[])
           /////////////////////
 			  		   
           ALPatternRecognition* TestPattern = new ALPatternRecognition();
-          int PR = TestPattern->FindPattern(re, DataType);	 
+          int PR = TestPattern->FindPattern(de,DataType,zL,OffsetLL,OffsetRL,TrigThresh);	 
 	  if(PR==0) {
 	 	REtree->Fill();
 		delete re;
@@ -141,7 +142,13 @@ int main(int argc, char*argv[])
 	
 	  else {
 	  ALKalman* KalmanReco = new ALKalman(re);
-	  KalmanReco->DoKF(re, DataType,InitType, secondIter);
+	  int KF = KalmanReco->DoKF(re, DataType,InitType, secondIter);
+          if(KF==0) {
+          REtree->Fill();
+          delete re;
+          continue;
+            }
+
 	   }	
 		 
           /////////////////////    
