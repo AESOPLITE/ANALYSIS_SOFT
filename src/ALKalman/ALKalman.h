@@ -74,7 +74,6 @@
 #include "TRandom1.h"
 #include "TVector3.h"
 #include "TSpline.h"
-#include "Math/Interpolator.h"
 #include "TMultiGraph.h"
 #include "TPaveText.h"
 #include <iostream>
