@@ -12,6 +12,9 @@ RungeKutta4::RungeKutta4(double dz, FieldMap *fM) {  // Version with no scatteri
 	yA = new double[aSize];
 	zA = new double[aSize];
 	sA = new double[aSize];
+	pX = new double[aSize];
+	pY = new double[aSize];
+	pZ = new double[aSize];
 	double rho = 2.329;            // Density of silicon in g/cm^2
 	X0 = (21.82 / rho) * 10.0;
 	//	for (int i = 0; i < 100; i++) {
@@ -35,6 +38,9 @@ RungeKutta4::RungeKutta4(double dz, FieldMap *fM, int nScat, double zScat[]) {
 	yA = new double[aSize];
 	zA = new double[aSize];
 	sA = new double[aSize];
+	pX = new double[aSize];
+	pY = new double[aSize];
+	pZ = new double[aSize];
 	double rho = 2.329;            // Density of silicon in g/cm^2
 	X0 = (21.82 / rho) * 10.0;
 //	for (int i = 0; i < 100; i++) {
@@ -75,12 +81,18 @@ double *RungeKutta4::Integrate(double Q, double r0[3], double p0[3], double s, d
 		delete[] xA;
 		delete[] yA;
 		delete[] zA;
+		delete[] pX;
+		delete[] pY;
+		delete[] pZ;
 		delete[] sA;
 		aSize = nStep;
 		xA = new double[aSize];
 		yA = new double[aSize];
 		zA = new double[aSize];
 		sA = new double[aSize];
+		pX = new double[aSize];
+		pY = new double[aSize];
+		pZ = new double[aSize];
 		cout << "RungeKutta4::integrate: INCREASING ARRAY SIZE TO " << aSize << endl;
 	}
 	double sNow = 0.;
@@ -104,6 +116,9 @@ double *RungeKutta4::Integrate(double Q, double r0[3], double p0[3], double s, d
 		xA[step] = r[0];
 		yA[step] = r[1];
 		zA[step] = r[2];
+		pX[step] = r[3];
+		pY[step] = r[4];
+		pZ[step] = r[5];
 		sNow = sNow + h;
 		sA[step] = sNow;
 		delete[] k1;
@@ -166,6 +181,23 @@ double *RungeKutta4::getX(int i) {
 	r[1] = yA[i];
 	r[2] = zA[i];
 	return r;
+}
+
+// Get the momentum on the trajectory at point i
+double *RungeKutta4::getP(int i) {
+	double *p = new double[3];
+	p[0] = pX[i];
+	p[1] = pY[i];
+	p[2] = pZ[i];
+	return p;
+}
+// Get the momentum on the trajector at the point found in getX
+double *RungeKutta4::getP() {
+	double *p = new double[3];
+	p[0] = pX[IndexNow];
+	p[1] = pY[IndexNow];
+	p[2] = pZ[IndexNow];
+	return p;
 }
 
 // Interpolate the position on the trajectory at height z
@@ -247,6 +279,8 @@ double *RungeKutta4::getX(double z, bool *flag) {
 	double zint = zA[idx] + (zA[idx + sgn] - zA[idx])*del;
 	//cout << "zint=" << zint << endl;
 
+	IndexNow = idx;
+
 	return r;
 }
 
@@ -288,6 +322,12 @@ RungeKutta4::~RungeKutta4()
 	zA = NULL;
 	delete[] sA;
 	sA = NULL;
+	delete[] pX;
+	pX = NULL;
+	delete[] pY;
+	pY = NULL;
+	delete[] pZ;
+	pZ = NULL;
 	delete[] scatAng;
 	scatAng = NULL;
 	delete[] zScat;

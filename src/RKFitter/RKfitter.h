@@ -19,6 +19,7 @@ using namespace std;
 
 // Fit AESOP-Lite tracks to a model based on Runga-Kutta integration through the B-field map
 // Robert P. Johnson       May 3, 2018
+// July 6: including multiple scattering in the chi^2 calculation
 class RKfitter
 {
 	bool verbose;
@@ -39,7 +40,11 @@ class RKfitter
 	int ifault;
 	int maxCalls;
 	int *hits;
+	bool multScat; 
+	double SiThickness;
+	double X0;    // For calculating radiation lengths in silicon
 	double z0;    // Starting point in z for the track
+	double **Cx;  // Covariance matrix of measurements, including multiple scattering
 	void nelmin(int n, double start[], double xmin[], double *ynewlo, double reqmin, double step[], int konvge, int kcount,
 		        int *icount, int *numres, int *ifault);
 	void timestamp();
@@ -52,8 +57,10 @@ class RKfitter
 	int linearFit(double x[], double y[], int nhits, int ibp, double *a, double *b, double *c, double *xsq);
 
 public:
-	RKfitter(bool verbose, double z0, FieldMap *fM, TkrData *tD);
+	RKfitter(bool verbose, double z0, FieldMap *fM, TkrData *tD, bool multScat);
 	double chi2(double a[]);
+	double chi2m(double a[]);  // version with multiple scattering
+	double chi2nm(double a[]); // version without multiple scattering
 	int fitIt(bool genStartGuess, double guess[5], vector<int> hitSelection);
 	void getIntercept(int Layer, double r[3]);
 	double chiSqr() { return chiSquared; }

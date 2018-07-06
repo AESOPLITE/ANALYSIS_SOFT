@@ -1,9 +1,92 @@
 #include "RKfitter.h"
-
-// Calculate the chi^2 of the fit for a given track. This is what we try to minimize.
+// Calculate the chi^2 of the fit for a given track. This is what we try to minimize. 
 double RKfitter::chi2(double a[]) {
-	bool multScat = true;    // Whether to include multiple scattering in the chi^2 calculation
-	//cout << "RKfitter::chi2: entering with a=" << a[0] << " " << a[1] << " " << a[2] << " " << a[3] << " " << a[4] << endl;
+	//if (verbose) cout << "Entering RKfitter::chi2 with multScat=" << multScat << endl;
+	if (multScat) return chi2m(a);
+	return chi2nm(a);
+}
+
+double RKfitter::chi2nm(double a[]) {  // Version without multiple scattering
+	double arg = 1.0 - a[2] * a[2] - a[3] * a[3];
+	if (arg <= 0.) {
+		return 9.9e9;
+	}
+	double Delta_z = z0 - (tD->zLayer[tD->nLayers - 1]);
+	double ctz = -sqrt(arg);
+	double s = -Delta_z / ctz + 200.0;
+	if (s > 500. || s < 0.) s = 500.;
+
+	// Set up the input parameters needed by the integrator
+	double Q;
+	if (a[4] < 0.) Q = -1.0; else Q = 1.0;
+	double p = Q / a[4];
+	double r0[3] = { a[0], a[1], z0 };
+	double p0[3] = { p*a[2], p*a[3], p*ctz };
+
+	// Integrate all the way through the instrument
+	//if (verbose) {
+	//	cout << "RKfitter::chi2nm: r0=" << r0[0] << " " << r0[1] << " " << r0[2];
+	//	cout << "   p0=" << p0[0] << " " << p0[1] << " " << p0[2] << "  s=" << s << endl;
+	//}
+	double *xEnd = rk4->Integrate(Q, r0, p0, s, abs(Delta_z) + 40.);
+	if (verbose) cout << "completed integration at xEnd=" << xEnd[0] << " " << xEnd[1] << " " << xEnd[2] << endl;
+	delete[] xEnd;
+
+	// Loop over layers and add up the chi^2
+	double result = 0.;
+	for (int lyr = 0; lyr < tD->nLayers; lyr++) {
+		//if (verbose) cout << "lyr=" << lyr << " # hits=" << tD->hits[lyr].size() << " orient=" << tD->orientation[lyr] << endl;
+		if (tD->hits[lyr].size() == 0) continue;  // skip if no hits on the layer
+		if (hits[lyr] < 0) continue;              // allow user to skip layer
+		bool flag;
+		if (tD->orientation[lyr] == 'n') {
+			double *rInterp = rk4->getX(tD->zLayer[lyr], &flag);
+			double xInterp = rInterp[0];
+			if (!flag) {
+				xInterp = 220.;   // force a large chi^2 if the track doesn't even intercept the layer
+				xIntercept[lyr] = -9999.;
+				yIntercept[lyr] = -9999.;
+			}
+			else {
+				xIntercept[lyr] = rInterp[0];
+				yIntercept[lyr] = rInterp[1];
+			}
+			double xMeas = tD->hits[lyr].at(hits[lyr]);
+			double incr = pow((xInterp - xMeas) / sigma, 2);
+			result += incr;
+			delete[] rInterp;
+			//if (verbose) cout << "   Layer " << lyr << " flag=" << flag << " xInterp=" << xInterp << " xMeas=" << xMeas << " chi2_inc=" << incr << endl;
+		}
+		else {
+			double *rInterp = rk4->getX(tD->zLayer[lyr], &flag);
+			double yInterp = rInterp[1];
+			if (!flag) {
+				yInterp = 220.;
+				xIntercept[lyr] = -9999.;
+				yIntercept[lyr] = -9999.;
+			}
+			else {
+				xIntercept[lyr] = rInterp[0];
+				yIntercept[lyr] = rInterp[1];
+			}
+			double yMeas = tD->hits[lyr].at(hits[lyr]);
+			double incr = pow((yInterp - yMeas) / sigma, 2);
+			result += incr;
+			delete[] rInterp;
+			//if (verbose) cout << "   Layer " << lyr << " flag=" << flag << " yInterp=" << yInterp << " yMeas=" << yMeas << " chi2_inc=" << incr << endl;
+		}
+	}
+	if (verbose) {
+		cout << "RKfitter::chi2nm: with sigma = " << sigma << "  a=";
+		for (int i = 0; i < 5; i++) cout << a[i] << " ";
+		cout << "  chi^2=" << result << endl;
+	}
+	return result;
+}
+
+// Calculate the chi^2 of the fit for a given track. This is what we try to minimize. Multiple scattering version.
+double RKfitter::chi2m(double a[]) {
+    //if (verbose) cout << "RKfitter::chi2m: entering with a=" << a[0] << " " << a[1] << " " << a[2] << " " << a[3] << " " << a[4] << endl;
 	// estimate how far to integrate, to cover all layers
 	double arg = 1.0 - a[2] * a[2] - a[3] * a[3];
 	if (arg <= 0.) {
@@ -22,61 +105,138 @@ double RKfitter::chi2(double a[]) {
 	double p0[3] = { p*a[2], p*a[3], p*ctz };
 
 	// Integrate all the way through the instrument
-	if (verbose) {
-		cout << "RKfitter::chi2: r0=" << r0[0] << " " << r0[1] << " " << r0[2];
-		cout << "   p0=" << p0[0] << " " << p0[1] << " " << p0[2] << "  s=" << s << endl;
-	}
+	//if (verbose) {
+	//	cout << "RKfitter::chi2m: r0=" << r0[0] << " " << r0[1] << " " << r0[2];
+	//	cout << "   p0=" << p0[0] << " " << p0[1] << " " << p0[2] << "  s=" << s << endl;
+	//}
 	double *xEnd= rk4->Integrate(Q, r0, p0, s, abs(Delta_z)+40.);
-	if (verbose) cout << "completed integration at xEnd=" << xEnd[0] << " " << xEnd[1] << " " << xEnd[2]  << endl;
+	//if (verbose) cout << "completed integration at xEnd=" << xEnd[0] << " " << xEnd[1] << " " << xEnd[2]  << endl;
 	delete[] xEnd;
 
-	// Calculate the multiple-scattering angle for a layer of silicon
-	//double theta0 = sqrt((X / radLen) / ct) * (0.0136 / pmom.mag()) * (1.0 + 0.038 * log((X / radLen) / ct));
+	// Calculate the covariance matrix of the measurements, including multiple scattering
+
+	double *zLyr = new double[tD->nLayers];
+	double *theta0 = new double[tD->nLayers];
+	double *residual = new double[tD->nLayers];
+	for (int i = 0; i < tD->nLayers; i++) {
+		//if (verbose) cout << "RKfitter::chi2m: lyr=" << i << " # hits=" << tD->hits[i].size() << " orient=" << tD->orientation[i] << endl;
+		bool flag;
+		double *rInterp = rk4->getX(tD->zLayer[i], &flag);  // Find the intersection with each silicon layer
+		Cx[i][i] = sigma*sigma;  // Including here the measurement uncertainties in the diagonal elements
+		double *pInt = rk4->getP();
+		double pmom = sqrt(pInt[0] * pInt[0] + pInt[1] * pInt[1] + pInt[2] * pInt[2]);
+		double ct = abs(pInt[2]) / pmom;
+		double radLens = SiThickness / X0 / ct;
+		theta0[i] = (sqrt(radLens) * 0.0136 / pmom) * (1.0 + 0.038 * log(radLens));
+		if (!flag) {
+			xIntercept[i] = -9999.;
+			yIntercept[i] = -9999.;
+		}
+		else {
+			xIntercept[i] = rInterp[0];
+			yIntercept[i] = rInterp[1];
+		}
+		zLyr[i] = rInterp[2];
+		//if (verbose) cout << " layer " << i << " p=" << pmom << " ct=" << ct << " theta0=" << theta0[i] << endl;
+		// Calculate the diagonal elements
+		for (int k = 0; k < i; k++) { // include the effect of scattering in all higher layers
+			double leverArm = abs(zLyr[i] - zLyr[k]);
+			double dperp = leverArm * theta0[k];  // lever arm times scattering angle
+			Cx[i][i] += dperp*dperp;  // add all the contributions in quadrature
+			//if (verbose) cout << "     from layer " << k << " lever=" << leverArm << "  theta=" << theta0[k] << "  dperp=" << dperp << " sigma=" << sqrt(Cx[i][i]) << endl;
+		}
+
+		// Calculate the off-diagonal elements
+		for (int j = 0; j < i; j++) {
+			Cx[i][j] = 0;
+			for (int k = 0; k < j; k++) {
+				Cx[i][j] += abs(zLyr[i] - zLyr[k])*abs(zLyr[j] - zLyr[k]) * theta0[k] * theta0[k];
+			}
+			Cx[j][i] = Cx[i][j];
+		}
+
+		// Calculate the residual
+		if (hits[i] >= 0) {
+			if (tD->orientation[i] == 'n') {
+				double xInterp = rInterp[0];
+				if (!flag) {
+					xInterp = 220.;   // force a large chi^2 if the track doesn't even intercept the layer
+				}
+				double xMeas = tD->hits[i].at(hits[i]);
+				residual[i] = (xInterp - xMeas);
+			}
+			else {
+				double yInterp = rInterp[1];
+				if (!flag) {
+					yInterp = 220.;
+				}
+				double yMeas = tD->hits[i].at(hits[i]);
+				residual[i] = (yInterp - yMeas);
+			}
+			//if (verbose) cout << "RKfitter::chi2m: layer " << i << " residual=" << residual[i] << endl;
+		}
+	}
+	delete[] zLyr;
+	delete[] theta0;
+
+	// Invert the covariance matrix
+	/*
+	double **T; 
+	if (verbose) {
+		cout << "RKfitter::chi2m: covariance matrix:" << endl;
+		T = new double*[tD->nLayers];
+		for (int i = 0; i < tD->nLayers; i++) {
+			T[i] = new double[tD->nLayers];
+			for (int j = 0; j < tD->nLayers; j++) {
+				T[i][j] = Cx[i][j];
+				cout << "  " << Cx[i][j];
+			}
+			cout << endl;
+		}
+	}
+	*/
+	int err = invert(Cx, tD->nLayers);
+	if (err != 0) cout << "RKfitter::chi2m: singular covariance matrix encountered" << endl;
+
+	// Check the matrix inversion
+	/*
+	if (verbose) {
+		double **U = new double*[tD->nLayers];
+		for (int i = 0; i < tD->nLayers; i++) {
+			U[i] = new double[tD->nLayers];
+			for (int j = 0; j < tD->nLayers; j++) {
+				U[i][j] = 0.;
+				for (int k = 0; k < tD->nLayers; k++) {
+					U[i][j] += Cx[i][k] * T[k][j];
+				}
+			}
+		}
+		cout << "  RKfitter::chi2m: Testing the matrix inversion. Unit Matrix:" << endl;
+		for (int i = 0; i < tD->nLayers; i++) {
+			cout << "         ";
+			for (int j = 0; j < tD->nLayers; j++) {
+				cout << U[i][j] << "   ";
+			}
+			cout << endl;
+			delete[] T[i];
+			delete[] U[i];
+		}
+	}
+	*/
 
 	// Loop over layers and add up the chi^2
 	double result = 0.;
-	for (int lyr = 0; lyr < tD->nLayers; lyr++) {
-		//cout << "lyr=" << lyr << " # hits=" << tD->hits[lyr].size() << " orient=" << tD->orientation[lyr] << endl;
-		if (tD->hits[lyr].size() == 0) continue;  // skip if no hits on the layer
-		if (hits[lyr] < 0) continue;              // allow user to skip layer
-		bool flag;
-		if (tD->orientation[lyr] == 'n') {
-			double *rInterp = rk4->getX(tD->zLayer[lyr], &flag);
-			double xInterp = rInterp[0];
-			if (!flag) {
-				xInterp = 220.;   // force a large chi^2 if the track doesn't even intercept the layer
-				xIntercept[lyr] = -9999.;
-				yIntercept[lyr] = -9999.;
-			} else {
-				xIntercept[lyr] = rInterp[0];
-				yIntercept[lyr] = rInterp[1];
-			}
-			double xMeas = tD->hits[lyr].at(hits[lyr]);
-			double incr = pow((xInterp - xMeas) / sigma, 2);
-			result += incr;	
-			delete[] rInterp;
-			//cout << "   Layer " << lyr << " flag=" << flag << " xInterp=" << xInterp << " xMeas=" << xMeas << " chi2_inc=" << incr << endl;
-		}
-		else {
-			double *rInterp = rk4->getX(tD->zLayer[lyr], &flag);
-			double yInterp = rInterp[1];
-			if (!flag) {
-				yInterp = 220.;
-				xIntercept[lyr] = -9999.;
-				yIntercept[lyr] = -9999.;
-			} else {
-				xIntercept[lyr] = rInterp[0];
-				yIntercept[lyr] = rInterp[1];
-			}
-			double yMeas = tD->hits[lyr].at(hits[lyr]);
-			double incr = pow((yInterp - yMeas) / sigma, 2);
-			result += incr;
-			delete[] rInterp;
-			//cout << "   Layer " << lyr << " flag=" << flag << " yInterp=" << yInterp << " yMeas=" << yMeas << " chi2_inc=" << incr << endl;
+	for (int i = 0; i < tD->nLayers; i++) {
+		if (hits[i] < 0) continue;
+		for (int j = 0; j < tD->nLayers; j++) {
+			if (hits[j] < 0) continue;
+			result += residual[i] * Cx[i][j] * residual[j];
 		}
 	}
+	delete[] residual;
+
 	if (verbose) {
-		cout << "RKfitter::chi2: with sigma = " << sigma << "  a=";
+		cout << "RKfitter::chi2: with sigma = " << sigma << " mult scat=" << multScat << "  a=";
 		for (int i = 0; i < 5; i++) cout << a[i] << " ";
 		cout << "  chi^2=" << result << endl;
 	}
@@ -126,11 +286,18 @@ double RKfitter::chi2pm(int i, double di, int j, double dj) {
 	return chi2(b);
 }
 
-RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD) {
+RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD, bool multScat) {
+	// verbose - set true to get lots of printout
+	// z0 - starting point in z for the integration
+	// FieldMap - magnetic field map
+	// TkrData - data to be fit
+	// multScat - set true to include multiple scattering in the chi^2 calculation
+	if (verbose) cout << "Entering the RKfitter constructor with z0=" << z0 << endl;
 	this->verbose = verbose;
 	this->z0 = z0;
 	this->fM = fM;
 	this->tD = tD;
+	this->multScat = multScat;    
 	hits = new int[tD->nLayers];
 	for (int i = 0; i < tD->nLayers; i++) hits[i] = 0;
 	xIntercept = new double[tD->nLayers];
@@ -140,14 +307,17 @@ RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD) {
 		zIntercept[lyr] = tD->zLayer[lyr];
 	}
 	maxCalls = 1000;   // Maximum function calls allowed in the minimization search
-	reqmin = 0.001;    // convergence check parameter
+	reqmin = 0.0001;    // convergence check parameter
 	step = new double[5];
-	step[0] = 0.5;    // initial step for x position in the minimization search
-	step[1] = 0.5;    // initial step for y position
-	step[2] = 0.02;  // initial step size for x direction cosine
-	step[3] = 0.02;  // initial step size for y direction cosine
-	step[4] = 10.0;    // initial step size for 1/p as a percentage
+	step[0] = 1.;    // initial step for x position in the minimization search
+	step[1] = 1.;    // initial step for y position
+	step[2] = 0.04;  // initial step size for x direction cosine
+	step[3] = 0.04;  // initial step size for y direction cosine
+	step[4] = 20.0;    // initial step size for 1/p as a percentage
 	stepSize = 5.0;   // Runge-Kutta integration step size (comparable to the B field map precision)
+	double rho = 2.329;           // Density of silicon in g/cm^2
+	SiThickness = 0.4;
+	X0 = (21.82 / rho) * 10.0;
 
 	rk4 = new RungeKutta4(stepSize, fM);
 	sigma = tD->stripPitch / sqrt(12.0);  // Assumed resolution of the AESOP tracker
@@ -155,6 +325,12 @@ RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD) {
 	C = new double*[5];
 	for (int i = 0; i < 5; i++) {
 		C[i] = new double[5];
+	}
+	Cx = new double*[tD->nLayers];
+	if (multScat) {
+		for (int i = 0; i < tD->nLayers; i++) {
+			Cx[i] = new double[tD->nLayers];
+		}
 	}
 }
 
@@ -164,7 +340,7 @@ int RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelectio
 	// guess[5] is the externally supplied starting guess for the track
 	// if genStartGuess is true, then the program will generate an initial guess from a linear fit
 
-	//cout << "RKfitter::fitIt: guess=" << guess[0] << " " << guess[1] << " " << guess[2] << " " << guess[3] << " " << guess[4] << endl;
+	if (verbose) cout << "RKfitter::fitIt: guess=" << guess[0] << " " << guess[1] << " " << guess[2] << " " << guess[3] << " " << guess[4] << endl;
 	if (hitSelection.size() != tD->nLayers) {
 		cout << "RKfitter:fitIt, wrong number of hits specified, need " << tD->nLayers << endl;
 		return -1;
@@ -477,6 +653,7 @@ RKfitter::~RKfitter()
 	delete[] yIntercept;
 	delete[] zIntercept;
 	for (int i = 0; i < 5; i++) delete[] C[i];
+	if (multScat) for (int i = 0; i < tD->nLayers; i++) delete[] Cx[i];
 	delete[] C;
 }
 

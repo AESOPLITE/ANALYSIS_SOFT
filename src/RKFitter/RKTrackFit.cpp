@@ -78,7 +78,7 @@ int main()
 	for (int lyr = 0; lyr < nLyrs; lyr++) {
 		Td->addLyr(oLayer[lyr], zLayer[lyr], ladderOffsetLeft[lyr], ladderOffsetRight[lyr]);
 	}
-	Td->print("testing testing");
+	//Td->print("testing testing");
 
 	// Generate a track to fit
 	double c = 2.99793e8; // Speed of light in m/s
@@ -88,7 +88,7 @@ int main()
 	double phiI = 45.0*M_PI / 180.;
 	double dcos[3];
 
-	double momentum = 0.05;    // GeV
+	double momentum = 0.06;    // GeV
 	double Q = 1.;
 
 	Histogram hop(200, -50., 0.5, "Q/momentum", "1/GeV", "tracks");
@@ -97,9 +97,12 @@ int main()
 	Histogram hyerr(200, -5., 0.05, "y position error", "mm", "tracks");
 	Histogram hresn(100, -1., 0.02, "Residual in non-bending plane", "mm", "hits");
 	Histogram hresb(100, -1., 0.02, "Residual in bending plane", "mm", "hits");
-	Histogram hchi2(100, 0., 25., "Fit chi^2", "chi^2", "tracks");
-	Histogram hTchi2(100, 0., 400., "MC truth chi^2", "chi^2", "tracks");
-	Histogram hIchi2(100, 0., 400., "Initial-guess chi^2", "chi^2", "tracks");
+	Histogram hchi2(100, 0., 0.5, "Fit chi^2", "chi^2", "tracks");
+	Histogram hTchi2(100, 0., 0.5, "MC truth chi^2", "chi^2", "tracks");
+	Histogram hIchi2(100, 0., 40., "Initial-guess chi^2", "chi^2", "tracks");
+	//Histogram hchi2(100, 0., 25., "Fit chi^2", "chi^2", "tracks");
+	//Histogram hTchi2(100, 0., 400., "MC truth chi^2", "chi^2", "tracks");
+	//Histogram hIchi2(100, 0., 400., "Initial-guess chi^2", "chi^2", "tracks");
 	Histogram hscat(100, 0., 0.002, "MC scattering angles", "rad", "layers");
 
 	default_random_engine generator2;
@@ -108,7 +111,7 @@ int main()
 	normal_distribution<double> distribution3(0., 1.0);
 	int nIterations = 500;
 	int itrPrnt = 0;
-	int nScatters = 0;
+	int nScatters = 6;
 	double *ranNorm = new double[nScatters+1];
 	FILE *fPict;
 	double xStart[5];
@@ -212,7 +215,7 @@ int main()
 
 		if (iter < 1) Td->print("test");  // Prints the data in a nice format
 
-		RKfitter *rkf = new RKfitter(iter<0, xStart[2], fM, Td);
+		RKfitter *rkf = new RKfitter(iter<0, xStart[2], fM, Td, true);
 		double initChi2 = rkf->chi2(guess);
 		double truthChi2 = rkf->chi2(truth);
 		vector<int> hits = { 0, 0, 0, 0, 0, 0, 0 };

@@ -17,12 +17,16 @@ class RungeKutta4 {
 	double *yA;
 	double *zA;
 	double *sA;
+	double *pX;
+	double *pY;
+	double *pZ;
 	int nScat;
 	double *zScat;
 	double *scatAng;
 	int aSize;  // Current size of the arrays
 	int nStep;
 	double X0;
+	int IndexNow;
 
 public:
 	RungeKutta4(double dz, FieldMap *fM);
@@ -30,6 +34,8 @@ public:
 	double *Integrate(double Q, double r0[3], double p0[3], double s, double deltaZ);
 	double *Integrate(double Q, double r0[3], double p0[3], double s, double deltaZ, double ranNorm[]);
 	double *getX(int i);
+	double *getP(int i);
+	double *getP();
 	double *getX(double z, bool *flag);
 	double getS(int i);
 	double getScat(int i);
