@@ -35,7 +35,6 @@
 
 ClassImp(TBField)
 
-TEveMagField* TBField::fField = 0;
 const double OffsetMag = 106.3409;		//offset of center of magnet to bottom of T3 in mm
 
 Bool_t   TBField::fUseUniformBfield = kFALSE;

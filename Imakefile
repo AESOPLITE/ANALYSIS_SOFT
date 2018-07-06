@@ -8,14 +8,19 @@
 
 INSTALLDIR = $(PWD)
 SRCDIR     = $(INSTALLDIR)/src
-PROGRAMNAME = MainRecoEventMC
+PROGRAMNAME = MainRawBPDEvent
 
-SRCS          =  MainRecoEventMC.$(SrcSuf) \
+SRCS          =  MainRawBPDEvent.$(SrcSuf) \
                 $(SRCDIR)/ALSim/MakeRawBPDEvent.$(SrcSuf) \
-		$(SRCDIR)/ALSim/MakeEventData.$(SrcSuf)    \
-	        $(SRCDIR)/ALSim/MakeRawEventMC.$(SrcSuf)  \
-		$(SRCDIR)/ALKalman/ALKalman.$(SrcSuf) \
-		$(SRCDIR)/ALPatternRecognition/ALPatternRecognition.$(SrcSuf) \
+				$(SRCDIR)/ALSim/MakeEventData.$(SrcSuf)    \
+	     	    $(SRCDIR)/ALSim/MakeRawEventMC.$(SrcSuf)  \
+				$(SRCDIR)/ALKalman/ALKalman.$(SrcSuf) \
+				$(SRCDIR)/ALPatternRecognition/ALPatternRecognition.$(SrcSuf) \
+			    $(SRCDIR)/RKFitter/RKfitter.$(SrcSuf) \
+                $(SRCDIR)/RKFitter/TkrData.$(SrcSuf) \
+                $(SRCDIR)/RKFitter/FieldMap.$(SrcSuf) \
+                $(SRCDIR)/RKFitter/RungeKutta4.$(SrcSuf) \
+	
 			
 
 OBJS	      =	$(subst .$(SrcSuf),.$(ObjSuf),$(SRCS)) \
