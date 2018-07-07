@@ -231,6 +231,10 @@ double RKfitter::chi2m(double a[]) {
 		for (int j = 0; j < tD->nLayers; j++) {
 			if (hits[j] < 0) continue;
 			result += residual[i] * Cx[i][j] * residual[j];
+			if (isnan(result)) {
+				result = 9.9e22;
+				break;
+			}
 		}
 	}
 	delete[] residual;
@@ -420,7 +424,7 @@ int RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelectio
 	int nVar = 5;     // Number of parameters being fit
 	int Konvge = 5;   // How often to check for convergence
 
-	// call the canned simplex minimization routine
+	// Call the canned simplex minimization routine
 	nelmin(nVar, temp, a, &ynewlo, reqmin, initStep, Konvge, maxCalls, &icount, &numres, &ifault);
 	//cout << "RKfitter::fitIt: from nelmin, newlo=" << ynewlo << " count=" << icount << " numres=" << numres << " error=" << ifault << endl;
 	//if (ifault != 0) cout << "ifault=" << ifault << " returned by nelmin" << endl;
@@ -428,15 +432,22 @@ int RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelectio
 	double h[5] = { 0.00000001, 0.00000001, 0.00000001, 0.00000001, 0.00000001*abs(a[4]) };
 	hessian(h);
 	//double T[5][5];
+	int err = 0;
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 5; j++) {
 			C[i][j] = 0.5*H[i][j];
+			if (isnan(C[i][j])) {
+				err = 2;
+				break;
+			}
 			//if (i != j) C[i][j] = 0.;
 			//T[i][j] = C[i][j];
 		}
+		if (err != 0) break;
 	}
 
-	int err = invert(C,5);  // Invert the hessian matrix (times -0.5) to get the covariance matrix
+	if (err == 0) err = invert(C,5);  // Invert the hessian matrix (times 0.5) to get the covariance matrix
+	if (err != 0) cout << "RKfitter::fitIt: bad or singular covariance matrix encountered. Error=" << err << endl;
 
 /*
     // Check the matrix inversion
