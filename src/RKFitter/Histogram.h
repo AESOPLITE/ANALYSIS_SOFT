@@ -14,11 +14,11 @@ using namespace std;
 class Histogram {
     int N;
     double BW, B0;
-    vector<int> counts;
+    std::vector<int> counts;
     string T, XL, YL;
     double sumX, sumX2;
     int nEntry;
-    vector<double> X, Y, Ex, Ey;
+    std::vector<double> X, Y, Ex, Ey;
 
 public:
     Histogram(int nBins, double bin0, double binWidth, string title, string xlabel, string ylabel);
@@ -58,13 +58,13 @@ public:
     
     void plot(FILE* oFile, bool stats=false, string choice = "", std::string txt = " ");
     void print(string fn);
-    vector<double> getBins();
-    vector<double> getContents();
+    std::vector<double> getBins();
+    std::vector<double> getContents();
     double mode();
     double mean(float min, float max);
     double mean();
     int FWHMboundaries(float &xLow, float &xHigh);
-    bool setContents(vector<double> stuff);
+    bool setContents(std::vector<double> stuff);
     int imode();
 };
 
@@ -73,7 +73,7 @@ class Histogram2D {
     int NX, NY;
     double BXW, BX0;
     double BYW, BY0;
-    vector<vector<int>> counts;
+	std::vector<std::vector<int>> counts;
     string T, XL, YL, ZL;
     int nEntry;
 
@@ -97,9 +97,9 @@ class ProfilePlot {
     int N;
     double BW, B0; 
     string T, XL, YL;
-    vector<int> counts;
-    vector<double> sumY, sumY2;
-    vector<double> X, Y, Ex, Ey;
+    std::vector<int> counts;
+    std::vector<double> sumY, sumY2;
+    std::vector<double> X, Y, Ex, Ey;
     int nEntries;
 
 public:
@@ -135,8 +135,8 @@ class ProfilePlot2D {
     double xBW, xB0;
     double yBW, yB0;
     string T, XL, YL, ZL;
-    vector<vector<int>> counts;
-    vector<vector<double>> sumZ, sumZ2;
+    std::vector<std::vector<int>> counts;
+    std::vector<std::vector<double>> sumZ, sumZ2;
     int nEntries;
 
 public:
@@ -164,7 +164,7 @@ class ProfilePlot2Dpeak {
     double yBW, yB0;
     double zBW, zB0;
     string T, XL, YL, ZL;
-    vector<vector<Histogram*>> counts;
+    std::vector<std::vector<Histogram*>> counts;
     int nEntries;
 
 public:

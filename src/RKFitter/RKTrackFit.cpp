@@ -18,10 +18,27 @@
 
 using namespace std;
 
+// This global variable is needed in order to produce an ordinary C (i.e. static class method) function
+// that can be passed to dlib fitting routines. That means that there can be only a single instance of
+// RKfitter at any given time, and this global pointer must point to it.
+#ifdef DLIB
+RKfitter *rkf_global;
+double RKfitter::chi2b(column_vector b) {   // Version to be used by dlib
+	int N = b.size();
+	double a[5];
+	for (int i = 0; i < N; i++) a[i] = b(i);
+	//cout << "chi2b: a= " << a[0] << " " << a[1] << " " << a[2] << " " << a[3] << " " << a[4] << endl;
+	return rkf_global->chi2(a);
+}
+double RKfitter::chi2bend(double S, double C) {   // 2-D version to be used by dlib
+	return rkf_global->chi2_2(S, C);
+}
+#endif
 // Program to test fitting AESOP-Lite hits to a track model built on Runge-Kutta integration through the field map
 // Robert P. Johnson       May 3, 2018
 int main()
 {
+
 	cout << "RKTrackFit: Entering Main" << endl;
 	typedef std::chrono::high_resolution_clock myclock;
 	myclock::time_point beginning = myclock::now();
@@ -37,6 +54,7 @@ int main()
 
 	// Load the B field map. Reading the binary file is far faster than reading the text version (but is machine dependent)
 	string fN = "C:\\Users\\Robert\\Documents\\Work\\AESOP\\HTIDS_2014\\Recon\\TrackFit\\RKTrackFit\\fieldmap5mm.bin";
+	//FieldMap *fM = new FieldMap(fN, "binary", 401);
 	FieldMap *fM = new FieldMap(fN, "binary", 81);
 
 /*
@@ -64,7 +82,7 @@ int main()
 */
 
 	// When the field map is read from a text file, we can write it back out in binary with the following line of code:
-	//fM->writeBinaryFile("C:\\Users\\Robert\\Documents\\Work\\AESOP\\HTIDS_2014\\Recon\\TrackFit\\RKTrackFit\\fieldmap5mm.bin");
+	//fM->writeBinaryFile("C:\\Users\\Robert\\Documents\\Work\\AESOP\\HTIDS_2014\\Recon\\TrackFit\\RKTrackFit\\fieldmap1mm.bin");
 
 	// Get the tracker geometry
 	double zLayer[7] = { -14.60, -34.60, -94.60, -154.6, -174.6, -194.6, -214.6 };
@@ -88,8 +106,9 @@ int main()
 	double phiI = 45.0*M_PI / 180.;
 	double dcos[3];
 
-	double momentum = 0.06;    // GeV
+	double momentum = 0.05;    // GeV
 	double Q = 1.;
+	double dz = 5.0;
 
 	Histogram hop(200, -50., 0.5, "Q/momentum", "1/GeV", "tracks");
 	Histogram hopr(200, -10., 0.1, "Q/momentum error", "sigmas", "tracks");
@@ -137,14 +156,13 @@ int main()
 
 		// Introduce random Gaussian errors into the initial "guess"
 		double guess[5];
-		guess[0] = xStart[0] + 0.25*distribution3(generator3);
-		guess[1] = xStart[1] + 0.25*distribution3(generator3);
-		guess[2] = dcos[0] + 0.004*distribution3(generator3);
-		guess[3] = dcos[1] + 0.004*distribution3(generator3);
-		guess[4] = K*(1.0 + 0.05*distribution3(generator3));
-		if (iter < 10) cout << "Iteration " << iter << " x=" << xStart[0] << " y=" << xStart[1] << " phi=" << phi << " theta=" << theta << endl;
+		guess[0] = xStart[0] + 2.25*distribution3(generator3);
+		guess[1] = xStart[1] + 2.25*distribution3(generator3);
+		guess[2] = dcos[0] + 0.06*distribution3(generator3);
+		guess[3] = dcos[1] + 0.06*distribution3(generator3);
+		guess[4] = K*(1.0 + 0.3*distribution3(generator3));
+		if (iter < 0) cout << "Iteration " << iter << " x=" << xStart[0] << " y=" << xStart[1] << " phi=" << phi << " theta=" << theta << endl;
 
-		double dz = 5.0;
 		for (int i = 0; i < nScatters; i++) {
 			ranNorm[i] = distribution3(generator3);
 			//cout << "ran = " << ranNorm[i] << endl;
@@ -153,11 +171,11 @@ int main()
 		double *xEnd;
 		if (nScatters > 0) {
 			rk4 = new RungeKutta4(dz, fM, nScatters, zLayer);
-			xEnd = rk4->Integrate(Q, xStart, pStart, 300., 9999., ranNorm);
+			xEnd = rk4->Integrate(Q, xStart, pStart, 500., 250., ranNorm);
 		}
 		else {
 			rk4 = new RungeKutta4(dz, fM);
-			xEnd = rk4->Integrate(Q, xStart, pStart, 300., 9999.);
+			xEnd = rk4->Integrate(Q, xStart, pStart, 500., 250.);
 		}
 		
 		delete[] xEnd;
@@ -215,10 +233,14 @@ int main()
 
 		if (iter < 1) Td->print("test");  // Prints the data in a nice format
 
-		RKfitter *rkf = new RKfitter(iter<0, xStart[2], fM, Td, true);
+		int algorithm = 0;
+		RKfitter *rkf = new RKfitter(iter<0, xStart[2], fM, Td, true, dz, algorithm);
+#ifdef DLIB
+		rkf_global = rkf; // annoying kludge!
+#endif
 		double initChi2 = rkf->chi2(guess);
 		double truthChi2 = rkf->chi2(truth);
-		vector<int> hits = { 0, 0, 0, 0, 0, 0, 0 };
+		std::vector<int> hits = { 0, 0, 0, 0, 0, 0, 0 };
 		int errCode = rkf->fitIt(false, guess, hits);
 		if (iter == itrPrnt) rkf->print("test fit");
 		//cout << "Initial chi^2 = " << initChi2 << "  Truth chi^2 target=" << truthChi2 << " Error=" << errCode << "  Fit chi^2=" << rkf->chiSqr() << endl;
@@ -228,6 +250,9 @@ int main()
 		double e[5];
 		rkf->errors(e);
 		hop.entry(a[4]);
+		if (a[4] < -50. || a[4] > 50.) {
+			cout << "RKTrackFit: 1/p out of range: " << a[4] << endl;
+		}
 		hopr.entry((a[4]-K)/e[4]);
 		hxerr.entry((a[0] - xStart[0]) / e[0]);
 		hyerr.entry((a[1] - xStart[1]) / e[1]);

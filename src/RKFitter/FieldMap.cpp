@@ -15,7 +15,13 @@ FieldMap::FieldMap(string FileName, string Type, int nPoints)
 	fMapX = NULL;
 	fMapY = NULL;
 	fMapZ = NULL;
-
+	size_t found = FileName.find("1mm");
+	double xUnit = 1.0;
+	double bUnit = 10000.;
+	if (found != string::npos) {
+		xUnit = 1000.;
+		bUnit = 1.;
+	}
 	if (FileName == " " || (Type != "binary" && Type != "text")) {
 		cout << "FieldMap: no input file is to be read. Field map must be filled by function call." << endl;
 		nEntered = 0;
@@ -44,6 +50,7 @@ FieldMap::FieldMap(string FileName, string Type, int nPoints)
 		cout << "FieldMap: making an array for Bz of size " << size << endl;
 		ifstream infile;
 		infile.open(FileName, ios::binary | ios::in);
+		int nPrint = 0;
 		if (infile.is_open()) {
 			infile.read((char*)&x0, sizeof(double));
 			infile.read((char*)&y0, sizeof(double));
@@ -57,6 +64,11 @@ FieldMap::FieldMap(string FileName, string Type, int nPoints)
 						infile.read((char*)(fMapX + i*nFldPnt*nFldPnt + j*nFldPnt + k), sizeof(float));
 						infile.read((char*)(fMapY + i*nFldPnt*nFldPnt + j*nFldPnt + k), sizeof(float));
 						infile.read((char*)(fMapZ + i*nFldPnt*nFldPnt + j*nFldPnt + k), sizeof(float));
+						if (nPrint < 20) {
+							nPrint++;
+							cout << "i=" << i << " j=" << j << " k=" << k << " Bx=" << fMapX[i*nFldPnt*nFldPnt + j*nFldPnt + k]
+								<< " By=" << fMapY[i*nFldPnt*nFldPnt + j*nFldPnt + k] << " Bz=" << fMapZ[i*nFldPnt*nFldPnt + j*nFldPnt + k] << endl;
+						}
 					}
 				}
 			}
@@ -96,9 +108,12 @@ FieldMap::FieldMap(string FileName, string Type, int nPoints)
 							float x, y, z, Bx, By, Bz;
 							sscanf(line.c_str(), "%f %f %f %f %f %f", &x, &y, &z, &Bx, &By, &Bz);
 							//cout << "Bx= " << Bx << " By= " << By << " Bz= " << Bz << endl;
-							fMapX[i*nFldPnt*nFldPnt + j*nFldPnt + k] = (float)Bx/10000.;
-							fMapY[i*nFldPnt*nFldPnt + j*nFldPnt + k] = (float)By/10000.;
-							fMapZ[i*nFldPnt*nFldPnt + j*nFldPnt + k] = (float)Bz/10000.;
+							fMapX[i*nFldPnt*nFldPnt + j*nFldPnt + k] = (float)Bx/bUnit;
+							fMapY[i*nFldPnt*nFldPnt + j*nFldPnt + k] = (float)By/bUnit;
+							fMapZ[i*nFldPnt*nFldPnt + j*nFldPnt + k] = (float)Bz/bUnit;
+							x *= xUnit;
+							y *= xUnit;
+							z *= xUnit;
 							if (i == 0) x0 = x;
 							if (j == 0) y0 = y;
 							if (k == 0) z0 = z;

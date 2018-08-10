@@ -30,20 +30,40 @@ void Histogram::plot(FILE* oFile, bool stats, std::string choice, std::string tx
         Ex[i]= BW/2.;
         Ey[i]= sqrt(counts[i]);
     }
-    double mean=-999.;
+
+	double mean=-999.;
     double rms=-999.;
-    if (nEntry>0) {
-        mean = sumX/float(nEntry);
-        rms = sqrt(sumX2/nEntry - mean*mean);
-    }
+	double tmean = -999.;
+	double trms = -999.;
+	if (nEntry>0) {
+		mean = sumX / float(nEntry);
+		rms = sqrt(sumX2 / nEntry - mean*mean);
+		double tsumX2 = 0.;
+		int NN = 0;
+		tmean = 0.;
+		for (int i = 0; i < N; ++i) {
+			double XX, EEy;
+			int YY;
+			XX = B0 + (((double)i) + 0.5)*BW;
+			YY = counts[i];
+			if (abs(XX - mean) < 2.0*rms) {
+				NN += YY;
+				tmean += XX*double(YY);
+				tsumX2 += (XX*XX)*double(YY);
+			}
+		}
+		tmean = tmean / (double)NN;
+		trms = sqrt(tsumX2 / (double)NN - tmean*tmean);
+	}
+
     fprintf(oFile,"#*** This file is intended to be displayed by gnuplot.\n");
     fprintf(oFile,"#*** Either double click on the file (works in Windows at least),\n");
     fprintf(oFile,"#*** or else start up gnuplot and use the load command to display the plot.\n");
     //The following line will make the plot persist in linux when double clicking on it, but it doesn't work in multiplot mode.
     //fprintf(oFile,"set term X11 persist\n");
     if (stats) {
-        fprintf(oFile,"set label 777 'mean=%7.3f' at graph 0.67, 0.9 left font 'Verdana,12'\n",mean);
-        fprintf(oFile,"set label 778 'rms=%8.3f' at graph 0.67, 0.85 left font 'Verdana,12'\n",rms);
+        fprintf(oFile,"set label 777 'mean=%7.3f %7.3f' at graph 0.67, 0.9 left font 'Verdana,12'\n",mean, tmean);
+        fprintf(oFile,"set label 778 'rms=%8.3f %8.3f' at graph 0.67, 0.85 left font 'Verdana,12'\n",rms, trms);
         fprintf(oFile,"set label 779 'counts=%d' at graph 0.67, 0.80 left font 'Verdana,12'\n",nEntry);
     }
     fprintf(oFile,"set xtics font 'Verdana,12'\n");
@@ -89,16 +109,34 @@ void Histogram::print(std::string fn) {  // Print the histogram contents to an A
 
     double mean=-999.;
     double rms=-999.;
+	double tmean = -999.;
+	double trms = -999.;
     if (nEntry>0) {
         mean = sumX/float(nEntry);
         rms = sqrt(sumX2/nEntry - mean*mean);
+		double tsumX2 = 0.;
+		int NN = 0;
+		tmean = 0.;
+		for (int i = 0; i < N; ++i) {
+			double XX, EEy;
+			int YY;
+			XX = B0 + (((double)i) + 0.5)*BW;
+			YY = counts[i];
+			if (abs(XX - mean) < 2.0*rms) {
+				NN += YY;
+				tmean += XX*YY;
+				tsumX2 += (XX*XX)*YY;
+			}
+		}
+		tmean = tmean / NN;
+		trms = sqrt(tsumX2 / NN - tmean*tmean);
     }
     FILE* oFile = fopen(fn.c_str(),"w");
     if (oFile != NULL) {
         fprintf(oFile,"Printing Histogram %s: %s vs %s\n",T.c_str(),YL.c_str(),XL.c_str());
         fprintf(oFile,"  Number of entries=%d\n",nEntry);
-        fprintf(oFile,"  Mean=%e\n", mean);
-        fprintf(oFile,"  rms= %e\n", rms);
+        fprintf(oFile,"  Mean=%e %e\n", mean, tmean);
+        fprintf(oFile,"  rms= %e %e\n", rms, trms);
         for (int i=0; i<N; ++i) {
             double XX, EEy;
             int YY;

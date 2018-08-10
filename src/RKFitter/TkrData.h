@@ -16,11 +16,11 @@ class TkrData
 {
 public:
 	int nLayers;
-	vector<double> zLayer;             // the z position of each SSD layer
-	vector<char> orientation;          // orientation of each layer 'n' or 'b'
-	vector<double> ladderOffsetLeft;
-	vector<double> ladderOffsetRight;
-	vector<vector<double>> hits;       // a vector of hit coordinate values for each layer
+	std::vector<double> zLayer;             // the z position of each SSD layer
+	std::vector<char> orientation;          // orientation of each layer 'n' or 'b'
+	std::vector<double> ladderOffsetLeft;
+	std::vector<double> ladderOffsetRight;
+	std::vector<std::vector<double>> hits;       // a vector of hit coordinate values for each layer
 	double stripPitch;
 
 	TkrData();

@@ -1,7 +1,21 @@
 #include "RKfitter.h"
+
 // Calculate the chi^2 of the fit for a given track. This is what we try to minimize. 
+double RKfitter::chi2_2(double S, double C) {
+	if (algorithm != 0) icount++;
+	double b[5];
+	b[0] = a[0];
+	b[1] = a[1];
+	b[2] = a[2];
+	b[3] = S;
+	b[4] = C;
+	if (multScat) return chi2m(b);
+	return chi2nm(b);
+}
+
 double RKfitter::chi2(double a[]) {
-	//if (verbose) cout << "Entering RKfitter::chi2 with multScat=" << multScat << endl;
+	if (algorithm != 0) icount++;
+	//if (verbose) cout << "Entering RKfitter::chi2 with multScat=" << multScat << " bobyqa=" << bobyqa << " count=" << icount << endl;
 	if (multScat) return chi2m(a);
 	return chi2nm(a);
 }
@@ -28,7 +42,7 @@ double RKfitter::chi2nm(double a[]) {  // Version without multiple scattering
 	//	cout << "RKfitter::chi2nm: r0=" << r0[0] << " " << r0[1] << " " << r0[2];
 	//	cout << "   p0=" << p0[0] << " " << p0[1] << " " << p0[2] << "  s=" << s << endl;
 	//}
-	double *xEnd = rk4->Integrate(Q, r0, p0, s, abs(Delta_z) + 40.);
+	double *xEnd = rk4->Integrate(Q, r0, p0, s, abs(Delta_z));
 	if (verbose) cout << "completed integration at xEnd=" << xEnd[0] << " " << xEnd[1] << " " << xEnd[2] << endl;
 	delete[] xEnd;
 
@@ -88,14 +102,16 @@ double RKfitter::chi2nm(double a[]) {  // Version without multiple scattering
 double RKfitter::chi2m(double a[]) {
     //if (verbose) cout << "RKfitter::chi2m: entering with a=" << a[0] << " " << a[1] << " " << a[2] << " " << a[3] << " " << a[4] << endl;
 	// estimate how far to integrate, to cover all layers
+
 	double arg = 1.0 - a[2] * a[2] - a[3] * a[3];
 	if (arg <= 0.) {
 		return 9.9e9;
 	}
-	double Delta_z = z0 - (tD->zLayer[tD->nLayers - 1]);
+	double Delta_z = z0 - (tD->zLayer[tD->nLayers - 1]) + 20.;
 	double ctz = -sqrt(arg);
-	double s = -Delta_z / ctz + 200.0;
+	double s = -Delta_z / ctz + 150.0;
 	if (s > 500. || s < 0.) s = 500.;
+	//cout << "RKfitter::chi2m: z0=" << z0 << " Delta_z=" << Delta_z << " and s=" << s << endl;
 
 	// Set up the input parameters needed by the integrator
 	double Q;
@@ -109,7 +125,7 @@ double RKfitter::chi2m(double a[]) {
 	//	cout << "RKfitter::chi2m: r0=" << r0[0] << " " << r0[1] << " " << r0[2];
 	//	cout << "   p0=" << p0[0] << " " << p0[1] << " " << p0[2] << "  s=" << s << endl;
 	//}
-	double *xEnd= rk4->Integrate(Q, r0, p0, s, abs(Delta_z)+40.);
+	double *xEnd= rk4->Integrate(Q, r0, p0, s, abs(Delta_z));
 	//if (verbose) cout << "completed integration at xEnd=" << xEnd[0] << " " << xEnd[1] << " " << xEnd[2]  << endl;
 	delete[] xEnd;
 
@@ -121,7 +137,9 @@ double RKfitter::chi2m(double a[]) {
 	for (int i = 0; i < tD->nLayers; i++) {
 		//if (verbose) cout << "RKfitter::chi2m: lyr=" << i << " # hits=" << tD->hits[i].size() << " orient=" << tD->orientation[i] << endl;
 		bool flag;
+
 		double *rInterp = rk4->getX(tD->zLayer[i], &flag);  // Find the intersection with each silicon layer
+
 		Cx[i][i] = sigma*sigma;  // Including here the measurement uncertainties in the diagonal elements
 		double *pInt = rk4->getP();
 		double pmom = sqrt(pInt[0] * pInt[0] + pInt[1] * pInt[1] + pInt[2] * pInt[2]);
@@ -290,18 +308,25 @@ double RKfitter::chi2pm(int i, double di, int j, double dj) {
 	return chi2(b);
 }
 
-RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD, bool multScat) {
+RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD, bool multScat, double stepSize, int alg) {
 	// verbose - set true to get lots of printout
 	// z0 - starting point in z for the integration
 	// FieldMap - magnetic field map
 	// TkrData - data to be fit
 	// multScat - set true to include multiple scattering in the chi^2 calculation
+	// stepSize - Runge-Kutta integration step size (normally set to 5mm)
+	// alg - minimization algorithm
+	//       0 = Nelder-Mead simplex algorithm (no derivatives)
+	//       1 = dlib bobyqa algorithm (doesn't work well; not sure why)
+	//       2 = dlib gradient algorithm (numerical derivatives); goes to Nelder-Mean if chi^2 is bad
+	//       Algorithm 2 is faster than 0 but only slightly better in resolution
 	if (verbose) cout << "Entering the RKfitter constructor with z0=" << z0 << endl;
 	this->verbose = verbose;
 	this->z0 = z0;
 	this->fM = fM;
 	this->tD = tD;
 	this->multScat = multScat;    
+	this->algorithm = alg;
 	hits = new int[tD->nLayers];
 	for (int i = 0; i < tD->nLayers; i++) hits[i] = 0;
 	xIntercept = new double[tD->nLayers];
@@ -318,7 +343,7 @@ RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD, bool mul
 	step[2] = 0.04;  // initial step size for x direction cosine
 	step[3] = 0.04;  // initial step size for y direction cosine
 	step[4] = 20.0;    // initial step size for 1/p as a percentage
-	stepSize = 5.0;   // Runge-Kutta integration step size (comparable to the B field map precision)
+	this->stepSize = stepSize;   // Runge-Kutta integration step size (comparable to the B field map precision)
 	double rho = 2.329;           // Density of silicon in g/cm^2
 	SiThickness = 0.4;
 	X0 = (21.82 / rho) * 10.0;
@@ -338,8 +363,8 @@ RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD, bool mul
 	}
 }
 
-// Execute the brute-force track fit using a non-derivative simplex minimization method
-int RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelection) {
+// Execute the brute-force track fit using a canned minimization method
+int RKfitter::fitIt(bool genStartGuess, double guess[5], std::vector<int> hitSelection) {
 	// hitSelection specifies which hit to use from each layer of the TkrData structure
 	// guess[5] is the externally supplied starting guess for the track
 	// if genStartGuess is true, then the program will generate an initial guess from a linear fit
@@ -391,8 +416,8 @@ int RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelectio
 			}
 		}  
 		double a, b, c, d, e, xsqn, xsqb;
-		if (linearFit(zn, x, Nn, 0, &a, &b, &c, &xsqn) == 0) {
-			if (linearFit(zb, y, Nb, 1, &c, &d, &e, &xsqb) == 0) {
+		if (linearFit(zn, x, Nn, 0, &a, &b, &c, &xsqn) == 0) {  // Line fit
+			if (linearFit(zb, y, Nb, 1, &c, &d, &e, &xsqb) == 0) {  // Parabola fit
 				if (verbose) cout << "RKfitter::fitIt: linear parameters: " << a << " " << b << " " << c << " " << d << " " << e << endl;
 				double clight = 2.99793e8; // Speed of light in m/s
 				double *Bf = fM->GetField(temp[0], temp[1], tD->zLayer[2]);
@@ -424,10 +449,99 @@ int RKfitter::fitIt(bool genStartGuess, double guess[5], vector<int> hitSelectio
 	int nVar = 5;     // Number of parameters being fit
 	int Konvge = 5;   // How often to check for convergence
 
-	// Call the canned simplex minimization routine
-	nelmin(nVar, temp, a, &ynewlo, reqmin, initStep, Konvge, maxCalls, &icount, &numres, &ifault);
-	//cout << "RKfitter::fitIt: from nelmin, newlo=" << ynewlo << " count=" << icount << " numres=" << numres << " error=" << ifault << endl;
-	//if (ifault != 0) cout << "ifault=" << ifault << " returned by nelmin" << endl;
+	// Call the minimization routine
+	column_vector start = { temp[0],temp[1],temp[2],temp[3],temp[4] };
+	column_vector lower_bound = { -120., -120., -1., -1., -1.e100 };
+	column_vector upper_bound = { 120., 120., 1., 1., 1.e100 };
+	icount = 0;
+	numres = 0;
+	ifault = 0;
+	switch(algorithm) {
+	case 0:
+		nelmin(nVar, temp, a, &ynewlo, reqmin, initStep, Konvge, maxCalls, &icount, &numres, &ifault);
+		//cout << "RKfitter::fitIt: from nelmin, newlo=" << ynewlo << " count=" << icount << " numres=" << numres << " error=" << ifault << endl;
+		//if (ifault != 0) cout << "ifault=" << ifault << " returned by nelmin" << endl;
+		break;
+	case 1:
+		if (verbose) cout << "Calling bobqa with parameters = " << temp[0] << " " << temp[1] << " " << temp[2] << " " << temp[3] << " " << temp[4] << endl;
+#ifdef DLIB
+		try {
+			dlib::find_min_bobyqa(&chi2b,
+				start,
+				9,    // number of interpolation points
+				lower_bound,
+				upper_bound,
+				0.45,    // initial trust region radius
+				1.e-4,  // stopping trust region radius
+				maxCalls    // max number of objective function evaluations
+				);
+		} catch (error e)	{
+			cout << "RKfitter: An exception occurred in find_min_bobyqa: " << e.info << endl;
+			ifault++;
+		}
+#else
+		cout << "RKfitter: dlib must be compiled and linked in order to use algorithm 1" << endl;
+#endif
+		if (verbose) cout << "bobyqa solution: \n" << start << "for " << icount << " function calls." << endl;
+		for (int i = 0; i < nVar; i++) {
+			a[i] = start(i);
+			//cout << "i=" << i << " a=" << a[i] << endl;
+		}
+		ynewlo = chi2(a);
+/*		try {
+			auto result = dlib::find_min_global(
+				&chi2bend,
+				{ max(a[3] - 0.0025,-1.), a[4] * 0.99 },
+				{ min(a[3] + 0.0025,1.), a[4] * 1.01 },
+				max_function_calls(100)
+			);
+			double tmp[5];
+			tmp[0] = a[0];
+			tmp[1] = a[1];
+			tmp[2] = a[2];
+			tmp[3] = result.x(0);
+			tmp[4] = result.x(1);
+			double c2 = chi2(tmp);
+			if (c2 < ynewlo) {
+				ynewlo = c2;
+				a[3] = tmp[3];
+				a[4] = tmp[4];
+			}
+			if (verbose) cout << "global solution: \n" << result.x << "for " << icount << " function calls. chi2=" << c2 << endl;
+		}
+		catch (error e) {
+			cout << "RKfitter: An exception occurred in find_min_global: " << e.info << endl;
+			ifault++;
+		} */
+		break;
+	case 2:
+		bool erroc = false;
+#ifdef DLIB
+		try {
+			find_min_using_approximate_derivatives(bfgs_search_strategy(),
+				objective_delta_stop_strategy(1e-2),
+				&chi2b, start, -1);
+		}
+		catch (error e) {
+			cout << "RKfitter: An exception occurred in find_min_using_approximate_derivatives: " << e.info << endl;
+			ifault++;
+			erroc = true;
+		}
+#else
+		cout << "dlib must be compiled and linked in order to use algorithm 2 " << endl;
+#endif
+		for (int i = 0; i < nVar; i++) {
+			a[i] = start(i);
+			//cout << "i=" << i << " a=" << a[i] << endl;
+		}
+		ynewlo = chi2(a);
+		if (ynewlo > 25. || erroc) {
+			//cout << "RKfitter::fitIt: chi2=" << ynewlo << ", switching to Nelder-Mead method." << endl;
+			nelmin(nVar, temp, a, &ynewlo, reqmin, initStep, Konvge, maxCalls, &icount, &numres, &ifault);
+		}
+		break;
+	}
+
 	// Propagation of errors:
 	double h[5] = { 0.00000001, 0.00000001, 0.00000001, 0.00000001, 0.00000001*abs(a[4]) };
 	hessian(h);

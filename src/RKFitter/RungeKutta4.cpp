@@ -7,7 +7,7 @@ RungeKutta4::RungeKutta4(double dz, FieldMap *fM) {  // Version with no scatteri
 	h = dz;
 	h2 = h*h;
 	nStep = 0;
-	aSize = 150;
+	aSize = 100 * floor(5.1 / dz) + 50;
 	xA = new double[aSize];
 	yA = new double[aSize];
 	zA = new double[aSize];
@@ -33,7 +33,7 @@ RungeKutta4::RungeKutta4(double dz, FieldMap *fM, int nScat, double zScat[]) {
 	h = dz;
 	h2 = h*h;
 	nStep = 0;
-	aSize = 150;
+	aSize = 100 * floor(5.1 / dz) + 50;
 	xA = new double[aSize];
 	yA = new double[aSize];
 	zA = new double[aSize];
@@ -127,6 +127,7 @@ double *RungeKutta4::Integrate(double Q, double r0[3], double p0[3], double s, d
 		delete[] k4;
 		if (abs(r[2] - r0[2]) >= deltaZ) {
 			nStep = step + 1;
+			//cout << "RungeKutta4::integrate: r0[2]=" << r0[2] << " setting nStep=" << nStep << " at z=" << r[2] << endl;
 			break;
 		}
 		if (iScat < nScat) {
@@ -220,7 +221,6 @@ double *RungeKutta4::getX(double z, bool *flag) {
 	cout << " z=" << z << " dz=" << dz << " zA[0]=" << zA[0] << " imax=" << imax << " sgn=" << sgn << endl;
 	*/
 	int idx = i0;
-
 	if (sgn < 0) {
 		//cout << "getX:" << i0 << " " << zA[i0] << " " << z << endl;
 		if (zA[i0] < z) {
@@ -244,7 +244,7 @@ double *RungeKutta4::getX(double z, bool *flag) {
 			}
 		}
 	}
-	if (!flag || z < zA[idx] || z > zA[idx + sgn]) { // well, rats! Let's try a dumb, slow method. . .
+	if (!(*flag) || z < zA[idx] || z > zA[idx + sgn]) { // well, rats! Let's try a dumb, slow method. . .
 		idx = -1;
 		for (int i = 0; i < nStep-1; i++) {
 			if (z < zA[i + 1] && z > zA[i]) {
@@ -260,7 +260,7 @@ double *RungeKutta4::getX(double z, bool *flag) {
 				break;
 			}
 		}
-		if (!flag) {
+		if (!(*flag)) {
 			double *r = new double[3];
 			r[0] = 999.;
 			r[1] = 999.;
@@ -268,6 +268,10 @@ double *RungeKutta4::getX(double z, bool *flag) {
 			return r;
 		}
 		//cout << "RungeKutta4:getX: dumb method was successfully used to find the interpolation point." << endl;
+	}
+	if (idx < 0) {
+		idx = nStep - 1;
+		cout << "RungeKutta4::getX, error, no intersection found but flag set." << endl;
 	}
 	double del = (z - zA[idx]) / (zA[idx + sgn] - zA[idx]);
 	double *r = new double[3];
@@ -280,7 +284,6 @@ double *RungeKutta4::getX(double z, bool *flag) {
 	//cout << "zint=" << zint << endl;
 
 	IndexNow = idx;
-
 	return r;
 }
 
