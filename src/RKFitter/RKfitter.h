@@ -13,15 +13,19 @@
 # include <iomanip>
 # include <ctime>
 
+#ifdef DLIB
 #include <dlib/optimization.h>
 #include <dlib/global_optimization.h>
+#endif
 
 
 #include "TkrData.h"
 #include "FieldMap.h"
 #include "RungeKutta4.h"
 
+#ifdef DLIB
 using namespace dlib;
+#endif
 using namespace std;
 
 // Fit AESOP-Lite tracks to a model based on Runga-Kutta integration through the B-field map
@@ -30,7 +34,9 @@ using namespace std;
 
 class RKfitter
 {
+#ifdef DLIB
 	typedef dlib::matrix<double, 0, 1> column_vector;
+#endif
 
 	bool verbose;
 	FieldMap *fM;

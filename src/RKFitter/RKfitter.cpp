@@ -450,9 +450,11 @@ int RKfitter::fitIt(bool genStartGuess, double guess[5], std::vector<int> hitSel
 	int Konvge = 5;   // How often to check for convergence
 
 	// Call the minimization routine
+#ifdef DLIB
 	column_vector start = { temp[0],temp[1],temp[2],temp[3],temp[4] };
 	column_vector lower_bound = { -120., -120., -1., -1., -1.e100 };
 	column_vector upper_bound = { 120., 120., 1., 1., 1.e100 };
+#endif
 	icount = 0;
 	numres = 0;
 	ifault = 0;
@@ -479,14 +481,14 @@ int RKfitter::fitIt(bool genStartGuess, double guess[5], std::vector<int> hitSel
 			cout << "RKfitter: An exception occurred in find_min_bobyqa: " << e.info << endl;
 			ifault++;
 		}
-#else
-		cout << "RKfitter: dlib must be compiled and linked in order to use algorithm 1" << endl;
-#endif
 		if (verbose) cout << "bobyqa solution: \n" << start << "for " << icount << " function calls." << endl;
 		for (int i = 0; i < nVar; i++) {
 			a[i] = start(i);
 			//cout << "i=" << i << " a=" << a[i] << endl;
 		}
+#else
+		cout << "RKfitter: dlib must be compiled and linked in order to use algorithm 1" << endl;
+#endif
 		ynewlo = chi2(a);
 /*		try {
 			auto result = dlib::find_min_global(
@@ -527,13 +529,13 @@ int RKfitter::fitIt(bool genStartGuess, double guess[5], std::vector<int> hitSel
 			ifault++;
 			erroc = true;
 		}
-#else
-		cout << "dlib must be compiled and linked in order to use algorithm 2 " << endl;
-#endif
 		for (int i = 0; i < nVar; i++) {
 			a[i] = start(i);
 			//cout << "i=" << i << " a=" << a[i] << endl;
 		}
+#else
+		cout << "dlib must be compiled and linked in order to use algorithm 2 " << endl;
+#endif
 		ynewlo = chi2(a);
 		if (ynewlo > 25. || erroc) {
 			//cout << "RKfitter::fitIt: chi2=" << ynewlo << ", switching to Nelder-Mead method." << endl;
