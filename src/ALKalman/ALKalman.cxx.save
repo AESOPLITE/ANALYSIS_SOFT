@@ -1,5 +1,4 @@
-
-//*************************************************************************
+c//*************************************************************************
 //* ===================
 //*  ALKalTest
 //* ===================
@@ -31,16 +30,11 @@
 using namespace std;
 static const double kMelectron = 0.5109989461e-3;		//electron mass in GeV
 static const double kMuon = 0.105658371;				//muon mass in GeV
-static const double kProton = 0.93827231;				//proton mass in GeV
-static const double kAlpha = 3.727379378;				//alpha mass in GeV
 static const double RestMassE   = 0.51099;				//mass electron in MeV
 static const double RestMassMu = 105.6584;				//mass muon in MeV
-static const double RestMassProton   = 938.2723;		//mass proton in MeV
-static const double RestMassAlpha = 3727.37938;			//mass alpha in MeV
 static const double c = TMath::C()*1000;				//speed of light in mm/s  
 static const double average_B = 0.3;					//average magnetic field AESOPLITE	in [T]
 static const double CovMElement=1e4;				//initial covariant matrix elements
-static const double chi2lim= 1e10;					//limit on chi2 value of first iteration of filter
 static const Bool_t kDir = kIterForward;				//first hit to last (does not work as well...)
 static const Bool_t kDirFirst= kIterForward;
 int uhitnid[7]={0,0,0,0,0,0,0};
@@ -176,7 +170,7 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
 	double kappa_3, phi0_3,  tanL_3;
 	kappa_3=phi0_3=tanL_3=0;
 	int type;
-    double deflec = re->get_deflecPR();
+        double deflec = re->get_deflecPR();
 	double slope_PR = re->get_slopePR();
 	double Q =  TMath::Sign(1,deflec);
 	cout << "slope from PR = " <<  slope_PR <<endl;
@@ -300,14 +294,11 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
   
    TKalMatrix svd_last(kSdim,1);
    TKalMatrix C_last(kSdim,kSdim);
-   int initfit = InitialFit(svd_first, C_first, svd_last, C_last, type);
-  
+   InitialFit(svd_first, C_first, svd_last, C_last, type);
+
    state = svd_last;
    covariant = C_last;
-   if(initfit == 0) {
-        cout << "initfit set to 0, exiting InitializeHelix" << endl;
-	return 0;
-}
+   
 	}  //end if 2nd iteration
 
 //if only one iteration
@@ -326,14 +317,13 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
       //  re->set_Cov_init(covariant);
 	state.DebugPrint("initial state vector");
     //covariant.DebugPrint("initial cov matrix");
-     cout << "end initialize helix function " << endl;
      return type;
 
 }	
 	
 	 
 
- int ALKalman::InitialFit(TKalMatrix &svd_first, TKalMatrix &C_first, TKalMatrix &svd_last,TKalMatrix &C_last, int type)	 
+ void ALKalman::InitialFit(TKalMatrix &svd_first, TKalMatrix &C_first, TKalMatrix &svd_last,TKalMatrix &C_last, int type)	 
 {
 	cout << "InitialFit called, doing first iteration KF " << endl;  
 	
@@ -367,9 +357,7 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
 
       TKalTrack kalfirst;    // a track is a kal system
       if(type==3 || type==4)  kalfirst.SetMass(kMelectron);
-      else if (type == 10 || type == 11) kalfirst.SetMass(kMuon);
-      else if (type == 1) kalfirst.SetMass(kProton);
-	  else if (type == -6) kalfirst.SetMass(kAlpha);
+      else if (type ==10 || type == 11) kalfirst.SetMass(kMuon);
       kalfirst.SetOwner();   // kaltrack owns sites
       kalfirst.Add(&sited);  // add the dummy site to the track
 
@@ -407,12 +395,7 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
    C_last = theLastState->GetCovMat();
    Double_t mom = Hel_last.GetMomentum();
    //cout << "Momentum from fist filter iteration p = " << mom * 1000 << " MeV" << endl; 
-   double chi2first = kalfirst.GetChi2();
-   if(fabs(chi2first) > chi2lim) {
-    cout << "Initial fit chi2 too high, throwing event away" << endl;	
-    return 0;
-	}
-   else return 1;
+
 }
 
 
@@ -425,10 +408,7 @@ int ALKalman::DoKF(ALEvent *re, int DataType, int InitType, bool secondIter)
   static TKalMatrix state(kSdim,1);
   static TKalMatrix covariant(kSdim,kSdim);
   int type = InitializeHelix(re, InitType, secondIter, DataType, state, covariant);
-  if(type==0) {
-	cout << " exiting DoKF function" << endl;
-	return 0;
-	} 	
+ 	
 
 		
       // ---------------------------
@@ -453,9 +433,7 @@ int ALKalman::DoKF(ALEvent *re, int DataType, int InitType, bool secondIter)
 
       TKalTrack kaltrack;    // a track is a kal system
       if(type==3 || type==4)  kaltrack.SetMass(kMelectron);
-      else if (type == 10 || type == 11) kaltrack.SetMass(kMuon);
-      else if (type == 1) kaltrack.SetMass(kProton);
-	  else if (type == -6) kaltrack.SetMass(kAlpha);
+	  else if (type==10 || type == 11) kaltrack.SetMass(kMuon);
       kaltrack.SetOwner();   // kaltrack owns sites
       kaltrack.Add(&sited);  // add the dummy site to the track
 
@@ -521,12 +499,12 @@ int hit_index;
 //(filtered) reconstructed position
 	//!!!!!!  CONVERT BACK TO FLUKA COORDINATES !!!!!!!
 	 xreco = x_fil.Z();
-     yreco = x_fil.X();
+         yreco = x_fil.X();
 	 zreco = x_fil.Y();
 	 }
 	 else {
 	 xreco = x_glob.Z();
-     yreco = x_glob.X();
+         yreco = x_glob.X();
 	 zreco = x_glob.Y();	
 	 }
 		
@@ -554,8 +532,6 @@ int hit_index;
 	//kinetic energy of particle   
 	    if(type==3 || type==4)  ereco = sqrt(mom*mom + (RestMassE)*(RestMassE))  - RestMassE;   //for electrons
 	  else if (type ==10 || type == 11) ereco = sqrt(mom*mom + (RestMassMu)*(RestMassMu))  - RestMassMu;   //for muons
-	  else if (type ==1) ereco = sqrt(mom*mom + (RestMassProton)*(RestMassProton))  - RestMassProton;   //for protons
-	  else if (type ==-6) ereco = sqrt(mom*mom + (RestMassAlpha)*(RestMassAlpha))  - RestMassAlpha;   //for alphas
 	//fill variables 
     
 	re->set_hxreco(uhitnid[hit_index],xreco);
@@ -577,53 +553,22 @@ int hit_index;
       } //end while
 	
      //Smooth Back
-//int isite = 1 ;
- kaltrack.SmoothBackTo(1);
-     TVKalSite &cursite = static_cast<TVKalSite &>(*kaltrack[1]);
+int isite =1 ;
+ kaltrack.SmoothBackTo(isite);
 
+  TVKalSite &cursite = static_cast<TVKalSite &>(*kaltrack[isite]);
+	  
    // =======================================================================
    //  Find tangent to helix at first site and extrapolate injection point
    // =======================================================================   
-   cout << "Find tangent to helix at site and extrapolate injection point" <<endl;
-   TVKalState *state_first =(TVKalState*) &(cursite.GetCurState());
-   THelicalTrack hel_first = (dynamic_cast<TKalTrackState *>(state_first))->GetHelix();
-   TVector3 pivot = hel_first.CalcXAt(0.0);
-   TMatrixD dxdphi = hel_first.CalcDxDphi(0.0);                                 // tangent vector at destination surface
-   TVector3 vtan(dxdphi(0,0),dxdphi(1,0),dxdphi(2,0));    
-/*
-   for(int isite=0;isite<7;isite++) {
-     cout << "site " << isite << endl;       
-     TVKalSite &cursite = static_cast<TVKalSite &>(*kaltrack[isite]);
- 	  
-   // =======================================================================
-   //  Find tangent to helix at first site and extrapolate injection point
-   // =======================================================================   
-   cout << "Find tangent to helix at site and extrapolate injection point" <<endl;
+  // cout << "Find tangent to helix at first site and extrapolate injection point" <<endl;
    TVKalState *state_first =(TVKalState*) &(cursite.GetCurState());
    THelicalTrack hel_first = (dynamic_cast<TKalTrackState *>(state_first))->GetHelix();
    TVector3 pivot = hel_first.CalcXAt(0.0);
    TMatrixD dxdphi = hel_first.CalcDxDphi(0.0);					// tangent vector at destination surface
    TVector3 vtan(dxdphi(0,0),dxdphi(1,0),dxdphi(2,0));				// convert matrix diagonal to vector
-  // cout << "Tangent vector vtan=("<< vtan.X()<<",  "<<vtan.Y()<<", "<<vtan.Z()<<"): \n";
-  
-      double deflec = re->get_deflecPR();
-        double Q =  TMath::Sign(1,deflec);
-        double B = 0.3;
-        float alpha = 1/(c*B);                          // in s/mm/T
-        TVector3 momentum((-Q/alpha)*dxdphi(0,0),(-Q/alpha)*dxdphi(1,0),(-Q/alpha)*dxdphi(2,0));                // convert matrix diagonal to $
-        TVector3 vtan = momentum.Unit();
-        float mag = vtan.Mag();
-        float theta = vtan.Theta();
-        float phi   = vtan.Phi();
-        //!!!!!!  CONVERT BACK TO FLUKA COORDINATES !!!!!!!
-        float cxreco = (vtan.Z())/mag;
-        float cyreco = (vtan.X())/mag;
-        float czreco = (vtan.Y())/mag;
-cout << "site " << isite << "cx = " << cxreco << "   cy = " << cyreco << " cz = " << czreco << endl;
+   //cout << "Tangent vector vtan=("<< vtan.X()<<",  "<<vtan.Y()<<", "<<vtan.Z()<<"): \n";
 
-}
-
-*/
    //Parametric equation of tangent line
    Double_t yinjection = 35; 
    Double_t t = (yinjection - pivot.Y())/(vtan.Y());
@@ -667,8 +612,8 @@ cout << "site " << isite << "cx = " << cxreco << "   cy = " << cyreco << " cz = 
    double dz =  cursite.GetCurState()(5, 0);
    re->set_dz(dz);
    //Cov_final = kaltrack.GetCurSite().GetCurState().GetCovMat();
-   TVKalState *theLastState = (TVKalState*) &(cursite.GetCurState());
-   const TKalMatrix Cov_final = theLastState->GetCovMat();
+     TVKalState *theLastState = (TVKalState*) &(cursite.GetCurState());
+     const TKalMatrix Cov_final = theLastState->GetCovMat();
    double rhoerr2 = Cov_final(0,0);
    re->set_d0err2(rhoerr2);
    double phi0err2 = Cov_final(1,1);
@@ -685,15 +630,11 @@ cout << "site " << isite << "cx = " << cxreco << "   cy = " << cyreco << " cz = 
    double pt = 0;
    if(cpa!=0)pt=fabs(1.0/cpa);
    double pz = pt * tanl;
-   double p0  = 1000 * pt * sqrt(1+tanl*tanl);   //p = pt / sinTheta in MeV	
+   double p0  = 1000 * pt * sqrt(1+tanl*tanl);   //p = pt / sinTheta 	
    re->set_p0reco(p0);
    double Ekreco;
    if(type==3 || type ==4 ) Ekreco =  sqrt(p0*p0 + (RestMassE)*(RestMassE))  - RestMassE;			//for electrons
-   else if(type==10 || type ==11) Ekreco =  sqrt(p0*p0 + (RestMassMu)*(RestMassMu))  - RestMassMu;	//for muons
-   else if(type==1) Ekreco =  sqrt(p0*p0 + (RestMassProton)*(RestMassProton))  - RestMassProton;	//for protons
-   else if(type==-6) Ekreco =  sqrt(p0*p0 + (RestMassAlpha)*(RestMassAlpha))  - RestMassAlpha;		//for alphas
-
-
+   else if(type==10 || type ==11) Ekreco =  sqrt(p0*p0 + (RestMassMu)*(RestMassMu))  - RestMassMu;			//for muons
    re->set_Ekreco(Ekreco);
    
    cout << "EkReco = " << Ekreco << " MeV" << endl; 
@@ -701,7 +642,7 @@ cout << "site " << isite << "cx = " << cxreco << "   cy = " << cyreco << " cz = 
    cout <<  "ndf   =  " << ndf << endl;
    cout << "End of MakeRecoEventMC" <<endl;
    
-	return 1;
+	return 0;
  }
 
 
@@ -711,6 +652,4 @@ cout << "site " << isite << "cx = " << cxreco << "   cy = " << cyreco << " cz = 
 
 
 	
-
-
 

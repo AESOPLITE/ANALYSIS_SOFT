@@ -212,7 +212,7 @@ void ALMeasLayer::ProcessHit(const TVector3 &xx, TObjArray &hits, Bool_t isbendi
 	meas[1] = y;
 	dmeas[0] = dx;
 	dmeas[1] = dy;
-  // cout << "In function ProcessHits, calling ALKalDetector::GetBField function " << endl;
+  // cout << OneIterForwardPRinitNonUniBTestDetMCpt"In function ProcessHits, calling ALKalDetector::GetBField function " << endl;
 	TVector3 bfield = TBField::GetGlobalBfield(xv);
 	Double_t b = bfield.Mag();
    // cout << "index " << index << "  x =( "<< xv.X() << ","<< xv.Y()<< ","<< xv.Z() << ")" << endl;

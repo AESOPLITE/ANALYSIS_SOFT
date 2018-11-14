@@ -54,6 +54,7 @@ ALKalDetector::ALKalDetector(Int_t m): TVKalDetector(m)
  int*TckReg=new int[7];
  int*TrigReg=new int[4];
  int*GReg=new int[1];
+ int*ShellReg=new int[2];
  float*TckZPosTop=new float[7];
  float*TckZPosBottom=new float[7];
  float*TrigThresh=new float[4];
@@ -66,7 +67,7 @@ ALKalDetector::ALKalDetector(Int_t m): TVKalDetector(m)
  for(int i=0;i<4;i++)TrigThresh[i]=0;
  for(int i=0;i<1;i++)GuardThresh[i]=0;
   string MCparamfile="../src/ALSim/MCparameters.dat"; 
- LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg,TckZPosTop,TrigThresh,GuardThresh);
+ LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg,TckZPosTop,TrigThresh,GuardThresh,ShellReg);
  for(int i=0;i<7;i++){
   TckZPosTop[i]= TckZPosTop[i]*10;   //convert in mm
   TckZPosBottom[i]=TckZPosTop[i]-0.4;
@@ -103,8 +104,8 @@ ALKalDetector::ALKalDetector(Int_t m): TVKalDetector(m)
 		if ((layer == 0) || (layer == 4) || (layer == 6)) {
 			TVector3 xc(0., TckZPosTop[layer], 0.);	
 			TVector3 normal(0., 1.0, 0.);		
-		    Add(new ALMeasLayer(Si, Ni, xc, normal, active, nonbending, notinuse));
-		//  cout << "active ALKalDetector created at z = " << TckZPosTop[layer] << endl;	
+		    Add(new ALMeasLayer(Si, Ni, xc, normal, active, nonbending, notinuse));	
+	
 			
 		//add dummy layers, start from bottom of previous active layer
 			if(layer==6) break;
@@ -115,8 +116,7 @@ ALKalDetector::ALKalDetector(Int_t m): TVKalDetector(m)
 		for(int i=0; i<ndummies;i++) {
 			xdummy.SetXYZ(0, temp, 0);
 			Add(new ALMeasLayer(Ni, Ni, xdummy, normal,dummy, nonbending, notinuse));
-			//cout << "Dummy ALKalDetector created at z = " << temp << endl;
-            		temp+=step; 
+            temp+=step; 
 		} 
 
 	}
@@ -124,7 +124,8 @@ ALKalDetector::ALKalDetector(Int_t m): TVKalDetector(m)
 	    TVector3 xc(0., TckZPosTop[layer], 0.);	
 		TVector3 normal(0.,1.0, 0);			
 		Add(new ALMeasLayer(Si, Ni, xc, normal, active, bending, notinuse));
-		//cout << "Active ALKalDetector created at z = " << TckZPosTop[layer] << endl;
+		
+	
 			
 			
 //add dummy layers, start from bottom of previous active layer
@@ -134,7 +135,6 @@ ALKalDetector::ALKalDetector(Int_t m): TVKalDetector(m)
 	for(int i=0; i<ndummies;i++) {
 		xdummy.SetXYZ(0, temp, 0);
 		Add(new ALMeasLayer(Ni, Ni, xdummy, normal,dummy, bending, notinuse));
-	//cout << "Dummy ALKalDetector created at z = " << temp << endl;
 		temp+=step; 
 		} 
 
