@@ -1,0 +1,10 @@
+#include <iostream>
+#include "TROOT.h"
+#include "TApplication.h"
+#include "headers.h"
+#include "RKfitter.h"
+#include "FieldMap.h"
+#include "Histogram.h"
+#include "RungeKutta4.h"
+#include "TkrData.h"
+#include "ALPatternRecognition.h"

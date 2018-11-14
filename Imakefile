@@ -8,9 +8,9 @@
 
 INSTALLDIR = $(PWD)
 SRCDIR     = $(INSTALLDIR)/src
-PROGRAMNAME = MainRawBPDEvent
+PROGRAMNAME = MainRecoEventMC
 
-SRCS          =  MainRawBPDEvent.$(SrcSuf) \
+SRCS          =  $(PROGRAMNAME).$(SrcSuf) \
                 $(SRCDIR)/ALSim/MakeRawBPDEvent.$(SrcSuf) \
 				$(SRCDIR)/ALSim/MakeEventData.$(SrcSuf)    \
 	     	    $(SRCDIR)/ALSim/MakeRawEventMC.$(SrcSuf)  \
@@ -49,7 +49,7 @@ dir:
 
 $(PROGRAM): $(OBJS) dir
 	$(LD) -o $(PROGRAM) $(OBJS) \
-	      -L$(LIBINSTALLDIR) -lALSim -lS4Geom -lS4KalTrack -lS4Kalman  -lS4Utils -lS4ALPatternReco -lS4ALKalman \
+	      -L$(LIBINSTALLDIR) -lS4ALSim -lS4Geom -lS4KalTrack -lS4Kalman  -lS4Utils -lS4ALPatternReco -lS4ALKalman \
 	      $(LDFLAGS)
 clean:: 
 	@rm -f $(OBJS) prod/core

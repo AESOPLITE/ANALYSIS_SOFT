@@ -1,0 +1,3 @@
+/data/smechbal/Data/FlightData/18A1_SplitBPD/18A1_008.BPD 1 2
+/data/smechbal/Data/FlightData/18A1_SplitBPD/18A1_009.BPD 1 2
+/data/smechbal/Data/FlightData/18A1_SplitBPD/18A1_010.BPD 1 2

@@ -4,8 +4,6 @@ Analysis package for AESOPLITE: MC simulations with FLUKA, pattern recognition, 
 
 Instructions to install and use the package:
 
-**You will need to install imake prior to installing the package
-
 **Download the package, in the power directory, type 
  source ./setup
  

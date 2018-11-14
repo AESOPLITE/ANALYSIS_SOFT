@@ -1,2 +1,6 @@
-/data/smechbal/Data/NL0236.BPD 1 2
+/home/sarah/AESOPLITE/GroundRuns/Palestine2018/NL0212.BPD 1 2
+/home/sarah/AESOPLITE/GroundRuns/Palestine2018/NL0214.BPD 1 2
+/home/sarah/AESOPLITE/GroundRuns/Palestine2018/NL0218.BPD 1 2
+/home/sarah/AESOPLITE/GroundRuns/Palestine2018/NL0221.BPD 1 2
+/home/sarah/AESOPLITE/GroundRuns/Palestine2018/NL2029.BPD 1 2
 
