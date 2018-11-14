@@ -19,6 +19,7 @@
 
 #include "TObject.h"     // from ROOT
 #include "TVector3.h"
+#include "TEveTrackPropagator.h"     // from ROOT
 #include <TFile.h>
 #include <TNtuple.h>
 #include <TCanvas.h>
@@ -38,6 +39,7 @@ public:
    // Utility methods
    static TVector3 GetGlobalBfield(const TVector3& globalPosition);
    static bool SetMagField();
+   static void SetBfieldPtr(TEveMagField* b){ fField = b; } 
 	static void Get(const double& posX, const double& posY, const double& posZ, double& Bx, double& By, double& Bz);
 	static TVector3 Get(const TVector3& pos);
    //static void SetBfield   (TVector3      b){ fBfield   = b; }
@@ -49,6 +51,7 @@ public:
 private:
    //static    TVector3      fBfield;     //a constant b field
 
+   static TEveMagField* fField;   //a field map
    static Bool_t   fUseUniformBfield;
    static Double_t fFieldCoeff;
    static TH3D* fieldmapX;

@@ -35,20 +35,21 @@
 
 ClassImp(TBField)
 
-const double OffsetMag = 106.3409;		//offset of center of magnet to bottom of T3 in mm
+TEveMagField* TBField::fField = 0;
+const double OffsetMag = 106.3409;		//offset of center of magnet to bottom of T3 in mm, implemented in V2
+//const double OffsetMag= 95.00;			 	//offset in V1
 
 Bool_t   TBField::fUseUniformBfield = kFALSE;
 //Bool_t   TBField::fUseUniformBfield = kTRUE;
 Double_t TBField::fFieldCoeff       = 1.;
 
+///////////////////////////////////
+////////////5mm FIELD//////////////
+///////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////
-/////////////////////////V2////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////
-/*
-TH3D* TBField::fieldmapX = new TH3D("field map Bx" , "Bx [G]; x[mm]; y[mm]; z[mm]", 81 , -200, 200, 81, -200, 200, 81, -200, 200);
-TH3D* TBField::fieldmapY = new TH3D("field map By" , "By [G]; x[mm]; y[mm]; z[mm]", 81 , -200, 200, 81, -200, 200, 81, -200, 200);
-TH3D* TBField::fieldmapZ = new TH3D("field map Bz" , "Bz [G]; x[mm]; y[mm]; z[mm]", 81, -200, 200, 81, -200, 200, 81, -200, 200);
+TH3D* TBField::fieldmapX = new TH3D("field map Bx" , "Bx [G]; x[mm]; y[mm]; z[mm]", 82 , -201, 201, 82, -201, 201, 82, -201, 201);
+TH3D* TBField::fieldmapY = new TH3D("field map By" , "By [G]; x[mm]; y[mm]; z[mm]", 82 , -201, 201, 82, -201, 201, 82, -201, 201);
+TH3D* TBField::fieldmapZ = new TH3D("field map Bz" , "Bz [G]; x[mm]; y[mm]; z[mm]", 82, -201, 201, 82, -201, 201, 82, -201, 201);
 
 using namespace std;
 
@@ -76,19 +77,19 @@ TBField::~TBField()
 //function to be called once to set the vector field map
 bool TBField::SetMagField() {
 	
-	//first write field map into root filecd
+	//first write field map into root file
 
-	 TFile*file=new TFile("fieldmap.root","RECREATE");
+	 TFile*file=new TFile("fieldmap5mm.root","RECREATE");
 	
 //Fill fieldmap.root following FLUKA coordinates, do coordinate transform later	
      TNtuple *T= new TNtuple("fieldmap","fieldmap","x:y:z:bx:by:bz");
-     T->ReadFile("/home/smechbal/ANALYSIS_SOFT/fieldmap.txt");
-	 T->Write();	
-	file->Close();
+     T->ReadFile("/home/smechbal/ANALYSIS_SOFT/src/RKFitter/fieldmap5mm.txt");
+     T->Write();	
+     file->Close();
 
 	//now open file
-    TFile*file_map=new TFile("fieldmap.root","READ");
-	TNtuple*ntuple=(TNtuple*)file_map->Get("fieldmap");
+    TFile*file_map=new TFile("fieldmap5mm.root","READ");
+    TNtuple*ntuple=(TNtuple*)file_map->Get("fieldmap");
 
 	// create 3D histograms	
 
@@ -135,25 +136,26 @@ bool TBField::SetMagField() {
 void TBField::Get(const double&x, const double&y, const double&z, double& BxFLUKA, double& ByFLUKA, double& BzFLUKA) {
 
 //interpolate and convert from [G] to [T]
-	//cout << "Interpolate at x = " << x << "  y = " << y << " z = " << z << endl;
-	BxFLUKA = (fieldmapX->Interpolate(x,y,z))/10000;
-	ByFLUKA = (fieldmapY->Interpolate(x,y,z))/10000;
-	BzFLUKA = (fieldmapZ->Interpolate(x,y,z))/10000;
-	int binx = fieldmapX->GetXaxis()->FindBin(x);
+	
+        int binx = fieldmapX->GetXaxis()->FindBin(x);
 	int biny = fieldmapX->GetYaxis()->FindBin(y);
 	int binz = fieldmapX->GetZaxis()->FindBin(z);	
-	if(binx==0 || biny==0 || binz==0) {
-	//	cout << "Cannot interpolate at x = " << x << "  y = " << y << " z = " << z << endl;
-	//	cout << " bin x = " << binx << " biny = " << biny << " binz = " << binz << endl;
-	}
+	//cout << " bin x = " << binx << " biny = " << biny << " binz = " << binz << endl;
+	//cout << "Interpolate at x = " << x << "  y = " << y << " z = " << z << endl;
+	//Interpolate field map same way as in magfld.f
+	
+	BxFLUKA = fieldmapX->GetBinContent(binx,biny,binz)/10000;
+	ByFLUKA = fieldmapY->GetBinContent(binx,biny,binz)/10000;
+	BzFLUKA = fieldmapZ->GetBinContent(binx,biny,binz)/10000;
+
 
 }
-*/
 
 
-/////////////////////////////////////////////////////////
-//////////////////////////V3/////////////////////////////
-/////////////////////////////////////////////////////////
+/*
+//////////////////////////////////////////////
+///////////////1mm FIELDMAP///////////////////
+//////////////////////////////////////////////
 
 TH3D* TBField::fieldmapX = new TH3D("field map Bx" , "Bx [T]; x[mm]; y[mm]; z[mm]", 402 , -201, 201, 402, -201, 201, 402, -201, 201);
 TH3D* TBField::fieldmapY = new TH3D("field map By" , "By [T]; x[mm]; y[mm]; z[mm]", 402 , -201, 201, 402, -201, 201, 402, -201, 201);
@@ -185,7 +187,7 @@ TBField::~TBField()
 bool TBField::SetMagField() {
 	
 
-    TFile*file_map=new TFile("/data/smechbal/Fluka/NonUniB/V3/fieldmap1mm.root","READ");
+    TFile*file_map=new TFile("/home/sarah/AESOPLITE/ANALYSIS_SOFT/prod/fieldmap1mm.root","READ");
 	TNtuple*ntuple=(TNtuple*)file_map->Get("Field");
 
 	// create 3D histograms	
@@ -246,12 +248,18 @@ void TBField::Get(const double&x, const double&y, const double&z, double& BxFLUK
 	BxFLUKA = fieldmapX->GetBinContent(binx,biny,binz);
 	ByFLUKA = fieldmapY->GetBinContent(binx,biny,binz);
 	BzFLUKA = fieldmapZ->GetBinContent(binx,biny,binz);
-	if(binx==0 || biny==0 || binz==0) {
-	//	cout << "Cannot interpolate at x = " << x << "  y = " << y << " z = " << z << endl;
-		//cout << " bin x = " << binx << " biny = " << biny << " binz = " << binz << endl;
-	}
+
 
 }
+
+
+*/
+
+
+//////////////////////////////////////////////////////
+///////////END READING FROM EITHER FIELDMAPS/////////
+////////////////////////////////////////////////////
+
 
 TVector3 TBField::Get(const TVector3& v) {
   //cout << "In Get function KALTEST coord v.x=" << v.X() << "  , v.y=" << v.Y() << " , v.z=" << v.Z() << endl;
