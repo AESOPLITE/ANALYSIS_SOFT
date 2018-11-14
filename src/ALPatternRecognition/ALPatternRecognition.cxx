@@ -28,6 +28,8 @@
  double sigma_reso = strippitch/TMath::Sqrt(12);			
 static const double kMelectron = 0.5109989461e-3;		//electron mass in GeV
 static const double kMuon = 0.105658371;				//muon mass in GeV
+static const double kProton = 0.93827231;				//proton mass in GeV
+static const double kAlpha = 3.727379378;				//alpha mass in GeV
  float zz0=0;//in cm
  
  TCanvas*can;
@@ -554,6 +556,8 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
 	   else type = re->get_typeMC();	//if MC	
 	   if (type==3 || type == 4) mass = kMelectron;	//for electrons in GeV
 	   else if(type==10 || type ==11)  mass = kMuon;	//for muons in GeV
+	   else if(type==1)  mass = kProton;	//for protons in GeV
+	   else if(type==-6)  mass = kAlpha;	//for alphas in GeV   
 	   double EkPR=TMath::Sqrt(p0PR*p0PR+mass*mass);
 	   re->set_EkPR(EkPR);
 	   re->set_p0PR(p0PR);
@@ -579,3 +583,5 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
 return 1;
  
 }
+
+
