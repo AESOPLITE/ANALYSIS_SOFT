@@ -6,6 +6,7 @@
 #define __ALEVENT__
 #include "headers.h"
 #include "ALTckhit.h"
+#include "tools.h"
 
 
 class ALEvent:public TObject
@@ -79,6 +80,13 @@ class ALEvent:public TObject
    //Hits information
    std::vector<ALTckhit*> hits;  
    
+   //NEW: all segments informations for MC (full position & momentum & age & type)
+   std::vector<float> posX;
+   std::vector<float> posY;
+   std::vector<float> posZ;
+   std::vector<float> posType;
+   std::vector<float> posAge;
+   std::vector<float> posP;
    //External Triggers
    bool T1;
    bool T2;
@@ -92,6 +100,9 @@ class ALEvent:public TObject
    std::vector<double> EneT4;
    std::vector<double> Eneg; 
    std::vector<double> PHA6; //for data only 6th PHA 
+   //For MC, energy deposit in insulation and shell
+   std::vector<double> EneIsofoam;  
+   std::vector<double> EneShell;  
      
    //Timing for MC, Not available for data
    std::vector<double> timeT1;  
@@ -99,13 +110,14 @@ class ALEvent:public TObject
    std::vector<double> timeT3;
    std::vector<double> timeT4;
    std::vector<double> timeg;     
+   std::vector<double> timeIsofoam;  
+   std::vector<double> timeShell;  
    //Internal Triggers 
    //Tracker layer for 0 to 6. top layer is 0
    //integer value coded with 7 bits values
    //\Sum\Limits_{k=0}^{6} 2^k
    int Ti=0;
-   
-   //HOUSEKEEPING FROM COUNTERS 1 AND 3
+    //HOUSEKEEPING FROM COUNTERS 1 AND 3
    //Data FROM "CT1" LINE
    int yCT1;//Year from CT1 line linked to the event (last read CT1 line)
    int mCT1;//Month from CT1 line linked to the event (last read CT1 line)
@@ -179,10 +191,7 @@ class ALEvent:public TObject
    float HeatC;
    float HeatV;
    float TrackC;
-   float TrackV;
-   
-   
-   
+   float TrackV;  
  public: 
    //Constructors
    ALEvent();// Default
@@ -303,7 +312,13 @@ class ALEvent:public TObject
    void set_hczreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_czreco(a);}
    void set_hereco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_ereco(a);}
    
-   
+   //set all positions in vector
+   void add_posX(float a){posX.push_back(a);} 
+   void add_posY(float a){posY.push_back(a);} 
+   void add_posZ(float a){posZ.push_back(a);} 
+   void add_posType(float a){posType.push_back(a);} 
+   void add_posAge(float a){posAge.push_back(a);}
+   void add_posP(float a){posP.push_back(a);} 
    void set_T1(bool a){T1=a;}
    void set_T2(bool a){T2=a;}
    void set_T3(bool a){T3=a;}
@@ -316,12 +331,17 @@ class ALEvent:public TObject
    void add_Eneg(double a){Eneg.push_back(a);}
    void add_PHA6(double a){PHA6.push_back(a);}
    void add_timeT1(double a){timeT1.push_back(a);}
+   void add_timeT2(double a){timeT2.push_back(a);}
    void add_timeT3(double a){timeT3.push_back(a);}
    void add_timeT4(double a){timeT4.push_back(a);}
    void add_timeg(double a){timeg.push_back(a);}   
    void set_Ti(int a){Ti=a;}
-   
-   //HOUSEKEEPING FROM COUNTERS 1 AND 3   
+   void add_EneIsofoam(double a){EneIsofoam.push_back(a);} 
+   void add_EneShell(double a){EneShell.push_back(a);}   
+   void add_timeIsofoam(double a){timeIsofoam.push_back(a);}
+   void add_timeShell(double a){timeShell.push_back(a);}
+
+  //HOUSEKEEPING FROM COUNTERS 1 AND 3   
    void set_yCT1(int a){yCT1=a;}
    void set_mCT1(int a){mCT1=a;}
    void set_dCT1(int a){dCT1=a;}
@@ -384,8 +404,6 @@ class ALEvent:public TObject
    void set_HeatV(float a){HeatV=a;}
    void set_TrackC(float a){TrackC=a;}
    void set_TrackV(float a){TrackV=a;}
-   
-       
    ////////////////////////////////
    //"Getting" member methods
    ////////////////////////////////
@@ -477,7 +495,17 @@ class ALEvent:public TObject
    double get_tanlerr2(){return tanlerr2;}
    TMatrixD get_Cov_init(){return Cov_init;}
    TMatrixD get_Cov_last(){return Cov_last;}
-   std::vector<ALTckhit*>& get_hits(){return hits;}
+   std::vector<ALTckhit*>& get_hits(){return hits;}  
+   std::vector<float>&  get_posX(){return posX;}
+   std::vector<float>&  get_posY(){return posY;}
+   std::vector<float>&  get_posZ(){return posZ;}
+   std::vector<float>&  get_posType(){return posType;}
+   std::vector<float>&  get_posAge(){return posAge;}
+   std::vector<float>&  get_posP(){return posP;}
+
+
+
+ 
    bool get_T1(){return T1;}
    bool get_T2(){return T2;}
    bool get_T3(){return T3;}
@@ -495,9 +523,12 @@ class ALEvent:public TObject
    std::vector<double>&  get_timeT4(){return timeT4;}
    std::vector<double>&  get_timeg(){return timeg;}
    int get_Ti(){return Ti;}
-
+   std::vector<double>&  get_EneIsofoam(){return EneIsofoam;}
+   std::vector<double>&  get_EneShell(){return EneShell;}
+   std::vector<double>&  get_timeIsofoam(){return timeIsofoam;}
+   std::vector<double>&  get_timeShell(){return timeShell;}
    
-   //HOUSEKEEPING FROM COUNTERS 1 AND 3   
+    //HOUSEKEEPING FROM COUNTERS 1 AND 3   
    int get_yCT1(){return yCT1;}
    int get_mCT1(){return mCT1;}
    int get_dCT1(){return dCT1;}
@@ -563,10 +594,9 @@ class ALEvent:public TObject
    //Methods to get number of layerS and layer with hits
    ////////////////////////////////
 
-
-   int get_NLayers();
-   int get_Layer(int);
-   void get_Layers(int*);
+    int  get_NLayers();
+    int get_Layer(int);
+    void get_Layers(int*);
 
    ////////////////////////////////
    ClassDef(ALEvent,1)
@@ -574,3 +604,6 @@ class ALEvent:public TObject
 };
 
 #endif
+
+
+

@@ -1,38 +1,39 @@
 #include "../../conf/makejsf.tmpl"
 
-SHELL = /bin/bash
-
 
 LDFLAGS   = /* $(GLIBS) */
 
 INSTALLDIR    = ../..
 SOREV         = 2005.01
-PACKAGENAME   = ALSim
+PACKAGENAME   = S4ALSim
 
-SRCS          =  MakeRawBPDEvent.$(SrcSuf)  \
-	                 MakeRawEventMC.$(SrcSuf)  \
-			  MakeEventData.$(SrcSuf)  \
-			ALEvent.$(SrcSuf)  \
-			 LoadMCparameters.$(SrcSuf)  \
-			 LoadDataparameters.$(SrcSuf) \
-		ALTckhit.$(SrcSuf) 
+SRCS          = MakeRawBPDEvent.$(SrcSuf)  \
+	        MakeRawEventMC.$(SrcSuf)  \
+	        MakeEventData.$(SrcSuf)  \
+	        ALEvent.$(SrcSuf)  \
+	        LoadMCparameters.$(SrcSuf)  \
+                LoadDataparameters.$(SrcSuf) \
+		ALTckhit.$(SrcSuf) 		\
+		$(INSTALLDIR)/tools.$(SrcSuf)
 
 OBJS	      =	$(subst .$(SrcSuf),.$(ObjSuf),$(SRCS)) \
 		$(PACKAGENAME)Dict.$(ObjSuf)
 
-HDRS	      = $(subst .$(SrcSuf),.h,$(SRCS))
 
-DICTNAME      = $(PACKAGENAME)Dict
+HDRS = $(subst .$(SrcSuf),.h,$(SRCS))
+
+DICTNAME = $(PACKAGENAME)Dict
 
 LIBNAME       = $(PACKAGENAME)
 
 SONAME        = lib$(LIBNAME).$(DllSuf).$(SOREV)
 
+
 LIBINSTALLDIR = $(INSTALLDIR)/lib
 INCINSTALLDIR = $(INSTALLDIR)/include
 INCPATH	      = -I. -I$(INCINSTALLDIR)
-CXXFLAGS     += $(INCPATH) -O0 -g 
-SHLIBLDFLAGS  = $(DYLIBFLAGS)
+CXXFLAGS     += $(INCPATH) -O -g
+
 
 all:: $(SONAME)
 
@@ -58,3 +59,4 @@ $(DICTNAME).$(SrcSuf): $(HDRS) LinkDef.h
 	@echo "Generating dictionary ..."
 	rootcint -f $(DICTNAME).$(SrcSuf) \
  		-c -I$(INCINSTALLDIR) $(HDRS) LinkDef.h
+

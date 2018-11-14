@@ -70,8 +70,6 @@ ALEvent::ALEvent()// Default
  T4=false;
  guard=false;
  Ti=0;
- 
- 
  //HOUSEKEEPING FROM COUNTERS 1 AND 3
  //Data FROM "CT1" LINE
  yCT1=-1;//Year from CT1 line linked to the event (last read CT1 line)
@@ -146,8 +144,6 @@ ALEvent::ALEvent()// Default
  float HeatV=-999;
  float TrackC=-999;
  float TrackV=-999;
-   
- 
 }
 
 
@@ -241,6 +237,14 @@ void ALEvent::Copy(ALEvent* e)
    guard =e->get_guard();
    Ti =e->get_Ti();
 
+   for(int i=0;i<(int)(e->get_posX()).size();i++) posX.push_back((e->get_posX()).at(i));
+   for(int i=0;i<(int)(e->get_posY()).size();i++) posY.push_back((e->get_posY()).at(i));
+   for(int i=0;i<(int)(e->get_posZ()).size();i++) posZ.push_back((e->get_posZ()).at(i));
+   for(int i=0;i<(int)(e->get_posType()).size();i++) posType.push_back((e->get_posType()).at(i));
+   for(int i=0;i<(int)(e->get_posAge()).size();i++) posAge.push_back((e->get_posAge()).at(i));
+   for(int i=0;i<(int)(e->get_posP()).size();i++) posP.push_back((e->get_posP()).at(i));
+
+
    
    //Vectors of double
    for(int i=0;i<(int)(e->get_EneT1()).size();i++) EneT1.push_back((e->get_EneT1()).at(i));
@@ -254,11 +258,13 @@ void ALEvent::Copy(ALEvent* e)
    for(int i=0;i<(int)(e->get_timeT3()).size();i++) timeT3.push_back((e->get_timeT3()).at(i));
    for(int i=0;i<(int)(e->get_timeT4()).size();i++) timeT4.push_back((e->get_timeT4()).at(i));
    for(int i=0;i<(int)(e->get_timeg()).size();i++) timeg.push_back((e->get_timeg()).at(i));
- 
+   for(int i=0;i<(int)(e->get_EneIsofoam()).size();i++) EneIsofoam.push_back((e->get_EneIsofoam()).at(i));
+   for(int i=0;i<(int)(e->get_EneShell()).size();i++) EneShell.push_back((e->get_EneShell()).at(i));
+   for(int i=0;i<(int)(e->get_timeIsofoam()).size();i++) timeIsofoam.push_back((e->get_timeIsofoam()).at(i));
+   for(int i=0;i<(int)(e->get_timeShell()).size();i++) timeShell.push_back((e->get_timeShell()).at(i));
    //Vectors of ALTckhit
    for(int i=0;i<(int)(e->get_hits()).size();i++) hits.push_back((e->get_hits()).at(i));
-
-   //HOUSEKEEPING FROM COUNTERS 1 AND 3   
+  //HOUSEKEEPING FROM COUNTERS 1 AND 3   
    yCT1  = e->get_yCT1();
    mCT1  = e->get_mCT1();
    dCT1  = e->get_dCT1();
@@ -322,28 +328,34 @@ void ALEvent::Copy(ALEvent* e)
    TrackV= e->get_TrackV();
 
 
+ 
 }
-
 ////////////////////////////////
 //Methods to get number of layerS and layer with hits
 ////////////////////////////////
 
-int  ALEvent::get_NLayers()
+int ALEvent::get_NLayers()
  {
   uint8_t tmpTi=(uint8_t)Ti;
+ // cout << "get_NLayers tmpTi = " << unsigned(tmpTi) << endl;
   int NL=0;
   for(int ij=0;ij<7;ij++) NL+=(int)((tmpTi >>ij) & 0x01);
   return NL; 
  }
-int  ALEvent::get_Layer(int i)
+int ALEvent::get_Layer(int i)
  {
   uint8_t tmpTi=(uint8_t)Ti;
   int Ni=0;
   if(i<7) Ni=(int)((tmpTi >>i) & 0x01);
+ // cout << " Layer " << i << " Ni = " << Ni << endl;
   return Ni; 
  }
-void  ALEvent::get_Layers(int*Lay)
+void ALEvent::get_Layers(int*Lay)
  {
   uint8_t tmpTi=(uint8_t)Ti;
+  // cout << "get_Layers tmpTi = " << unsigned(tmpTi) << endl;
   for(int ij=0;ij<7;ij++) Lay[ij]=(int)((tmpTi >>ij) & 0x01);
  }
+
+
+

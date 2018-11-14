@@ -54,6 +54,8 @@
 #include "TRandom3.h"
 #include "TRandom2.h"
 #include "TRandom1.h"
+#include "TVector3.h"
+#include "TMatrix.h"
 
 
 using namespace std;
