@@ -8,15 +8,16 @@
 
 INSTALLDIR = $(PWD)
 SRCDIR     = $(INSTALLDIR)/src
-PROGRAMNAME = MainRecoEventMC
+PROGRAMNAME = MainRawEventMC
 
 SRCS          =  $(PROGRAMNAME).$(SrcSuf) \
                 $(SRCDIR)/ALSim/MakeRawBPDEvent.$(SrcSuf) \
-				$(SRCDIR)/ALSim/MakeEventData.$(SrcSuf)    \
-	     	    $(SRCDIR)/ALSim/MakeRawEventMC.$(SrcSuf)  \
-				$(SRCDIR)/ALKalman/ALKalman.$(SrcSuf) \
-				$(SRCDIR)/ALPatternRecognition/ALPatternRecognition.$(SrcSuf) \
-			    $(SRCDIR)/RKFitter/RKfitter.$(SrcSuf) \
+		$(SRCDIR)/ALSim/MakeEventData.$(SrcSuf)    \
+	     	$(SRCDIR)/ALSim/MakeRawEventMC.$(SrcSuf)  \
+	        $(SRCDIR)/ALSim/MakeRawEventAtmoMC.$(SrcSuf) \
+		$(SRCDIR)/ALKalman/ALKalman.$(SrcSuf) \
+	        $(SRCDIR)/ALPatternRecognition/ALPatternRecognition.$(SrcSuf) \
+	        $(SRCDIR)/RKFitter/RKfitter.$(SrcSuf) \
                 $(SRCDIR)/RKFitter/TkrData.$(SrcSuf) \
                 $(SRCDIR)/RKFitter/FieldMap.$(SrcSuf) \
                 $(SRCDIR)/RKFitter/RungeKutta4.$(SrcSuf) \
@@ -35,7 +36,7 @@ PROGRAM    = prod/$(PROGRAMNAME)
 LIBINSTALLDIR = $(INSTALLDIR)/lib
 INCINSTALLDIR = $(INSTALLDIR)/include
 INCPATH	      = -I. -I$(INCINSTALLDIR)
-CXXFLAGS     += $(INCPATH) -O -g
+CXXFLAGS     += $(INCPATH) -O -g -Wall -Wextra
 #if 0
 CXXFLAGS     += -pg
 LDFLAGS      += -pg
