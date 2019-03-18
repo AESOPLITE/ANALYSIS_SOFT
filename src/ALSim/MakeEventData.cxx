@@ -14,29 +14,19 @@
 int MakeEventData(string filename,int geoconfig,float* zL,float* OffsetLL,float* OffsetRL,float* TrigThresh, int FieldConf, bool TwoIter,string RecoID)
 {
 
-//Load magnetic field map 
-//Set Magnetic field map
-// TFile*file_map=new TFile("../prod/fieldmap.root","READ");
-//load 1mm grid magnetic field map
-/*
-TFile*file_map=new TFile("/home/sarah/AESOPLITE/ANALYSIS_SOFT/prod/fieldmap1mm.root","READ");
-TBField *bfield = new TBField();
 
- bool FlagMagF=false;  
- cout << "Field Conf bool set to " << FieldConf << endl;
+ //Set Magnetic field map
+ TBField *bfield = new TBField();
+ bfield->SetUseUniformBfield(false);
 
- bfield->SetUseUniformBfield(FieldConf);
- 
-
+ bool FlagMagF=false;
  FlagMagF=bfield->SetMagField();
  if(FlagMagF)cout << "Field Map loaded" << endl;
- else 
+ else
   {
    cout << "There is an issue when loading the Field Map" << endl;
    return 1;
   }
- 
-*/	
 
 
 
@@ -231,10 +221,12 @@ TBField *bfield = new TBField();
     }
     */
       
-    ////////////////////////////////////
-    //Pattern Recognition     Sarah's Code
-    ////////////////////////////////////
-   int DataType = 1; 
+      ////////////////////////////////////
+      //Pattern Recognition   Sarah's Code
+      ////////////////////////////////////
+  // cout << "Event " << k <<", NL = " << NL << endl;
+   if (NL<7) continue;
+   int DataType = 1;
    ALPatternRecognition* PR = new ALPatternRecognition();
    int EventPR = PR->FindPattern(de,DataType,zL,OffsetLL,OffsetRL,TrigThresh);
    if(EventPR==0) {
@@ -243,23 +235,21 @@ TBField *bfield = new TBField();
       delete de;
       continue;
       }
-   
-//  cout << "Event " << k << " deflecPR = " << de->get_deflecPR() << endl;
-  /* 
-	/////////////////////    
-    //RECONSTRUCTION
+
+
     /////////////////////    
-     
+    //RECONSTRUCTION
+  /////////////////////    
+    else {
     ALKalman* KF = new ALKalman(de);
     int EventKF=  KF->DoKF(de, DataType, 1, TwoIter);
-//      int EventKF=  KF->DoKF(de, DataType, 2, TwoIter);  
-    if(EventKF==0) {		   // delete KF;
-	DEtree->Fill();
-	//Free memory
-	delete de;
-	continue;
-	}
-    */
+    if(EventKF==0) {               // delete KF;
+        DEtree->Fill();
+        delete de;
+        continue;
+        }
+    }
+ 
     /////////////////////    
     //Fill the output file 
     /////////////////////

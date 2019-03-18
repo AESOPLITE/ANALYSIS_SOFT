@@ -54,6 +54,12 @@ class ALEvent:public TObject
    double pMC;	        			//momentum of particle at injection point
    double X0MC,Y0MC,Z0MC;			//Coordinates of the partcle at the injection point 
    double CX0MC,CY0MC,CZ0MC; 			//Incidence cosines of the partcle at the injection point 
+   int typePP;
+   double EkPP;
+   double ZenPP;
+   double AziPP;
+   double CoLatSP;
+   double CoLonSP;
    int Nhits; 					//Number of hits in the event (MC && data)
    
    
@@ -244,6 +250,13 @@ class ALEvent:public TObject
    void set_CX0MC(double a){CX0MC=a;}
    void set_CY0MC(double a){CY0MC=a;}
    void set_CZ0MC(double a){CZ0MC=a;}
+   void set_typePP(int a){typePP=a;}
+   void set_EkPP(double a) {EkPP=a;}
+   void set_ZenPP(double a){ZenPP=a;}
+   void set_AziPP(double a){AziPP=a;}
+   void set_CoLatSP(double a){CoLatSP=a;}
+   void set_CoLonSP(double a){CoLonSP=a;}
+   
    ////////////////////////////////
    void set_Nhits(int a){Nhits=a;}
    void add_Nhits(){Nhits++;}
@@ -448,7 +461,12 @@ class ALEvent:public TObject
    double get_CX0MC(){return CX0MC;}
    double get_CY0MC(){return CY0MC;}
    double get_CZ0MC(){return CZ0MC;}
-
+   int get_typePP(){return typePP;}
+   double get_EkPP() {return EkPP;}
+   double get_ZenPP(){return ZenPP;}
+   double get_AziPP(){return AziPP;}
+   double get_CoLatSP(){return CoLatSP;}
+   double get_CoLonSP(){return CoLonSP;}
 
    ////////////////////////////////
    int get_Nhits(){return Nhits;}
@@ -604,6 +622,7 @@ class ALEvent:public TObject
 };
 
 #endif
+
 
 
 

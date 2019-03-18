@@ -44,7 +44,7 @@ void LoadMCparameters(string filename,int*TckReg,int*TrigReg,int*GReg, float*Tck
         }
       }
    }
-	cout << "In LoadMCParameters, isofoam region: " << ShellReg[0] <<", shell region: " << ShellReg[1] << endl;
+//	cout << "In LoadMCParameters, isofoam region: " << ShellReg[0] <<", shell region: " << ShellReg[1] << endl;
   if (j!=n) cout << "Error when loading the MC parameters: Wrong number of parameters in the file " << filename << endl;
 }
 

@@ -38,7 +38,7 @@ all::
 
 # platform:  $XFree86: xc/config/cf/linux.cf,v 3.220 2003/12/30 22:38:33 tsi Exp $
 
-# operating system:  Linux 4.4.0-131-generic x86_64 [ELF] (4.4.0)
+# operating system:  Linux 4.4.0-141-generic x86_64 [ELF] (4.4.0)
 # libc:	(6.23.0)
 # binutils:	(226)
 
@@ -1157,7 +1157,7 @@ INSTALLDIR    = ../..
 SOREV         = 2005.01
 PACKAGENAME   = S4ALSim
 
-SRCS          = MakeRawBPDEvent.$(SrcSuf)  	        MakeRawEventMC.$(SrcSuf)  	        MakeEventData.$(SrcSuf)  	        ALEvent.$(SrcSuf)  	        LoadMCparameters.$(SrcSuf)                  LoadDataparameters.$(SrcSuf) 		ALTckhit.$(SrcSuf) 				$(INSTALLDIR)/tools.$(SrcSuf)
+SRCS          = MakeRawBPDEvent.$(SrcSuf)  	        MakeRawEventMC.$(SrcSuf)  			MakeRawEventAtmoMC.$(SrcSuf)  	        MakeEventData.$(SrcSuf)  	        ALEvent.$(SrcSuf)  	        LoadMCparameters.$(SrcSuf)                  LoadDataparameters.$(SrcSuf) 		ALTckhit.$(SrcSuf) 				$(INSTALLDIR)/tools.$(SrcSuf)
 
 OBJS	      =	$(subst .$(SrcSuf),.$(ObjSuf),$(SRCS)) 		$(PACKAGENAME)Dict.$(ObjSuf)
 
@@ -1172,7 +1172,7 @@ SONAME        = lib$(LIBNAME).$(DllSuf).$(SOREV)
 LIBINSTALLDIR = $(INSTALLDIR)/lib
 INCINSTALLDIR = $(INSTALLDIR)/include
 INCPATH	      = -I. -I$(INCINSTALLDIR)
-CXXFLAGS     += $(INCPATH) -O -g
+CXXFLAGS     += $(INCPATH) -O -g -Wall -Wextra
 
 all:: $(SONAME)
 

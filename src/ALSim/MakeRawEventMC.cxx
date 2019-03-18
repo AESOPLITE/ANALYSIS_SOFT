@@ -4,7 +4,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////// 
 
 #include "MakeRawEventMC.h"
-int MakeRawEventMC(int typeT,int Ene,int cycle,string Inppath,string Inppath2,string Outpath,string startfile,string endfile)
+int MakeRawEventMC(int typeT,int Ene,int seed,int cycle,string Inppath,string source,string Inppath2,string Outpath,string startfile,string endfile)
+
 {
 
 cout << "Calling MakeRawEventMC" << endl;
@@ -31,25 +32,26 @@ cout << "Calling MakeRawEventMC" << endl;
  TFile *file;
  TFile *fileout;
  //Input file 
- if(typeT==3 || typeT==1)
+ if(typeT==3 || typeT==4)
   {
-   file=new TFile(Form("%s/%d/%s/%s_%d_%dMeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
+   file=new TFile(Form("%s/%d/%s/%s/%s_%d_%dMeV%d%03d%s.root",Inppath.c_str(),typeT,source.c_str(),Inppath2.c_str(),startfile.c_str(),typeT,Ene,seed,cycle,endfile.c_str()),"READ");
    cout << "Input file is open" <<endl;
    //Output file 
-   fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dMeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE");
-   cout << "Output file is created" <<endl;
+   fileout=new TFile(Form("%s/%d/%s/RawEvent_%s_%d_%dMeV%d%03d%s.root",Outpath.c_str(),typeT,source.c_str(),startfile.c_str(),typeT,Ene,seed,cycle,endfile.c_str()),"RECREATE");
+   cout << "Output file " << Form("%s/%d/%s/RawEvent_%s_%d_%dMeV%d%03d%s.root",Outpath.c_str(),typeT,source.c_str(),startfile.c_str(),typeT,Ene,seed,cycle,endfile.c_str()) << " is created" <<endl;
   }
  else
   {
    file=new TFile(Form("%s/%d/%s/%s_%d_%dGeV%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"READ");
    cout << "Input file is open" << endl;
-   fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dGeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE"); 
+   fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dGeV%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,cycle,endfile.c_str()),"RECREATE");
    cout << "Output file is created " << endl;
-   } 
+   }
+
+ //Get ntuple from the input file
+ TNtuple*ntuple=(TNtuple*)file->Get("Track");
 
 	
-//Get ntuple from the input file
- TNtuple*ntuple=(TNtuple*)file->Get("Track");
  cout << "Got the ntuple from the input file" <<endl;
 
  //Define variables to read ntuple
@@ -68,6 +70,20 @@ cout << "Calling MakeRawEventMC" << endl;
  float cz=0; 
  float Edep=0; 
  float flag=0; 
+ int nL0 = 0;
+ int nL1 = 0;
+ int nL2 = 0;
+ int nL3 = 0;
+ int nL4 = 0;
+ int nL5 = 0;
+ int nL6 = 0;
+ int mreg11=0;
+ int mreg12=0;
+ int mreg13=0;
+ int mreg14=0;
+ int mreg15=0;
+ int mreg16=0;
+ int mreg17=0;
 
  //Set addresses to access ntuple data
  
@@ -146,6 +162,14 @@ cout << "Calling MakeRawEventMC" << endl;
    {
     ntuple->GetEntry(i); //Load the entry i in the variables  
     if(i%100000==0) cout << "entry: " << i <<endl;
+   if(mreg==11) mreg11++;
+   if(mreg==12) mreg12++;
+   if(mreg==13) mreg13++;
+   if(mreg==14) mreg14++;
+   if(mreg==15) mreg15++;
+   if(mreg==16) mreg16++;
+   if(mreg==17) mreg17++;
+
 
     ////////////////////////////////// 
     // Select the types of particle that produce hits
@@ -444,6 +468,64 @@ cout << "Calling MakeRawEventMC" << endl;
  
  //Write tree in output file
  tree->Write();
+ //Load all ROOT files onto a TChain
+
+ ALEvent *re = new ALEvent();
+ tree->SetBranchAddress("event",&re);
+ int entries=tree->GetEntries();
+ cout << "Number  of events: " << entries << endl;
+ //loop through all entries
+int L0=0;
+int L1=0;
+int L2=0;
+int L3=0;
+int L4=0;
+int L5=0;
+int L6=0;
+for(int i=0; i<entries; i++)
+ {
+        tree->GetEntry(i);    //load up current event
+        int  nhits = re->get_Nhits();    //total number of hits
+        //To look at hits, you must run a loop through all ALTckhit 
+        for(int k=0;k<nhits;k++)
+         {
+          int L=(int)re->get_hits().at(k)->get_L();  //from layer L0 on top to L6
+          int mregMC = re->get_hits().at(k)->get_mregMC();
+           if(L==0) L0++;
+           if(L==1) L1++;
+           if(L==2) L2++;
+           if(L==3) L3++;
+           if(L==4) L4++;
+           if(L==5) L5++;
+           if(L==6) L6++;
+        }
+}
+ delete re;
+ cout << "nL0 = " << nL0 << endl;
+ cout << "nL1 = " << nL1 << endl;
+ cout << "nL2 = " << nL2 << endl;
+ cout << "nL3 = " << nL3 << endl;
+ cout << "nL4 = " << nL4 << endl;
+ cout << "nL5 = " << nL5 << endl;
+ cout << "nL6 = " << nL6 << endl;
+
+ cout << "mreg11 = " << mreg11 << endl;
+ cout << "mreg12 = " << mreg12 << endl;
+ cout << "mreg13 = " << mreg13 << endl;
+ cout << "mreg14 = " << mreg14 << endl;
+ cout << "mreg15 = " << mreg15 << endl;
+ cout << "mreg16 = " << mreg16 << endl;
+ cout << "mreg17 = " << mreg17 << endl;
+
+ cout << "final tree counting " << endl;
+ cout << "L0 = " << L0 << endl;
+ cout << "L1 = " << L1 << endl;
+ cout << "L2 = " << L2 << endl;
+ cout << "L3 = " << L3 << endl;
+ cout << "L4 = " << L4 << endl;
+ cout << "L5 = " << L5 << endl;
+ cout << "L6 = " << L6 << endl;
+
  //Close files
  fileout->Close();
  file->Close();
@@ -451,7 +533,7 @@ cout << "Calling MakeRawEventMC" << endl;
 }
 
 
-int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,string Inppath2,string Outpath,string startfile,string endfile)
+int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,string source,string Inppath2,string Outpath,string startfile,string endfile)
 {
  cout << "Calling MakeRawEventMCDisc" << endl;   
  float OffsetLL=0;
@@ -472,23 +554,42 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
  for(int i=0;i<7;i++)TckZPos[i]=0;
  for(int i=0;i<4;i++)TrigThresh[i]=0;
  for(int i=0;i<1;i++)GuardThresh[i]=0;
+ int nL0 = 0;
+ int nL1 = 0;
+ int nL2 = 0;
+ int nL3 = 0;
+ int nL4 = 0;
+ int nL5 = 0;
+ int nL6 = 0;
+ int mreg11=0;
+ int mreg12=0;
+ int mreg13=0;
+ int mreg14=0;
+ int mreg15=0;
+ int mreg16=0;
+ int mreg17=0;
+ int rL0 = 0;
+ int rL1 = 0;
+ int rL2 = 0;
+ int rL3 = 0;
+ int rL4 = 0;
+ int rL5 = 0;
+ int rL6 = 0;
 	
  string MCparamfile="../src/ALSim/MCparameters.dat"; 
  
  LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg,TckZPos,TrigThresh,GuardThresh,ShellReg);
- cout << "Isofoam region: " << ShellReg[0] <<endl;
- cout << "Shell region: " << ShellReg[1] <<endl;
       
  TFile *file;
  TFile *fileout;
  //Input file 
  if(typeT==3 || typeT==4)
   {
-   file=new TFile(Form("%s/%d/%s/%s_%d_%dMeV%d%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,Ene,seed,cycle,endfile.c_str()),"READ");
+   file=new TFile(Form("%s/%d/%s/%s/%s_%d_%dMeV%d%03d%s.root",Inppath.c_str(),typeT,source.c_str(),Inppath2.c_str(),startfile.c_str(),typeT,Ene,seed,cycle,endfile.c_str()),"READ");
    cout << "Input file is open" <<endl;
    //Output file 
-   fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%dMeV%d%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,seed,cycle,endfile.c_str()),"RECREATE");
-   cout << "Output file " << Form("%s/%d/RawEvent_%s_%d_%dMeV%d%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,Ene,seed,cycle,endfile.c_str()) << " is created" <<endl;
+   fileout=new TFile(Form("%s/%d/%s/RawEvent_%s_%d_%dMeV%d%03d%s.root",Outpath.c_str(),typeT,source.c_str(),startfile.c_str(),typeT,Ene,seed,cycle,endfile.c_str()),"RECREATE");
+   cout << "Output file " << Form("%s/%d/%s/RawEvent_%s_%d_%dMeV%d%03d%s.root",Outpath.c_str(),typeT,source.c_str(),startfile.c_str(),typeT,Ene,seed,cycle,endfile.c_str()) << " is created" <<endl;
   }
  else
   {
@@ -613,14 +714,29 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
    {
     ntuple->GetEntry(i); //Load the entry i in the variables  
     if(i%100000==0) cout << "entry: " << i <<endl;
-//    cout << "i = " << i << ", ncase " << ncase << ", mreg " << mreg << " type = " << type << " p = " << pMC*1000 <<" MeV,  x=" << x << ", y=" << y << ", z = " << z << endl; 
+//   cout << "i = " << i << ", ncase " << ncase << ", mreg " << mreg << " type = " << type << " p = " << pMC*1000 <<" MeV,  x=" << x << ", y=" << y << ", z = " << z << endl; 
+
+//test: keep only electron events:
+    if(type!=3) {
+//	cout << "not an electron, next" << endl;
+	 continue;
+	}
+
+
     e->add_posX(x);
     e->add_posY(y);
     e->add_posZ(z);
 	e->add_posType(type);
 	e->add_posAge(age);
 	e->add_posP(pMC);
-   
+   if(mreg==11) mreg11++;
+   if(mreg==12) mreg12++;
+   if(mreg==13) mreg13++;
+   if(mreg==14) mreg14++;
+   if(mreg==15) mreg15++;
+   if(mreg==16) mreg16++;
+   if(mreg==17) mreg17++;
+
     ////////////////////////////////// 
     // Triggers
     ////////////////////////////////// 
@@ -704,7 +820,15 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
       if((int)X.size()!=0) 
        {
 //	cout << "applying discretization" << endl;
-        CoordDisc=Discretize(h->get_L(),X,Y,Z,CZ,T,EDEP,&chip,&fstrip,&fstripID,&nstrip,OffsetLL,OffsetRL,true);
+              if(h->get_L()==0) nL0++;
+           if(h->get_L()==1) nL1++;
+           if(h->get_L()==2) nL2++;
+           if(h->get_L()==3) nL3++;
+           if(h->get_L()==4) nL4++;
+           if(h->get_L()==5) nL5++;
+           if(h->get_L()==6) nL6++;
+
+	 CoordDisc=Discretize(h->get_L(),X,Y,Z,CZ,T,EDEP,&chip,&fstrip,&fstripID,&nstrip,OffsetLL,OffsetRL,true);
 //        cout << "CoordDisc=" <<  CoordDisc <<endl; 
         if(CoordDisc!=-999.)
          {   
@@ -724,10 +848,23 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
           if(h->get_x()==-999) cout << "X coord is -999. Event " << i <<endl;
           if(h->get_y()==-999) cout << "Y coord is -999. Event " << i <<endl;
           if(h->get_z()==-999) cout << "Z coord is -999. Event " << i <<endl;
-
           e->add_hit(h);
           Titmp[(int)h->get_L()]=1;
          } 
+	else {
+	//  if(h->get_L()==0||h->get_L()==4||h->get_L()==6)  cout << " L = " << h->get_L() << ", x = " << x << ", z = "  << z << endl;
+         // if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5)  cout << " L = " << h->get_L() << ", y = " << y << ", z = "  << z << endl;
+
+	  if(h->get_L()==0) rL0++;
+           if(h->get_L()==1) rL1++;
+           if(h->get_L()==2) rL2++;
+           if(h->get_L()==3) rL3++;
+           if(h->get_L()==4) rL4++;
+           if(h->get_L()==5) rL5++;
+           if(h->get_L()==6) rL6++;
+
+    }
+		
         X.clear();
         Y.clear();
         Z.clear();
@@ -889,18 +1026,18 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
            X.push_back(x);
            Y.push_back(y);
            Z.push_back(z);
-          // cout << "  x = " << x << "  y = " << y << "  z = " << z << endl;
            T.push_back(type);
            CZ.push_back(cz);
            EDEP.push_back(Edep);
            nL++;//Increment the number of segments that compose the hit
           }//if
-         else //if this segment of track is the first part of the hit
+        else //if this segment of track is the first part of the hit
           {
            //Fill the data at the entrance of the particle in the tracker layer
            h->set_mregMC(mreg); 
            //set layer number (for MC and data)
-           h->set_L((int)mreg%11);
+           int L = (int)mreg%11;
+	   h->set_L(L);
            h->set_mtrackMC(mtrack);
            h->set_typeMC((int)type);
            h->set_eMC(pMC); 				//total energy of particle crossing region
@@ -916,7 +1053,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
            h->set_xout(x);
            h->set_yout(y);   
            h->set_zout(z);
-	  // cout << "Layer L = " << (int)mreg%11 << "  x = " << x << "  y = " << y << "  z = " << z << endl;
+	  // if(h->get_mregMC()!=mreg)   cout << "Region mreg  = " << mreg << " , mregMC " << h->get_mregMC() <<  endl;
            h->set_x(x);
            h->set_y(y);
            h->set_z(z);
@@ -1006,6 +1143,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
    CZ.clear();
    T.clear();
    EDEP.clear();
+   delete h;
       
   }
 
@@ -1017,233 +1155,86 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 
  //Write tree in output file 
  tree->Write();
+
+ //Load all ROOT files onto a TChain
+
+ ALEvent *re = new ALEvent();
+ tree->SetBranchAddress("event",&re); 
+ int entries=tree->GetEntries();	
+ cout << "Number  of events: " << entries << endl;  
+ //loop through all entries
+int L0=0;
+int L1=0;
+int L2=0;
+int L3=0;
+int L4=0;
+int L5=0;
+int L6=0;
+for(int i=0; i<entries; i++) 
+ {
+	tree->GetEntry(i);    //load up current event
+        int  nhits = re->get_Nhits();    //total number of hits
+	//To look at hits, you must run a loop through all ALTckhit 
+	for(int k=0;k<nhits;k++)
+         {
+	  int L=(int)re->get_hits().at(k)->get_L();  //from layer L0 on top to L6
+	  int mregMC = re->get_hits().at(k)->get_mregMC();
+           if(L==0) L0++;
+           if(L==1) L1++;
+           if(L==2) L2++;
+           if(L==3) L3++;
+           if(L==4) L4++;
+           if(L==5) L5++;
+           if(L==6) L6++;
+	}
+}
+ delete re;
  //Close files
  fileout->Close();
  file->Close();
+ //Delete TTree
+// tree->Delete(); int*TckReg=new int[7];
+ delete[] TckReg;
+ delete[] TrigReg;
+ delete[] GReg;
+ delete[] ShellReg;
+ delete[] TckZPos;
+ delete[] TrigThresh;
+ delete[] GuardThresh;
+ delete[] Titmp;
+/*
+ cout << "nL0 = " << nL0 << endl;
+ cout << "nL1 = " << nL1 << endl;
+ cout << "nL2 = " << nL2 << endl;
+ cout << "nL3 = " << nL3 << endl;
+ cout << "nL4 = " << nL4 << endl;
+ cout << "nL5 = " << nL5 << endl;
+ cout << "nL6 = " << nL6 << endl;
+
+ cout << "rL0 = " << rL0 << endl;
+ cout << "rL1 = " << rL1 << endl;
+ cout << "rL2 = " << rL2 << endl;
+ cout << "rL3 = " << rL3 << endl;
+ cout << "rL4 = " << rL4 << endl;
+ cout << "rL5 = " << rL5 << endl;
+ cout << "rL6 = " << rL6 << endl;
+
+ cout << "L0 = " << L0 << endl;
+ cout << "L1 = " << L1 << endl;
+ cout << "L2 = " << L2 << endl;
+ cout << "L3 = " << L3 << endl;
+ cout << "L4 = " << L4 << endl;
+ cout << "L5 = " << L5 << endl;
+ cout << "L6 = " << L6 << endl;
+
+ cout << "mreg11 = " << mreg11 << endl;
+ cout << "mreg12 = " << mreg12 << endl;
+ cout << "mreg13 = " << mreg13 << endl;
+ cout << "mreg14 = " << mreg14 << endl;
+ cout << "mreg15 = " << mreg15 << endl;
+ cout << "mreg16 = " << mreg16 << endl;
+ cout << "mreg17 = " << mreg17 << endl;
+*/
  return 1;
 }
-
-/*
-
-float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<float> cz,vector<float>type,vector<float> Edep,int*chip,int* fstrip,int* fstripID,int*nstrip,float offsetLL, float offsetRL,bool MCflag)
-{
- //cout << "In Discretize" <<endl;
- int Nn=(int )x.size(); 
- // cout << "Number of segments: "  <<Nn << " in Layer "<< L << endl;
-
- float* X=new float[Nn];
- float* Y=new float[Nn];
- float* Z=new float[Nn];
- float* CZ=new float[Nn];
- float* T=new float[Nn];
- float* E=new float[Nn];
- float* xx=new float[Nn];
- float* Ss=new float[Nn];
- //Output
- float Xout=-999.;
- //Strip pitch in cm
- float  strippitch=0.0228; 
-
- for(int i=0;i<Nn;i++)
-  { 
-   if(L==0||L==4||L==6)
-    {
-     X[i]=x.at(i);
-     Y[i]=y.at(i); 
-    }
-   else if(L==1||L==2||L==3||L==5)
-    {
-     X[i]=y.at(i);
-     Y[i]=x.at(i); //Inverse coordinated for bending plane	
-    }
-   E[i]=Edep.at(i);  
-   Z[i]=z.at(i); 
-   CZ[i]=cz.at(i); 
-   T[i]=type.at(i); 
-   Ss[i]=-1; //Set to defaults
-   //cout << "X"<< i << "= " << X[i] << ", " ;
-   //cout << "Y"<< i << "= " << Y[i] << ", "  ;
-   //cout << "Z"<< i << "= " << Z[i] <<endl;
-  }//i  
-
-//ASSUMPTION: the four frames are perfectly aligned without space between each of them
-
-//Get stripID for each segment of the track in the layer
-for(int i=0;i<Nn;i++)
- {  
-  Ss[i]=CoordtoStrip(X[i],Y[i],offsetLL,offsetRL,MCflag);
-  //cout << "StripID="<< Ss[i] <<endl ;
- }//i
-
-//Check if there is any strip touched
-bool nostrip=true;
-for(int i=0;i<Nn;i++)
- {  
-  if(Ss[i]>-1) {nostrip=false;i=Nn;}
- } //i
- 
-if(nostrip)
- { 
- // cout << "No strip hitted" <<endl;
-  return Xout;
- }
-
-//Get first and last a segment in one strip
-int kfirst=-1;
-int klast=-1;
-
-for(int i=0;i<Nn;i++)
-  {
-   cout << "i = " << i << ", y = " << Y[i] << " , Ss[i] = " << Ss[i] << endl;
-   if(kfirst==-1 && Ss[i]>-1) {kfirst=i;klast=i;}    
-   if(kfirst>-1 && Ss[i]>-1) klast=i;    
-  }
-  
-if(kfirst<0 || klast<0)
- { 
-  return Xout; 
- }
-
- Xout= (StriptoCoord(Ss[kfirst],offsetLL,offsetRL,MCflag)+StriptoCoord(Ss[klast],offsetLL,offsetRL,MCflag))/2.;
-
- if(Ss[klast]>=Ss[kfirst]) *fstripID=Ss[kfirst];
- else *fstripID=Ss[klast];
-
- *chip=(int)Ss[kfirst]%12;
- *fstrip=(int)Ss[kfirst]%64;
- 
- *nstrip=(int) abs(Ss[klast]-Ss[kfirst])+1;
- 
-// cout << "Xout="<< Xout <<endl ;
-
- 
- if(*nstrip>100)
-  {
-   cout << "Number of segments: "  <<Nn << " in Layer "<< L << endl;
-   for(int i=0;i<Nn;i++)
-     { 
-      cout << "X"<< i << "= " << X[i] << ", " ;
-      cout << "Y"<< i << "= " << Y[i] << ", "  ;
-      cout << "Z"<< i << "= " << Z[i] << ", ";
-      cout << "CZ"<< i << "= " << CZ[i] << ", ";
-      cout << "Type"<< i << "= " << T[i] << endl;
-      //cout << "Edep"<< i << "= " << Edep[i] <<endl;
-     }//i
-  }
- return Xout;
-}
-
-
-float StriptoCoord(int strip,float OffsetLL,float OffsetRL,bool MCflag)
-{
- //Determine the coordinates from the strips
- //Equations from Sarah's email of September 4 2017.
- 
- //Center of X,Y from alignment PIN in cm from Robert (January 24th 2018)
- float Xo=9.74745;   
- float Yo=4.48005; 
- 
- float coord=-999;
- 
- //Strip pitch in cm
- float  strippitch=0.0228;
-
- //for MC: 
- float N=384;                                //Number of strip in one module
- float Offset1=0.1088;                       //In cm. Offset from the center of the first/last strip to the edge of the module.
- float Offset2=0.0964;                       //In cm. Offset from the start/end of the strips to the edge of the module.
-
- float offsetLL=OffsetLL;//Left ladder offset
- float offsetRL=OffsetRL;//Right ladder offset   
-
- if(MCflag)//Assume perfect alignmentof the four pads
-  {
-   offsetLL=Xo-Offset1-(N-1)*strippitch; 
-   offsetRL=Xo+Offset1; 
-  }
- 
- //First 6 chips: 0 to 5; strip number 0 to 383
- if(strip>=0 &&strip<N)
-  {
-   coord=offsetLL-Xo+strip*strippitch; 
-  }
- //Last 6 chips: 6 to 11; strip number 384 to 767
- if(strip>=N)
-  {
-   coord=offsetRL-Xo+(strip-N)*strippitch;
-  }
- 
- return coord;
-}
-
-
-int CoordtoStrip(float Coord,float SecCoord,float OffsetLL,float OffsetRL,bool MCflag)
-{
- //Geometry parameters from schematics
- //Used for discretisation
- float N=384;                                //Number of strip in one module
- float Offset1=0.1088;                       //In cm. Offset from the center of the first/last strip to the edge of the module.
- float Offset2=0.0964;                       //In cm. Offset from the start/end of the strips to the edge of the module.
- float sw=0.0056;                            //In cm. Width of a strip
- float sl=8.7572;                            //In cm. Length of a strip in one module = Size of the frame (8.95cm) - 2*Offset2  ??????????????????????????????
- float sh=0.04;                              //In cm. Height of a strip
- float percsh=0.2;                           //fraction of sh crossed by track to trigger a strip: To be fine tuned later
- float DeltaMax=0.0114;                      //In cm. Maximum allowed distance to the center of a strip
- float strippitch=0.0228;                    //In cm. Strip pitch 
- int strip=-1;
- 
- //Center of X,Y from alignment PIN in cm from Robert (January 24th 2018)
- float Xo=9.74745;   
- float Yo=4.48005; 
- float offsetLL=OffsetLL;//Left ladder offset
- float offsetRL=OffsetRL;//Right ladder offset   
- if(MCflag)//Assume perfect alignmentof the four pads
-  {
-   offsetLL=Xo-Offset1-(N-1)*strippitch; 
-   offsetRL=Xo+Offset1; 
-  }
- float strip0=offsetLL;       //In cm. Position of the center of strip 0 
-
- //First: Remove hits outside the frame along Y
- if(SecCoord>sl+Offset2+DeltaMax) return strip;
- if(SecCoord<-sl-Offset2-DeltaMax) return strip;
-
- //Second: Remove hits outside the frame along X
- if(Coord>offsetRL-Xo+(N-1)*strippitch+DeltaMax) return strip;
- if(Coord<offsetLL-Xo+strippitch-DeltaMax) return strip;
-
- //Third: Remove Inner Cross
- if(Coord<offsetRL-Xo-DeltaMax && Coord>offsetLL-Xo+(N-1)*strippitch+DeltaMax) return strip;
- if(abs(SecCoord)<Offset2-DeltaMax) return strip;
- 
- //Fourth: Determine strip ID from 0 to 767 
- float relX=0;
- int IrelX=0; 
- float RrelX=0;
-
- if(Coord<0)
-  {
-   relX=Coord+Xo-offsetLL;   
-   IrelX=(int)(relX/strippitch);
-   RrelX=relX-(float)IrelX*strippitch;  
-   if(RrelX>DeltaMax)IrelX++;
-   else if(RrelX<-DeltaMax)IrelX--;
-   if(IrelX>=0 && IrelX<N) strip=IrelX; 
-  }  
-  
- if(Coord>0) 
-  {
-   relX=Coord+Xo-offsetRL;   
-   IrelX=(int)(relX/strippitch);
-   RrelX=relX-(float)IrelX*strippitch;  
-   if(RrelX>DeltaMax)IrelX++;
-   else if(RrelX<-DeltaMax)IrelX--;
-   if(IrelX>=0 && IrelX<N) strip=IrelX+N; 
-  }    
- return strip;
-    
-}
-*/
-
-
 

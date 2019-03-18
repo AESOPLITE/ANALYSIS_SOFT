@@ -340,21 +340,6 @@ int MakeRawBPDEventIT(string filename)
    return -1;
   }   
  
-  
-  
-
- //Load configuration parameter
-/* int*TckReg=new int[7];
- int*TrigReg=new int[4];
- int*GReg=new int[1];for(int i=0;i<1;i++)GReg[i]=0;
- for(int i=0;i<7;i++)TckReg[i]=0;
- for(int i=0;i<4;i++)TrigReg[i]=0;
- for(int i=0;i<1;i++)GReg[i]=0;
- string MCparamfile="../src/ALSim/MCparameters.dat"; 
- 
- LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg);
-*/
-
  //Output root file 
  TFile*fileout=new TFile(Form("%s.root",input.at(0).c_str()),"RECREATE");
  cout << "Output file is created" <<endl;
@@ -392,9 +377,89 @@ int MakeRawBPDEventIT(string filename)
  string prevEVTline=" ";
  double prevGo=-999;
 
+ 
+ //LAST CT1 and CT3 line info
+  //HOUSEKEEPING FROM COUNTERS 1 AND 3
+ //Data FROM "CT1" LINE
+ int yCT1=-1;//Year from CT1 line linked to the event (last read CT1 line)
+ int mCT1=-1;//Month from CT1 line linked to the event (last read CT1 line)
+ int dCT1=-1;//Day from CT1 line linked to the event (last read CT1 line)
+ int hCT1=-1;//Hour from CT1 line linked to the event (last read CT1 line)
+ int miCT1=-1;//Minute from CT1 line linked to the event (last read CT1 line)
+ int sCT1=-1;//Second from CT1 line linked to the event (last read CT1 line)
+ float TempCT1=-999; //Temperature measured on the board CT1
+
+ int OnTimeCT1=-1;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
+ int LastCT1=-1;//The last command received by the payload, expressed as a decimal number (it is in HeX on the GUI display)
+ int CountCT1=-1;//Count of commands received by the payload since power on
+ 
+ //Barometer information: NOT INTERPRETED from line CT1
+ float Baro1T=-999;//Barometer 1 Temperature
+ float Baro1P=-999;//Barometer 1 Pressure
+ float Baro2T=-999;//Barometer 2 Temperature
+ float Baro2P=-999;//Barometer 2 Pressure
+ //Barometer information: INTERPRETED from line CT1
+ float TempB1=-999;//Barometer 1 Temperature
+ float TempB2=-999;//Barometer 2 Temperature
+ float PressB1=-999;//Barometer 1 Pressure
+ float PressB2=-999;//Barometer 2 Pressure
+ 
+ float GOCT1=-999;
+ float coinCT1=-999;
+ 
+ //Voltages
+ float Volt5VCT1=-999;  // Positive 5V from line CT1
+ float Volt15VCT1=-999; // Positive 15V from line CT1
+
+ //Data FROM "CT3" LINE
+ int yCT3=-1;//Year from CT3 line linked to the event (last read CT3 line)
+ int mCT3=-1;//Month from CT3 line linked to the event (last read CT3 line)
+ int dCT3=-1;//Day from CT3 line linked to the event (last read CT3 line)
+ int hCT3=-1;//Hour from CT3 line linked to the event (last read CT3 line)
+ int miCT3=-1;//Minute from CT3 line linked to the event (last read CT3 line)
+ int sCT3=-1;//Second from CT3 line linked to the event (last read CT3 line)
+ float TempCT3=-999; //Temperature measured on the board CT3
+
+ int OnTimeCT3=-1;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
+ int LastCT3=-1;//The last command received by the payload, expressed as a decimal number (it is in HeX on the GUI display)
+ int CountCT3=-1;//Count of commands received by the payload since power on
+ //Voltages
+ float Volt5VCT3=-999;  // Positive 5V from line CT3
+ float Volt15VCT3=-999; // Positive 15V from line CT3
+ //TRIGGER RATES (PHA AND LOGIC) from CT3
+ float T1L=-1;
+ float T1A=-1;
+ float T2L=-1;
+ float T2A=-1;
+ float T3L=-1;
+ float T3A=-1;
+ float T4L=-1;
+ float T4A=-1;
+ float GRDL=-1;
+ float GRDA=-1;
+ 
+  //HOUSEKEEPING FROM POW
+ int yPOW=-1;
+ int mPOW=-1;
+ int dPOW=-1;
+ int hPOW=-1;
+ int miPOW=-1;
+ int sPOW=-1;
+ int OnTimePOW=-1;
+ float MainC=-999;
+ float MainV=-999;
+ float HeatC=-999;
+ float HeatV=-999;
+ float TrackC=-999;
+ float TrackV=-999;
+
+ int NCT1words=25; //CT1 line 
+ int NCT3words=21; //CT3 line 
+ int NPOWwords=16; //POW line 
+
  //number of words per line
  //int NPHAwords=13; //PHA line for MIPFlit3.30
-// int NPHAwords=11; //PHA line for MIPFlit3.31
+ //int NPHAwords=11; //PHA line for MIPFlit3.31
  int NPHAwords=12; //PHA line for MIPFlit3.72
 
  int NEVTwords=0;
@@ -404,7 +469,6 @@ int MakeRawBPDEventIT(string filename)
  
  int NASIwords= 4; //ASI line   
 
- 
 //Number of Layers read
  int kASI=0;
  int kEVT=0;
@@ -413,13 +477,150 @@ int MakeRawBPDEventIT(string filename)
 //Start to read the file
  for (string line; getline(filestr,line);)
    {
-   // if(kEvent>3) return -1;
+    // if(kEvent>3) return -1;
     //Here the full line is read and stored in the string object "line" 
     //if(kEvent>10) continue;
 
     kLine++;
-   // if(kLine%1000==0)  
-  //        cout<< "Line " << kLine << " is read" <<endl; 
+    // if(kLine%1000==0)  
+    //  cout<< "Line " << kLine << " is read" <<endl; 
+
+///////////////////////////////////////////////
+//Compare the first 3 char of the line to "CT1"
+///////////////////////////////////////////////
+    
+    if (line.compare(0,3,"CT1",3)==0) 
+     {   
+      ///////////////////////////////////////////////
+      //Extract the data from the last CT1 line
+      ///////////////////////////////////////////////  
+      vector<string> datalineCT1;
+      //Split the line 
+      datalineCT1=split(&line,' '); 
+      
+      if((int)datalineCT1.size()!=NCT1words)
+        {
+         cout << "Number of words in the CT1 line is wrong : " << (int)datalineCT1.size() << " (Should be " << NCT1words  << "): "<< endl;
+         cout << line <<endl;
+         continue;
+        } 
+      //Extract CT1 date
+      //cout << "extract CT1 date" <<endl;
+      //cout << dataline.at(1) <<endl;
+      extractdate(&yCT1,&mCT1,&dCT1,&datalineCT1.at(1));
+      //cout << "extract CT1 date is done" <<endl;
+      //cout << "extract CT1 time" <<endl;
+      extracttime(&hCT1,&miCT1,&sCT1,&datalineCT1.at(2));
+        
+      //Format from Paul's email of Feb. 8, 2018
+
+      OnTimeCT1=s2i(&datalineCT1.at(3));
+      LastCT1=s2i(&datalineCT1.at(4));
+      CountCT1= s2i(&datalineCT1.at(5));
+      Baro1T=s2f(&datalineCT1.at(8));
+      Baro1P=s2f(&datalineCT1.at(9));
+      Baro2T=s2f(&datalineCT1.at(10));
+      Baro2P=s2f(&datalineCT1.at(11));
+      GOCT1=s2f(&datalineCT1.at(14));
+      coinCT1=s2f(&datalineCT1.at(15));
+      PressB1=s2f(&datalineCT1.at(16));
+      TempB1=s2f(&datalineCT1.at(17));
+      PressB2=s2f(&datalineCT1.at(18));
+      TempB2=s2f(&datalineCT1.at(19));
+      TempCT1=s2f(&datalineCT1.at(20));
+      Volt5VCT1=s2f(&datalineCT1.at(21));
+      Volt15VCT1=s2f(&datalineCT1.at(22));
+     }    
+///////////////////////////////////////////////
+//Compare the first 3 char of the line to "CT3"
+///////////////////////////////////////////////
+    
+    if (line.compare(0,3,"CT3",3)==0) 
+     {   
+      ///////////////////////////////////////////////
+      //Extract the data from the last CT3 line
+      ///////////////////////////////////////////////  
+      vector<string> datalineCT3;
+      //Split the line 
+      datalineCT3=split(&line,' '); 
+      
+      if((int)datalineCT3.size()!=NCT3words)
+        {
+         cout << "Number of words in the CT3 line is wrong : " << (int)datalineCT3.size() << " (Should be " << NCT3words  << "): "<< endl;
+         cout << line <<endl;
+         continue;
+        }  
+        
+      //Extract CT3 date
+      //cout << "extract CT3 date" <<endl;
+      //cout << dataline.at(1) <<endl;
+      extractdate(&yCT1,&mCT1,&dCT3,&datalineCT3.at(1));
+      //cout << "extract CT3 date is done" <<endl;
+      //cout << "extract CT3 time" <<endl;
+      extracttime(&hCT3,&miCT3,&sCT3,&datalineCT3.at(2));
+       
+      //Format from Paul's email of Feb. 8, 2018
+
+      OnTimeCT3=s2i(&datalineCT3.at(3));
+      LastCT3=s2i(&datalineCT3.at(4));
+      CountCT3= s2i(&datalineCT3.at(5));
+      T1L=s2f(&datalineCT3.at(6));
+      T1A=s2f(&datalineCT3.at(7));
+      T2L=s2f(&datalineCT3.at(8));
+      T2A=s2f(&datalineCT3.at(9));
+      T3L=s2f(&datalineCT3.at(10));
+      T3A=s2f(&datalineCT3.at(11));
+      T4L=s2f(&datalineCT3.at(12));
+      T4A=s2f(&datalineCT3.at(13));
+      GRDL=s2f(&datalineCT3.at(14));
+      GRDA=s2f(&datalineCT3.at(15));
+      TempCT3=s2f(&datalineCT3.at(16));
+      Volt5VCT3=s2f(&datalineCT3.at(17));
+      Volt15VCT3=s2f(&datalineCT3.at(18));      
+
+     }    
+///////////////////////////////////////////////
+//Compare the first 3 char of the line to "POW"
+///////////////////////////////////////////////
+    
+    if (line.compare(0,3,"POW",3)==0) 
+     {   
+      ///////////////////////////////////////////////
+      //Extract the data from the last CT3 line
+      ///////////////////////////////////////////////  
+      vector<string> datalinePOW;
+      //Split the line 
+      datalinePOW=split(&line,' '); 
+      
+      if((int)datalinePOW.size()!=NPOWwords)
+        {
+         cout << "Number of words in the POW line is wrong : " << (int)datalinePOW.size() << " (Should be " << NPOWwords  << "): "<< endl;
+         cout << line <<endl;
+         continue;
+        }  
+        
+      //Extract datalinePOW date
+      //cout << "extract datalinePOW date" <<endl;
+      //cout << dataline.at(1) <<endl;
+      extractdate(&yPOW,&miPOW,&dPOW,&datalinePOW.at(1));
+      //cout << "extract POW date is done" <<endl;
+      //cout << "extract POW time" <<endl;
+      extracttime(&hPOW,&miPOW,&sPOW,&datalinePOW.at(2));
+       
+      //Format from Paul's email of Feb. 8, 2018
+
+      OnTimePOW=s2i(&datalinePOW.at(3));
+      MainV=s2f(&datalinePOW.at(4));
+      MainC=s2f(&datalinePOW.at(5));
+      HeatV=s2f(&datalinePOW.at(6));
+      HeatC=s2f(&datalinePOW.at(7));
+      TrackV=s2f(&datalinePOW.at(8));
+      TrackC=s2f(&datalinePOW.at(9));
+
+    
+
+     }    
+    
 ///////////////////////////////////////////////
 //Compare the first 3 char of the line to "PHA"
 ///////////////////////////////////////////////
@@ -503,6 +704,72 @@ int MakeRawBPDEventIT(string filename)
       e->add_PHA6(s2lf(&datalinePHA.at(8)));
       e->set_GoPHA(s2lf(&datalinePHA.at(9)));
       e->set_tPHA(s2lf(&datalinePHA.at(10)));
+      
+      
+      //Set the housekeeping variables (It can be defautl value at the beginning of a run)
+      //CT1
+      e->set_yCT1(yCT1);
+      e->set_mCT1(mCT1);
+      e->set_dCT1(dCT1);
+      e->set_hCT1(hCT1);
+      e->set_miCT1(miCT1);
+      e->set_sCT1(sCT1);     
+      e->set_OnTimeCT1(OnTimeCT1);
+      e->set_LastCT1(LastCT1);
+      e->set_CountCT1(CountCT1);
+      e->set_TempCT1(TempCT1);     
+      e->set_Volt5VCT1(Volt5VCT1);
+      e->set_Volt15VCT1(Volt15VCT1);
+      e->set_Baro1T(Baro1T);
+      e->set_Baro1P(Baro1P);
+      e->set_Baro2T(Baro2T);
+      e->set_Baro2P(Baro2P);
+      e->set_GOCT1(GOCT1);
+      e->set_coinCT1(coinCT1);
+      e->set_PressB1(PressB1);
+      e->set_TempB1(TempB1);
+      e->set_PressB2(PressB2);
+      e->set_TempB2(TempB2);
+      
+      
+      //CT3
+      e->set_yCT3(yCT3);
+      e->set_mCT3(mCT3);
+      e->set_dCT3(dCT3);
+      e->set_hCT3(hCT3);
+      e->set_miCT3(miCT3);
+      e->set_sCT3(sCT3);     
+      e->set_OnTimeCT3(OnTimeCT3);
+      e->set_LastCT3(LastCT3);
+      e->set_CountCT3(CountCT3);
+      e->set_TempCT3(TempCT3);     
+      e->set_Volt5VCT3(Volt5VCT3);
+      e->set_Volt15VCT3(Volt15VCT3);
+      e->set_T1L(T1L);
+      e->set_T1A(T1A);
+      e->set_T2L(T2L);
+      e->set_T2A(T2A);
+      e->set_T3L(T3L);
+      e->set_T3A(T3A);
+      e->set_T4L(T4L);
+      e->set_T4A(T4A);
+      e->set_GRDL(GRDL);
+      e->set_GRDA(GRDA);
+      
+      //POW
+      e->set_yPOW(yPOW);
+      e->set_mPOW(mPOW);
+      e->set_dPOW(dPOW);
+      e->set_hPOW(hPOW);
+      e->set_miPOW(miPOW);
+      e->set_sPOW(sPOW);     
+      e->set_OnTimePOW(OnTimePOW);      
+      e->set_MainC(MainC);
+      e->set_MainV(MainV);
+      e->set_HeatC(HeatC);
+      e->set_HeatV(HeatV);
+      e->set_TrackC(TrackC);
+      e->set_TrackV(TrackV);
       
      }//end read line starting with PHA  
          
@@ -1336,5 +1603,7 @@ void extracttime(int *h,int*m,int*s,string*str)
 	  *m=s2i(&time.at(1));
 	  *s=s2i(&time.at(2));	
 }
+
+
 
 
