@@ -38,8 +38,8 @@ int main(int argc, char* argv[])
  int FieldConf = stoi(argv[3]);
  bool TwoIter = stoi(argv[4]);
  string RecoID = argv[5];
-
-
+ string filename;
+ 
  if(!filestr.is_open())
   {
    cout << "The file " << argv[1] << " is not open ... "<< endl ;
@@ -73,7 +73,14 @@ int main(int argc, char* argv[])
    {
     //Here the full line is read and stored in the string object "line" 
     cout << line <<endl; //Print the file path
-    
+ vector<string> input;
+ //Split the line 
+ input=split(&line,' ');
+ //Open input file
+  filename = (input.at(0));
+
+   cout << "The file " <<input.at(0) << " is not open ... "<< endl ;
+   
     //First step
     //Read the text file .BPD
     //Parse the information to create events
@@ -91,7 +98,11 @@ int main(int argc, char* argv[])
    }//line 
  
 	cout << "Done processing data" << endl;
- filestr.close();
- 
+        filestr.close();
+ //create file that indicates job is donei
+ //Output root file
+ TFile*fileout=new TFile(Form("%s.txt",filename.c_str()),"RECREATE");
+ cout << "Output file is created" <<endl;
+
  return 0;
 }

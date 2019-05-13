@@ -6,22 +6,24 @@ using namespace std;
 int main(int argc, char*argv[]) 
 {
 
- if(argc!=5)
+ if(argc!=6)
   {
    cout << "Wrong number of parameters!!!!" << endl;
-   cout << "The program needs 4 input parameters:"<< endl;
+   cout << "The program needs 5 input parameters:"<< endl;
    cout << "First is Fluka type of simulated particles (PP)" <<endl;
-   cout << "Second is first cycle to reconstruct (Starts at 1)" <<endl;
-   cout << "Third is the number of cycle to reconstruct" <<endl;
-   cout << "Fourth is tag of reconstruction" <<endl;
+   cout << "Second is atmospheric layer simulated" << endl;
+   cout << "Third is first cycle to reconstruct (Starts at 1)" <<endl;
+   cout << "Fourth is the number of cycle to reconstruct" <<endl;
+   cout << "Fifth is tag of reconstruction" <<endl;
    return -1;
   }
  //Fluka type of particle
  int type=(int) atoi(argv[1]);           //3 for electrons
- int Ncycles=(int) atoi(argv[2]);      //first cycle to reconstruct
- int Ncycles2=(int) atoi(argv[3]);    //last cycle
+ int layer=(int) atoi(argv[2]);		//atmospheric layer index
+ int Ncycles=(int) atoi(argv[3]);      //first cycle to reconstruct
+ int Ncycles2=(int) atoi(argv[4]);    //last cycle
+ string RecoInd=argv[5];            //string Reco Index: allows to distinct between types of reconstruction
  int DataType= 0;                    //datatype, 0=MC, 1 = data
- string RecoInd=argv[4];            //string Reco Index: allows to distinct between types of reconstruction
  int InitType=1;		   //0=MC, 1=PR, 2=3pt helix
  bool secondIter=false;
  
@@ -82,11 +84,11 @@ int main(int argc, char*argv[])
    TFile *fileout;		  
        //input file
 
-	   file=new TFile(Form("%s/%d/RawEvent_%s_%d%03d%s.root",Outpath.c_str(),type,startfile.c_str(),type,j,endfile.c_str()),"READ");
-	   cout << "Input file " << Form("%s/%d/RawEvent_%s_%d%03d%s.root",Outpath.c_str(),type,startfile.c_str(),type,j,endfile.c_str())<< " is opened" <<endl;
+	   file=new TFile(Form("%s/%d/RawEvent_%s_%d_%d_%03d%s.root",Outpath.c_str(),type,startfile.c_str(),type,layer,j,endfile.c_str()),"READ");
+	   cout << "Input file " << Form("%s/%d/RawEvent_%s_%d_%d_%03d%s.root",Outpath.c_str(),type,startfile.c_str(),type,layer,j,endfile.c_str())<< " is opened" <<endl;
        //output file
-      fileout=new TFile(Form("%s/%d/RecoEvent_%s_%d%03d%s_%s.root",Outpath.c_str(),type,startfile.c_str(),type,j,endfile.c_str(),RecoInd.c_str()),"RECREATE");
-	   cout << "Output file " << Form("%s/%d/RecoEvent_%s_%d%03d%s_%s.root",Outpath.c_str(),type,startfile.c_str(),type,j,endfile.c_str(),RecoInd.c_str()) << " is created" <<endl;
+      fileout=new TFile(Form("%s/%d/RecoEvent_%s_%d_%d_%03d%s_%s.root",Outpath.c_str(),type,startfile.c_str(),type,layer,j,endfile.c_str(),RecoInd.c_str()),"RECREATE");
+	   cout << "Output file " << Form("%s/%d/RecoEvent_%s_%d_%d_%03d%s_%s.root",Outpath.c_str(),type,startfile.c_str(),type,layer,j,endfile.c_str(),RecoInd.c_str()) << " is created" <<endl;
 
        //Get Tree from the input file
        TTree *tree = (TTree*)file->Get("MC");
@@ -140,12 +142,7 @@ int main(int argc, char*argv[])
 	  int KF = KalmanReco->DoKF(re, DataType,InitType, secondIter);
           if(KF==0) {
           REtree->Fill();
-          delete re;#include <iostream>
-#include "TROOT.h"
-#include "TApplication.h"
-#include "ALKalman.h"
-#include "ALPatternRecognition.h"
-#include "LoadMCparameters.h"
+          delete re;
 
 	  delete KalmanReco;
           continue;
@@ -154,9 +151,11 @@ int main(int argc, char*argv[])
 	   }	
 	
 		   */
-          /////////////////////    
+
+
+          /////////////////////////////////////////////////////   
           //Fill the output file with the reconstructed event
-          /////////////////////
+          ////////////////////////////////////////////////////
            REtree->Fill();
           //Free memory    
            delete re;

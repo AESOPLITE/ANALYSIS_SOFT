@@ -8,7 +8,7 @@
 
 INSTALLDIR = $(PWD)
 SRCDIR     = $(INSTALLDIR)/src
-PROGRAMNAME = MainRawEventMC
+PROGRAMNAME = MainRawBPDEvent
 
 SRCS          =  $(PROGRAMNAME).$(SrcSuf) \
                 $(SRCDIR)/ALSim/MakeRawBPDEvent.$(SrcSuf) \

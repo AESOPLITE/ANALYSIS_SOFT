@@ -5,26 +5,29 @@ using namespace std;
 
 int main(int argc, char*argv[]) 
 {
-
- if(argc!=6)
+ if(argc!=8)
   {
    cout << "Wrong number of parameters!!!!" << endl;
    cout << "The program needs 5 input parameters:"<< endl;
    cout << "First is Fluka type of simulated particles" <<endl;
    cout << "Second is energy in MeV or GeV" <<endl;
-   cout << "Third is first cycle to reconstruct (Starts at 1)" <<endl;
-   cout << "Fourth is the number of cycle to reconstruct" <<endl;
-   cout << "Fifth is tag of reconstruction" <<endl;
+   cout << "Third is random seed configuration" << endl;
+   cout << "Fourth is first cycle to reconstruct (Starts at 1)" <<endl;
+   cout << "Fifth is the number of cycle to reconstruct" <<endl;
+   cout << "Six is tag of reconstruction" <<endl;
+   cout << "Seven is MC source tag " << endl;
    return -1;
   }
  //Fluka type of particle
  int type=(int) atoi(argv[1]);           //3 for electrons
  int Ene=(int) atoi(argv[2]);           //Energy 
- int Ncycles=(int) atoi(argv[3]);      //first cycle to reconstruct
- int Ncycles2=(int) atoi(argv[4]);    //last cycle
+ int seed=(int) atoi(argv[3]);           //random seed configuration 
+ int Ncycles=(int) atoi(argv[4]);      //first cycle to reconstruct
+ int Ncycles2=(int) atoi(argv[5]);    //last cycle
+ string RecoInd=argv[6];            //string Reco Index: allows to distinct between types of reconstruction
+ string source=argv[7];
  int DataType= 0;                    //datatype, 0=MC, 1 = data
- string RecoInd=argv[5];            //string Reco Index: allows to distinct between types of reconstruction
- 
+
 
 //Load region numbers used in the MC geometry 
  int*TckReg=new int[7];
@@ -88,43 +91,42 @@ FieldMap *fM = new FieldMap(fN, "binary", 81);
 //fM->writeBinaryFile("/home/smechbal/ANALYSIS_SOFT/src/RKFitter/fieldmap5mm.bin");
 
 
-	
-//filename structure
-string startfile="aesopliteNonUniB_V4";
-string endfile="_fort.99";
- 
- 
-//Input files 
-string Inppath="~/MCproduction/AESOPLITE/rootfiles/NonUniB/V4";
-//Output files
-string Outpath="~/MCproduction/AESOPLITE/rootfiles/NonUniB/V4";
+ //filename structure
 
- 
+ string startfile="aesopliteNonUniB_V4";
+ string endfile="_fort.99";
+
+ //Input files 
+
+
+ string Inppath="/home/smechbal/MCproduction/AESOPLITE/rootfiles/NonUniB/V4";
+ //Output files
+ string Outpath="/home/smechbal/MCproduction/AESOPLITE/rootfiles/NonUniB/V4";
+
+
  for(int j=Ncycles;j<Ncycles+Ncycles2;j++)//Number of cycles
       {
    TFile *file;
-   TFile *fileout;		  
+   TFile *fileout;
   // for electrons, energies in MeV
        //input file
        if(type==3 || type==4) {
-       cout << Form("%s/%d/RawEvent_%s_%d_%dMeV%03d%s.root",Inppath.c_str(),type,startfile.c_str(),type,Ene,j,endfile.c_str()) << endl;
-      file=new TFile(Form("%s/%d/RawEvent_%s_%d_%dMeV%03d%s.root",Inppath.c_str(),type,startfile.c_str(),type,Ene,j,endfile.c_str()),"READ");
-//       file=new TFile(Form("%s/%d/RawEvent_%s_%d_%dMeV%s.root",Inppath.c_str(),type,startfile.c_str(),type,Ene,endfile.c_str()),"READ");
-	cout << "Input file is open" <<endl;
+       file=new TFile(Form("%s/%d/%s/RawEvent_%s_%d_%dMeV%d%03d%s.root",Inppath.c_str(),type,source.c_str(),startfile.c_str(),type,Ene,seed,j,endfile.c_str()),"READ");
+       cout << "Input file is open" <<endl;
        //output file
-      fileout=new TFile(Form("%s/%d/RecoEvent_%s_%d_%dMeV%03d%s_%s.root",Outpath.c_str(),type,startfile.c_str(),type,Ene,j,endfile.c_str(),RecoInd.c_str()),"RECREATE");
- //     fileout=new TFile(Form("%s/%d/RecoEvent_%s_%d_%dMeV%s_%s.root",Outpath.c_str(),type,startfile.c_str(),type,Ene,endfile.c_str(),RecoInd.c_str()),"RECREATE"); 
- }
-		  //for muons, energies in GeV
+      fileout=new TFile(Form("%s/%d/%s/RecoEvent_%s_%d_%dMeV%d%03d%s_%s.root",Outpath.c_str(),type,source.c_str(),startfile.c_str(),type,Ene,seed,j,endfile.c_str(),RecoInd.c_str()),"RECREATE");
+  }
+                  //for muons, energies in GeV
        else {
-		  
-	     cout << Form("%s/%d/RawEvent_%s_%d_%dGeV%03d%s.root",Inppath.c_str(),type,startfile.c_str(),type,Ene,j,endfile.c_str()) <<endl;
+
+             cout << Form("%s/%d/RawEvent_%s_%d_%dGeV%03d%s.root",Inppath.c_str(),type,startfile.c_str(),type,Ene,j,endfile.c_str()) <<endl;
        //input file
        file=new TFile(Form("%s/%d/RawEvent_%s_%d_%dGeV%03d%s.root",Inppath.c_str(),type,startfile.c_str(),type,Ene,j,endfile.c_str()),"READ");
        cout << "Input file is open" <<endl;
        //output file
        fileout=new TFile(Form("%s/%d/RecoEvent_%s_%d_%dGeV%03d%s_%s.root",Outpath.c_str(),type,startfile.c_str(),type,Ene,j,endfile.c_str(),RecoInd.c_str()),"RECREATE");
  }
+	
 
 	
 
@@ -306,7 +308,7 @@ string Outpath="~/MCproduction/AESOPLITE/rootfiles/NonUniB/V4";
 		rkf->errors(e);
 	  	double p0reco = abs(1./ a[4]);		//fitted momentum in GeV
 		 double chi2 = rkf->chiSqr();			//chi2 of fit
-	//	cout << " event " << event << "  p0reco = " << p0reco << "MeV" << endl;
+		cout << " event " << event << "  p0reco = " << p0reco << "MeV" << endl;
 	        int typereco = TMath::Sign(1,a[4]);		//positive or negative particle?
 	        double cxL0 = a[1];						//directional cosine at beginning of track
 	  	double cyL0 = a[2];

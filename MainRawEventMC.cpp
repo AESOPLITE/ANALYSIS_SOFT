@@ -1,4 +1,5 @@
 #include "MainRawEventMC.h"
+#include "headers.h"
 using namespace std;
 
 
@@ -8,7 +9,7 @@ using namespace std;
 int main(int argc, char*argv[]) 
 {
 
- if(argc!=6)
+ if(argc!=7)
   {
    cout << "Wrong number of parameters!!!!" << endl;
    cout << "The program needs 5 input parameters:"<< endl;
@@ -17,6 +18,7 @@ int main(int argc, char*argv[])
    cout << "Third is random seed configuration" << endl;
    cout << "Fourth is first cycle to reconstruct (Starts at 1)" <<endl;
    cout << "Fifth is the number of cycle to reconstruct" <<endl;
+   cout << "Sixth is the MC source tag" << endl;	
    return -1;
   }
  //Fluka type of particle
@@ -25,6 +27,7 @@ int main(int argc, char*argv[])
  int seed=(int) atoi(argv[3]);  //Random seed config
  int Ncycles=(int) atoi(argv[4]);   //first cycle to reconstruct
  int Ncycles2=(int) atoi(argv[5]);   //last cycle
+ string source=argv[6];
 
  //Input files 
  string Inppath="/data/smechbal/Fluka/NonUniB/V4";
@@ -40,16 +43,18 @@ int main(int argc, char*argv[])
  for(int j=Ncycles;j<Ncycles+Ncycles2;j++)//Number of cycles
       {
        if((type==3) || (type==1)) {
-       cout << Form("%s/%d/%s/%s_%d_%dMeV%d%03d%s.root",Inppath.c_str(),type,Inppath2.c_str(),startfile.c_str(),type,Ene,seed,j,endfile.c_str()) <<endl;
+       cout << Form("%s/%d/%s/%s/%s_%d_%dMeV%d%03d%s.root",Inppath.c_str(),type,source.c_str(),Inppath2.c_str(),startfile.c_str(),type,Ene,seed,j,endfile.c_str()) <<endl;
 	}
        else cout << Form("%s/%d/%s/%s_%d_%dGeV%03d%s.root",Inppath.c_str(),type,Inppath2.c_str(),startfile.c_str(),type,Ene,j,endfile.c_str()) <<endl;
        	
        //Create the RawEvent
-       MakeRawEventMCDisc(type,Ene,seed,j,Inppath,Inppath2,Outpath,startfile,endfile);
-    // MakeRawEventMC(type,Ene,j,Inppath,Inppath2,Outpath,startfile,endfile);
+     MakeRawEventMCDisc(type,Ene,seed,j,Inppath,source,Inppath2,Outpath,startfile,endfile);
+ //    MakeRawEventMC(type,Ene,seed,j,Inppath,source,Inppath2,Outpath,startfile,endfile);
+
       }//j
 
- 
+//TObjectTable*gObjectTable = new TObjectTable;
+//gObjectTable->Print(); 
  
  return 0;
 }

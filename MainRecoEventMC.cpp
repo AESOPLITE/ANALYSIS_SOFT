@@ -86,7 +86,7 @@ int main(int argc, char*argv[])
   // for electrons, energies in MeV
        //input file
        if(type==3 || type==4) {
-       file=new TFile(Form("%s/%d/RawEvent_%s_%d_%dMeV%d%03d%s.root",Inppath.c_str(),type,startfile.c_str(),type,Ene,seed,j,endfile.c_str()),"READ");
+       file=new TFile(Form("%s/%d/%s/RawEvent_%s_%d_%dMeV%d%03d%s.root",Inppath.c_str(),type,source.c_str(),startfile.c_str(),type,Ene,seed,j,endfile.c_str()),"READ");
        cout << "Input file is open" <<endl;
        //output file
       fileout=new TFile(Form("%s/%d/%s/RecoEvent_%s_%d_%dMeV%d%03d%s_%s.root",Outpath.c_str(),type,source.c_str(),startfile.c_str(),type,Ene,seed,j,endfile.c_str(),RecoInd.c_str()),"RECREATE");
@@ -121,16 +121,16 @@ int main(int argc, char*argv[])
        //Loop over the events
        // This is the main loop
        for (int k=0;k<nentries;k++)
-     	//for(int k=0;k<1000;k++) 
+//     	for(int k=0;k<1000;k++) 
     	{
 	  
           tree->GetEntry(k); //Load the entry k in the variable e  
           //Copy the raw event into a reco event with same structure 
           re=new ALEvent();
           re->Copy(e);  
-	  
-	 
-			 
+          int nhit = re->get_Nhits();	  
+//	  if (nhit!=7) continue;
+//	  cout << "Event " << k << ", nhits = " << nhit << endl;		 
           /////////////////////
           //Pattern Recognition
           /////////////////////
@@ -140,30 +140,34 @@ int main(int argc, char*argv[])
 	  if(PR==0) {
 	 	REtree->Fill();
 		delete re;
+		delete TestPattern;
 		continue;
 		}
 	
 	 //////////////////////////////
 	 //Kalman Filter reconstruction
 	 //////////////////////////////
-	
-	  else {
+
+	 else {
 	  ALKalman* KalmanReco = new ALKalman(re);
 	  int KF = KalmanReco->DoKF(re, DataType,InitType, secondIter);
           if(KF==0) {
           REtree->Fill();
           delete re;
+	  delete KalmanReco;
           continue;
             }
-
+	  delete KalmanReco;
 	   }	
-		 
+	
           /////////////////////    
           //Fill the output file with the reconstructed event
           /////////////////////
            REtree->Fill();
           //Free memory    
            delete re;
+           delete TestPattern;
+
          }//k End loop on events
        delete e;
        //Write tree in output file
@@ -172,8 +176,16 @@ int main(int argc, char*argv[])
        //Close files
        fileout->Close();
        file->Close();
+      // REtree->Delete();
       }//j
 
-
+ //delete pointers
+  delete[] TckReg;
+ delete[] TrigReg;
+ delete[] GReg;
+ delete[] ShellReg;
+ delete[] TckZPos;
+ delete[] GuardThresh;
+ delete[] TrigThresh;
  return 0;
 }
