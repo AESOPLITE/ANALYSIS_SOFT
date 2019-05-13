@@ -8,9 +8,9 @@
 #include "MakeRawEventAtmoMC.h"
 
 
-int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string Outpath,string startfile,string endfile)
+int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inppath2,string Outpath,string startfile,string endfile)
 {
- cout << "Calling MakeRawEventMCDisc" << endl;   
+ cout << "Calling MakeRawEventAtmoMC" << endl;   
  float OffsetLL=0;
  float OffsetRL=0;
     
@@ -59,11 +59,11 @@ int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string
  TFile *fileout;
  //Input file 
 
- file=new TFile(Form("%s/%d/%s/%s_%d%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,cycle,endfile.c_str()),"READ");
+ file=new TFile(Form("%s/%d/%s/%s_%d_%d_%03d%s.root",Inppath.c_str(),typeT,Inppath2.c_str(),startfile.c_str(),typeT,layer,cycle,endfile.c_str()),"READ");
 	cout << "Input file is open" <<endl;
    //Output file 
-   fileout=new TFile(Form("%s/%d/RawEvent_%s_%d%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,cycle,endfile.c_str()),"RECREATE");
-   cout << "Output file " << Form("%s/%d/RawEvent_%s_%d%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,cycle,endfile.c_str())<< " is created" <<endl;
+   fileout=new TFile(Form("%s/%d/RawEvent_%s_%d_%d_%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,layer,cycle,endfile.c_str()),"RECREATE");
+   cout << "Output file " << Form("%s/%d/RawEvent_%s_%d_%d_%03d%s.root",Outpath.c_str(),typeT,startfile.c_str(),typeT,layer,cycle,endfile.c_str())<< " is created" <<endl;
   
   
  //Get ntuple from the input file
@@ -103,7 +103,8 @@ int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string
  float mtrack=0;
  float type=0;
  float EkMC=0;
- float pMC=0; 
+ float eMC=0; 
+ float pMC=0;
  float x=0;
  float y=0;
  float z=0;
@@ -237,7 +238,7 @@ int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string
 		 mtrack=col3;
 		 type=col4;
 		 age=col5;
-		 EkMC=col6;
+		 eMC=col6;
 		 x=col7;
 		 y=col8;
 		 z=col9;
@@ -246,13 +247,17 @@ int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string
 		 cz=col12;
 		 Edep=col13;
 		 flag=col14;
-			}    
-	e->add_posX(x);
-    e->add_posY(y);
-    e->add_posZ(z);
-	e->add_posType(type);
-	e->add_posAge(age);
-	e->add_posP(pMC);
+			}
+/*
+   pMC = TMath::Sqrt(EkMC*EkMC + 2*mass);    
+   e->add_posX(x);
+   e->add_posY(y);
+   e->add_posZ(z);
+   e->add_posType(type);
+   e->add_posAge(age);
+   e->add_posP(pMC);
+   pMC = TMath::Sqrt(EkMC*EkMC + 2*mass); 
+*/
    if(mreg==11) mreg11++;
    if(mreg==12) mreg12++;
    if(mreg==13) mreg13++;
@@ -411,12 +416,6 @@ int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string
 
       if(i==0)//if first event
        {
-        e->add_posX(x);
-        e->add_posY(y);
-        e->add_posZ(z);
-		e->add_posType(type);
-		e->add_posAge(age);
-		e->add_posP(pMC);
         ievt=ncase; 
         delete e;
         e=new ALEvent();
@@ -424,13 +423,13 @@ int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string
         e->set_ncase(ncase);
         //First line  with a given ncase contains the source particle info
         e->set_typeMC(type);
-        e->set_pMC(pMC);
         //Calculate kinetic energy from momentum at point of injection
-        float mass=0.000511;								//electron mass in GeV
+        float mass=0.000511;						//electron mass in GeV
         if(type==11 || type ==10)	mass=0.10566;			//muon mass in GeV
-		if(type==1)					mass=0.93827;			//proton mass in GeV
-		if(type==-6)				mass=3.72739;			//alpha mass in GeV 
-        EkMC = TMath::Sqrt(pMC*pMC+mass*mass);
+	if(type==1)			mass=0.93827;			//proton mass in GeV
+	if(type==-6)			mass=3.72739;			//alpha mass in GeV 
+        pMC = TMath::Sqrt(EkMC*EkMC+2*mass);   
+        e->set_pMC(pMC);   
         e->set_EkMC(EkMC);
         e->set_X0MC(x);
         e->set_Y0MC(y);
@@ -438,12 +437,21 @@ int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string
         e->set_CX0MC(cx);
         e->set_CY0MC(cy);
         e->set_CZ0MC(cz);
-		e->set_typePP(typePP);
-		e->set_EkPP(EkPP);
-		e->set_ZenPP(ZenPP);
-		e->set_AziPP(AziPP);
-		e->set_CoLatSP(CoLatSP);
-		e->set_CoLonSP(CoLonSP);
+	e->set_typePP(typePP);
+	e->set_EkPP(EkPP);
+	e->set_ZenPP(ZenPP);
+	e->set_AziPP(AziPP);
+	e->set_CoLatSP(CoLatSP);
+	e->set_CoLonSP(CoLonSP);
+        e->add_posX(x);
+        e->add_posY(y);
+        e->add_posZ(z);
+        e->add_posCX(cx);
+        e->add_posCY(cy);
+        e->add_posCZ(cz);
+        e->add_posType(type);
+        e->add_posAge(age);
+        e->add_posP(pMC);
 		 
 	for(int ij=0;ij<7;ij++)Titmp[ij]=0;
        }//if
@@ -464,14 +472,15 @@ int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string
         e->set_eventnumber(j);
         e->set_ncase(ncase);
         //First line with a given ncase contains the source particle info
-        e->set_typeMC(type);
+	e->set_typeMC(type);
         e->set_pMC(pMC);
-        //Calculate kinetic energy from momentum at point of injection
-        float mass=0.000511;								//electron mass in GeV
+        //Calculate momentum from kinetic energy at point of injection
+        float mass=0.000511;						//electron mass in GeV
         if(type==11 || type ==10)	mass=0.10566;			//muon mass in GeV
-		if(type==1)					mass=0.93827;			//proton mass in GeV
-		if(type==-6)				mass=3.72739;			//alpha mass in GeV 
-        float EkMC = TMath::Sqrt(pMC*pMC+mass*mass);
+	if(type==1)			mass=0.93827;			//proton mass in GeV
+	if(type==-6)			mass=3.72739;			//alpha mass in GeV 
+        pMC = TMath::Sqrt(EkMC*EkMC + 2*mass);
+        e->set_pMC(pMC);       
         e->set_EkMC(EkMC);
         e->set_X0MC(x);
         e->set_Y0MC(y);
@@ -481,12 +490,22 @@ int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string
         e->set_CY0MC(cy);
         e->set_CZ0MC(cz);
 	//  Fill in info for PP
-		e->set_typePP(typePP);
-		e->set_EkPP(EkPP);
-		e->set_ZenPP(ZenPP);
-		e->set_AziPP(AziPP);
-		e->set_CoLatSP(CoLatSP);
-		e->set_CoLonSP(CoLonSP);
+	e->set_typePP(typePP);
+	e->set_EkPP(EkPP);
+	e->set_ZenPP(ZenPP);
+	e->set_AziPP(AziPP);
+	e->set_CoLatSP(CoLatSP);
+	e->set_CoLonSP(CoLonSP);
+        e->add_posX(x);
+        e->add_posY(y);
+        e->add_posZ(z);
+        e->add_posCX(cx);
+        e->add_posCY(cy);
+	e->add_posCZ(cz);        
+	e->add_posType(type);
+        e->add_posAge(age);
+        e->add_posP(pMC);
+
         //Reset internal trigger
         for (int ij=0;ij<7;ij++)Titmp[ij]=0;
        }     //else
@@ -572,10 +591,10 @@ int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string
            h->set_mregMC(mreg); 
            //set layer number (for MC and data)
            int L = (int)mreg%11;
-	  	   h->set_L(L);
+	   h->set_L(L);
            h->set_mtrackMC(mtrack);
            h->set_typeMC((int)type);
-           h->set_eMC(pMC); 				//total energy of particle crossing region
+           h->set_eMC(eMC); 				//total energy of particle crossing region
            h->set_flag(flag);
            h->set_k(nh);
            h->set_age(age);
@@ -678,18 +697,27 @@ int MakeRawEventAtmoMC(int typeT,int cycle,string Inppath,string Inppath2,string
    CZ.clear();
    T.clear();
    EDEP.clear();
-   delete h;
+//   delete h;
       
   }
 
  int tt=0;
  for (int ij=0;ij<7;ij++) tt+=Titmp[ij]*(int)TMath::Power(2,ij);
- e->set_Ti(tt);	  
- tree->Fill(); 
- delete e; 
+ //cout << "before setTi" <<endl;
+
+ e->set_Ti(tt);
+ //cout << "before tree fill" <<endl;
+
+ tree->Fill();
+// cout << "before delete e" <<endl;
+
+ delete e;
+ //cout << "after delete e" <<endl;
 
  //Write tree in output file 
  tree->Write();
+
+
 
  //Close files
  fileout->Close();

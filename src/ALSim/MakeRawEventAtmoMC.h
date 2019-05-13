@@ -61,4 +61,4 @@
 
 
 
-int MakeRawEventAtmoMC(int,int,string,string,string,string,string);
+int MakeRawEventAtmoMC(int,int,int,string,string,string,string,string);
