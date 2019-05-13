@@ -1,6 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////// 
 ///    Author: Pierre-Simon Mangeard, psmangeard@gmail.com
 ///    Department of Physics and Astronomy, University of Delaware, October 28, 2016
+///				Sarah Mechbal, smechbal@ucsc.edu
+////   Department of Physics, University of California Santa Cruz
 ////////////////////////////////////////////////////////////////////////////////////////// 
 #ifndef __ALEVENT__
 #define __ALEVENT__
@@ -86,10 +88,13 @@ class ALEvent:public TObject
    //Hits information
    std::vector<ALTckhit*> hits;  
    
-   //NEW: all segments informations for MC (full position & momentum & age & type)
+   //NEW: all segments informations for MC (full position & directional cosines & momentum & age & type)
    std::vector<float> posX;
    std::vector<float> posY;
    std::vector<float> posZ;
+   std::vector<float> posCX;
+   std::vector<float> posCY;
+   std::vector<float> posCZ;   
    std::vector<float> posType;
    std::vector<float> posAge;
    std::vector<float> posP;
@@ -329,6 +334,9 @@ class ALEvent:public TObject
    void add_posX(float a){posX.push_back(a);} 
    void add_posY(float a){posY.push_back(a);} 
    void add_posZ(float a){posZ.push_back(a);} 
+   void add_posCX(float a){posCX.push_back(a);} 
+   void add_posCY(float a){posCY.push_back(a);} 
+   void add_posCZ(float a){posCZ.push_back(a);} 
    void add_posType(float a){posType.push_back(a);} 
    void add_posAge(float a){posAge.push_back(a);}
    void add_posP(float a){posP.push_back(a);} 
@@ -517,6 +525,9 @@ class ALEvent:public TObject
    std::vector<float>&  get_posX(){return posX;}
    std::vector<float>&  get_posY(){return posY;}
    std::vector<float>&  get_posZ(){return posZ;}
+   std::vector<float>&  get_posCX(){return posCX;}
+   std::vector<float>&  get_posCY(){return posCY;}
+   std::vector<float>&  get_posCZ(){return posCZ;}
    std::vector<float>&  get_posType(){return posType;}
    std::vector<float>&  get_posAge(){return posAge;}
    std::vector<float>&  get_posP(){return posP;}
@@ -622,6 +633,8 @@ class ALEvent:public TObject
 };
 
 #endif
+
+
 
 
 

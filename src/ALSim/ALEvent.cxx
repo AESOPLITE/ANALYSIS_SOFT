@@ -1,6 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////// 
 ///    Author: Pierre-Simon Mangeard, psmangeard@gmail.com
 ///    Department of Physics and Astronomy, University of Delaware, October 28, 2016
+///				Sarah Mechbal, smechbal@ucsc.edu
+////   Department of Physics, University of California Santa Cruz
 ////////////////////////////////////////////////////////////////////////////////////////// 
 
 #include "ALEvent.h"
@@ -258,6 +260,9 @@ void ALEvent::Copy(ALEvent* e)
    for(int i=0;i<(int)(e->get_posX()).size();i++) posX.push_back((e->get_posX()).at(i));
    for(int i=0;i<(int)(e->get_posY()).size();i++) posY.push_back((e->get_posY()).at(i));
    for(int i=0;i<(int)(e->get_posZ()).size();i++) posZ.push_back((e->get_posZ()).at(i));
+   for(int i=0;i<(int)(e->get_posCX()).size();i++) posCX.push_back((e->get_posCX()).at(i));
+   for(int i=0;i<(int)(e->get_posCY()).size();i++) posCY.push_back((e->get_posCY()).at(i));
+   for(int i=0;i<(int)(e->get_posCZ()).size();i++) posCZ.push_back((e->get_posCZ()).at(i));
    for(int i=0;i<(int)(e->get_posType()).size();i++) posType.push_back((e->get_posType()).at(i));
    for(int i=0;i<(int)(e->get_posAge()).size();i++) posAge.push_back((e->get_posAge()).at(i));
    for(int i=0;i<(int)(e->get_posP()).size();i++) posP.push_back((e->get_posP()).at(i));
@@ -374,6 +379,8 @@ void ALEvent::get_Layers(int*Lay)
   // cout << "get_Layers tmpTi = " << unsigned(tmpTi) << endl;
   for(int ij=0;ij<7;ij++) Lay[ij]=(int)((tmpTi >>ij) & 0x01);
  }
+
+
 
 
 
