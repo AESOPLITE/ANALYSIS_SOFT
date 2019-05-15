@@ -282,10 +282,10 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
 	  svd_first(1,0) = phi0_init;
 	  svd_first(2,0) = kappa_init;
           svd_first(4,0) = tanL_init;
-	  cout << "phi_init = " << phi0_init << "  cpa_init = " << kappa_init << "  tanL = " << tanL_init << endl;
-	  cout << "phi_MC = " << phi0_MC << "  cpa_MC = " << kappa_MC << "  tanL_MC = " << tanL_MC << endl;
-	  cout << "phi_PR = " << phi0_PR << "  cpa_PR = " << kappa_PR << "  tanL_PR = " << tanL_PR << endl;
-	  cout << "phi_3 = " << phi0_3 << "  cpa_3 = " << kappa_3 << "  tanL_3 = " << tanL_3 << endl;
+	//  cout << "phi_init = " << phi0_init << "  cpa_init = " << kappa_init << "  tanL = " << tanL_init << endl;
+	//  cout << "phi_MC = " << phi0_MC << "  cpa_MC = " << kappa_MC << "  tanL_MC = " << tanL_MC << endl;
+	//  cout << "phi_PR = " << phi0_PR << "  cpa_PR = " << kappa_PR << "  tanL_PR = " << tanL_PR << endl;
+	//  cout << "phi_3 = " << phi0_3 << "  cpa_3 = " << kappa_3 << "  tanL_3 = " << tanL_3 << endl;
       static TKalMatrix C_first(kSdim,kSdim);
        for (Int_t k=0; k<kSdim; k++) {
 		   C_first(k,k) = CovMElement;  //huge error matrix to start with
@@ -305,7 +305,7 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
    state = svd_last;
    covariant = C_last;
    if(initfit == 0) {
-        cout << "initfit set to 0, exiting InitializeHelix" << endl;
+     //   cout << "initfit set to 0, exiting InitializeHelix" << endl;
 	return 0;
 }
 	}  //end if 2nd iteration
@@ -324,9 +324,9 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
 	re->set_cpa_init(state(2,0));
 	re->set_tanl_init(state(4,0));
       //  re->set_Cov_init(covariant);
-	state.DebugPrint("initial state vector");
+//	state.DebugPrint("initial state vector");
     //covariant.DebugPrint("initial cov matrix");
-     cout << "end initialize helix function " << endl;
+  //   cout << "end initialize helix function " << endl;
      return type;
 
 }	
@@ -409,7 +409,7 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
    //cout << "Momentum from fist filter iteration p = " << mom * 1000 << " MeV" << endl; 
    double chi2first = kalfirst.GetChi2();
    if(fabs(chi2first) > chi2lim) {
-    cout << "Initial fit chi2 too high, throwing event away" << endl;	
+ //   cout << "Initial fit chi2 too high, throwing event away" << endl;	
     return 0;
 	}
    else return 1;
@@ -477,15 +477,15 @@ int hit_index;
       TKalTrackSite  &site = *new TKalTrackSite(*hitp); // create a site for this hit
       TVector3 TVbfield = TBField::GetGlobalBfield(xv);
       double B = TVbfield.Mag();
-     cout << "x = "  << xv.X() << " y ="  << xv.Y() << " z ="  << xv.Z() << endl;
-      cout << "B = (" << TVbfield.X() << "," << TVbfield.Y() << "," << TVbfield.Z() << ")"  << endl;	
-		  cout << "Phi = "  <<  xv.Phi() << " Perp = " << xv.Perp() << endl;
+ //    cout << "x = "  << xv.X() << " y ="  << xv.Y() << " z ="  << xv.Z() << endl;
+  //    cout << "B = (" << TVbfield.X() << "," << TVbfield.Y() << "," << TVbfield.Z() << ")"  << endl;	
+	//	  cout << "Phi = "  <<  xv.Phi() << " Perp = " << xv.Perp() << endl;
 	  		 	 
       if (!kaltrack.AddAndFilter(site))
        { // add and filter this site
-        site.DebugPrint();
-       kaltrack.GetState(TVKalSite::kFiltered).DebugPrint();
-        cerr << " site discarded!" << endl;
+       // site.DebugPrint();
+     //  kaltrack.GetState(TVKalSite::kFiltered).DebugPrint();
+      //  cerr << " site discarded!" << endl;
         delete &site;
        } 
 /////////////////////////////////IF SITE ACCEPTED/////////////////////////////////
@@ -506,10 +506,10 @@ int hit_index;
 	 	//  TVKalState &state_smoothed = site.GetState(TVKalSite::kSmoothed);
                 //  THelicalTrack hel_smoothed = (dynamic_cast<TKalTrackState &>(state_smoothed)).GetHelix();
                   //TVector3 x_smoothed=hel_smoothed.CalcXAt(0.0);  
-		  cout << "\t xraw   =("<< xraw.X()<<",  "<<xraw.Y()<<", "<<xraw.Z()<<"): \n";
-                  cout << "\t x_fil=("<< x_fil.X()<<",  "<<x_fil.Y()<<", "<<x_fil.Z()<<"): \n";
+		//  cout << "\t xraw   =("<< xraw.X()<<",  "<<xraw.Y()<<", "<<xraw.Z()<<"): \n";
+               //   cout << "\t x_fil=("<< x_fil.X()<<",  "<<x_fil.Y()<<", "<<x_fil.Z()<<"): \n";
                 //  cout << "\t x_smoothed=("<< x_smoothed.X()<<",  "<<x_smoothed.Y()<<", "<<x_smoothed.Z()<<"): \n";
-	          cout << "\t x_glob=("<< x_glob.X()<<",  "<<x_glob.Y()<<", "<<x_glob.Z()<<"): \n";	
+	        //  cout << "\t x_glob=("<< x_glob.X()<<",  "<<x_glob.Y()<<", "<<x_glob.Z()<<"): \n";	
 		   
     
    // -------------------------------------------------------------------------------
@@ -699,7 +699,6 @@ cout << "site " << isite << "cx = " << cxreco << "   cy = " << cyreco << " cz = 
    cout << "EkReco = " << Ekreco << " MeV" << endl; 
    cout << "chi2   =  " << chi2 << endl;
    cout <<  "ndf   =  " << ndf << endl;
-   cout << "End of MakeRecoEventMC" <<endl;
    
 	return 1;
  }
