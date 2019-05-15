@@ -79,13 +79,13 @@ bool TBField::SetMagField() {
 	
 	//first write field map into root file
 
-	 TFile*file=new TFile("fieldmap5mm.root","RECREATE");
+//	 TFile*file=new TFile("fieldmap5mm.root","RECREATE");
 	
 //Fill fieldmap.root following FLUKA coordinates, do coordinate transform later	
-     TNtuple *T= new TNtuple("fieldmap","fieldmap","x:y:z:bx:by:bz");
-     T->ReadFile("/home/smechbal/ANALYSIS_SOFT/src/RKFitter/fieldmap5mm.txt");
-     T->Write();	
-     file->Close();
+//     TNtuple *T= new TNtuple("fieldmap","fieldmap","x:y:z:bx:by:bz");
+//     T->ReadFile("/home/smechbal/ANALYSIS_SOFT/src/RKFitter/fieldmap5mm.txt");
+//     T->Write();	
+//     file->Close();
 
 	//now open file
     TFile*file_map=new TFile("fieldmap5mm.root","READ");
