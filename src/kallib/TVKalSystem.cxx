@@ -71,7 +71,7 @@ Bool_t TVKalSystem::AddAndFilter(TVKalSite &next)
 
       Add(&next);
       fChi2 += next.GetDeltaChi2();
-      cout << "fCHi2 = " <<fChi2 << endl;
+//      cout << "fCHi2 = " <<fChi2 << endl;
       return kTRUE;
    } else {
       return kFALSE; 

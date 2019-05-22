@@ -127,7 +127,7 @@ Bool_t TVKalSite::Filter()
  // SecondTerm.DebugPrint("Second Term");
   //cout << "deltachi = " << fDeltaChi2 << endl;
 
-   if (fDeltaChi2 <25.0) {
+   if (fabs(fDeltaChi2) <25.0) {
 	  // cout << "deltachi2 = " << fDeltaChi2 << ", site accepted " << endl;
 	   return kTRUE;
    }
