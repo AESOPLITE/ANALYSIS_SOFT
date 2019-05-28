@@ -84,6 +84,8 @@ ALEvent::ALEvent()// Default
  T4=false;
  guard=false;
  Ti=0;
+ NphCK=0;
+ 
  //HOUSEKEEPING FROM COUNTERS 1 AND 3
  //Data FROM "CT1" LINE
  yCT1=-1;//Year from CT1 line linked to the event (last read CT1 line)
@@ -256,6 +258,7 @@ void ALEvent::Copy(ALEvent* e)
    T4 =e->get_T4();
    guard =e->get_guard();
    Ti =e->get_Ti();
+   NphCK=e->get_NphCK();
 
    for(int i=0;i<(int)(e->get_posX()).size();i++) posX.push_back((e->get_posX()).at(i));
    for(int i=0;i<(int)(e->get_posY()).size();i++) posY.push_back((e->get_posY()).at(i));

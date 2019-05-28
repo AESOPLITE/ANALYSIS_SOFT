@@ -123,6 +123,13 @@ class ALEvent:public TObject
    std::vector<double> timeg;     
    std::vector<double> timeIsofoam;  
    std::vector<double> timeShell;  
+   
+   
+   //MC: Number of optical photon produced in T2 (20/05/2019: For testing CK in MC, no sure it is working fine in Fluka yet)
+   int NphCK;
+   
+   
+   
    //Internal Triggers 
    //Tracker layer for 0 to 6. top layer is 0
    //integer value coded with 7 bits values
@@ -361,7 +368,8 @@ class ALEvent:public TObject
    void add_EneShell(double a){EneShell.push_back(a);}   
    void add_timeIsofoam(double a){timeIsofoam.push_back(a);}
    void add_timeShell(double a){timeShell.push_back(a);}
-
+   void set_NphCK(int a){NphCK=a;}
+   
   //HOUSEKEEPING FROM COUNTERS 1 AND 3   
    void set_yCT1(int a){yCT1=a;}
    void set_mCT1(int a){mCT1=a;}
@@ -556,6 +564,10 @@ class ALEvent:public TObject
    std::vector<double>&  get_EneShell(){return EneShell;}
    std::vector<double>&  get_timeIsofoam(){return timeIsofoam;}
    std::vector<double>&  get_timeShell(){return timeShell;}
+   
+   
+   int get_NphCK(){return NphCK;}
+
    
     //HOUSEKEEPING FROM COUNTERS 1 AND 3   
    int get_yCT1(){return yCT1;}
