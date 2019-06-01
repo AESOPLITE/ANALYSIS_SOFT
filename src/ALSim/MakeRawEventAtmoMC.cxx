@@ -55,6 +55,12 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
  
  LoadMCparameters(MCparamfile,TckReg,TrigReg,GReg,TckZPos,TrigThresh,GuardThresh,ShellReg);
       
+ 
+ float ladderOffsetLeft[7] = { 8.889, 8.866, 8.904, 8.871, 8.886, 8.873, 8.884 };
+ float ladderOffsetRight[7] = { 98.472, 98.447, 98.478, 98.465, 98.460, 98.466 };
+ 
+ 
+ 
  TFile *file;
  TFile *fileout;
  //Input file 
@@ -162,6 +168,7 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
  double timeT2=0; 
  double timeT3=0; 
  double timeT4=0;
+ int nOptPhCK=0;  //Number of Optical phtoon produced in T2
  int prevreg=0; 
  double timeg=0; 
  double nFoam=0;				//number of segments of track in insulation foam
@@ -282,7 +289,7 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
       if(nShell>0)
        {
         e->add_EneShell(EneShell); e->add_timeShell(timeShell);
-		EneShell=0;timeShell=0;nShell=0;iShell=0;
+	EneShell=0;timeShell=0;nShell=0;iShell=0;
        }
      }	
     if(prevreg==TrigReg[0] && (prevreg!=mreg || abs(oldx-x)>0.1 || abs(oldy-y)>0.1 || abs(oldz-z)>0.1))//T1
@@ -301,7 +308,8 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
         e->add_EneT2(EneT2);
         e->add_timeT2(timeT2);
         if (EneT2 > TrigThresh[1]) e->set_T2(true);
-        EneT2=0;timeT2=0;nT2=0;iT2=0;
+        e->set_NphCK(nOptPhCK);
+        EneT2=0;timeT2=0;nT2=0;iT2=0;nOptPhCK=0;
        }
      }
     if(prevreg==TrigReg[2] && (prevreg!=mreg || abs(oldx-x)>0.1 || abs(oldy-y)>0.1 || abs(oldz-z)>0.1))//T3
@@ -323,8 +331,7 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
        }
      }
     if(prevreg==GReg[0] && (prevreg!=mreg || abs(oldx-x)>0.1 || abs(oldy-y)>0.1 || abs(oldz-z)>0.1))//guard
-
-    {
+     {
       if(ng>0)
        {
         e->add_Eneg(Eneg); e->add_timeg(timeg);
@@ -337,6 +344,7 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
     // Tracker
     ////////////////////////////////// 
      
+//    if(prevreg>=TckReg[0] && prevreg<=TckReg[6]&& (prevreg!=mreg || abs(oldx-x)>0.1 || abs(oldy-y)>0.1 || abs(oldz-z)>0.1))
     if(prevreg>=TckReg[0] && prevreg<=TckReg[6]&& (prevreg!=mreg || abs(oldx-x)>0.1 || abs(oldy-y)>0.1 || abs(oldz-z)>0.1))
      {       
       
@@ -349,15 +357,18 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
       if((int)X.size()!=0) 
        {
 //	cout << "applying discretization" << endl;
-              if(h->get_L()==0) nL0++;
-           if(h->get_L()==1) nL1++;
-           if(h->get_L()==2) nL2++;
-           if(h->get_L()==3) nL3++;
-           if(h->get_L()==4) nL4++;
-           if(h->get_L()==5) nL5++;
-           if(h->get_L()==6) nL6++;
+        if(h->get_L()==0) nL0++;
+        if(h->get_L()==1) nL1++;
+        if(h->get_L()==2) nL2++;
+        if(h->get_L()==3) nL3++;
+        if(h->get_L()==4) nL4++;
+        if(h->get_L()==5) nL5++;
+        if(h->get_L()==6) nL6++;
 
-	 CoordDisc=Discretize(h->get_L(),X,Y,Z,CZ,T,EDEP,&chip,&fstrip,&fstripID,&nstrip,OffsetLL,OffsetRL,true);
+        //OffsetLL=ladderOffsetLeft[h->get_L()];
+       // OffsetRL=ladderOffsetRight[h->get_L()];
+        OffsetLL=OffsetRL=0;
+	CoordDisc=Discretize(h->get_L(),X,Y,Z,CZ,T,EDEP,&chip,&fstrip,&fstripID,&nstrip,OffsetLL,OffsetRL,true);
 //        cout << "CoordDisc=" <<  CoordDisc <<endl; 
         if(CoordDisc!=-999.)
          {   
@@ -380,19 +391,19 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
           e->add_hit(h);
           Titmp[(int)h->get_L()]=1;
          } 
-	else {
-	//  if(h->get_L()==0||h->get_L()==4||h->get_L()==6)  cout << " L = " << h->get_L() << ", x = " << x << ", z = "  << z << endl;
-         // if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5)  cout << " L = " << h->get_L() << ", y = " << y << ", z = "  << z << endl;
+	else
+         {
+	  //  if(h->get_L()==0||h->get_L()==4||h->get_L()==6)  cout << " L = " << h->get_L() << ", x = " << x << ", z = "  << z << endl;
+          // if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5)  cout << " L = " << h->get_L() << ", y = " << y << ", z = "  << z << endl;
 
 	  if(h->get_L()==0) rL0++;
-           if(h->get_L()==1) rL1++;
-           if(h->get_L()==2) rL2++;
-           if(h->get_L()==3) rL3++;
-           if(h->get_L()==4) rL4++;
-           if(h->get_L()==5) rL5++;
-           if(h->get_L()==6) rL6++;
-
-    }
+          if(h->get_L()==1) rL1++;
+          if(h->get_L()==2) rL2++;
+          if(h->get_L()==3) rL3++;
+          if(h->get_L()==4) rL4++;
+          if(h->get_L()==5) rL5++;
+          if(h->get_L()==6) rL6++;
+         }
 		
         X.clear();
         Y.clear();
@@ -485,7 +496,7 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
         e->set_X0MC(x);
         e->set_Y0MC(y);
         e->set_Z0MC(z);
-//cout << " x0 = " << x << " y0 = " << y << "  z0 = " << z << endl;
+        //cout << " x0 = " << x << " y0 = " << y << "  z0 = " << z << endl;
         e->set_CX0MC(cx);
         e->set_CY0MC(cy);
         e->set_CZ0MC(cz);
@@ -516,45 +527,58 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
     //(r19=air, r1=T1, r6=T3, r7=guard, r11=Tracker1 ,..., r17=Tracker7, r18=T4)
     ////////////////////////////////// 
 	//Shell & Insulation
-    if (mreg == ShellReg[0]) //Insulating foam
+    if (mreg == ShellReg[0]&& type!=7 && type !=0 && type!=8 && type!=211) //Insulating foam
       {
        if(i==iFoam+1){EneFoam+=Edep;nFoam++;}
        else{nFoam=1;EneFoam=Edep;timeFoam=age;}
        iFoam=i;
       }
-    if (mreg == ShellReg[1])//Aluminium Shell
+    if (mreg == ShellReg[1]&& type!=7 && type !=0 && type!=8 && type!=211)//Aluminium Shell
       {
        if(i==iShell+1){EneShell+=Edep;nShell++;}
        else{nShell=1;EneShell=Edep;timeShell=age;}
        iShell=i;
       }	     
     //Triggers
-    if (mreg == TrigReg[0])//T1
+    if (mreg == TrigReg[0]&& type!=7 && type !=0 && type!=8 && type!=211)//T1
       {
        if(i==iT1+1){EneT1+=Edep;nT1++;}
        else{nT1=1;EneT1=Edep;timeT1=age;}
        iT1=i;
       }
-   if (mreg == TrigReg[1])//T2
+    if (mreg == TrigReg[1]&& type!=7 && type !=0 && type!=8 && type!=211)//T2
       {
-       if(i==iT2+1){EneT2+=Edep;nT2++;}
-       else{nT2=1;EneT2=Edep;timeT2=age;}
+       if(i==iT2+1)
+        {
+         EneT2+=Edep;
+         nT2++;
+        }
+       else
+        {
+         nT2=1;
+         EneT2=Edep;
+         timeT2=age;
+        }
+       if(type==-1 && mtrack==1) //Production of Opticl Photon in CK, if mtrack ==0, this is the line that corresponds to the absorption of the  optical photon
+        {
+         nOptPhCK+=1;   
+        }  
        iT2=i;
       }
 
-    if (mreg == TrigReg[2])//T3
+    if (mreg == TrigReg[2]&& type!=7 && type !=0 && type!=8 && type!=211)//T3
       {
        if(i==iT3+1){EneT3+=Edep;nT3++;}
        else{nT3=1;EneT3=Edep;timeT3=age;}
        iT3=i;
       }
-    if (mreg == TrigReg[3])//T4
+    if (mreg == TrigReg[3]&& type!=7 && type !=0 && type!=8 && type!=211)//T4
       {
        if(i==iT4+1){EneT4+=Edep;nT4++;}
        else{nT4=1;EneT4=Edep;timeT4=age;}
        iT4=i;
       }
-    if (mreg == GReg[0])//guard
+    if (mreg == GReg[0]&& type!=7 && type !=0 && type!=8 && type!=211)//guard
       {
        if(i==ig+1){Eneg+=Edep;ng++;}
        else{ng=1;Eneg=Edep;timeg=age;}
@@ -563,7 +587,8 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
     
     for (int ii=0;ii<7;ii++)
       {
-       if(mreg == TckReg[ii])
+//       if(mreg == TckReg[ii])
+       if(mreg == TckReg[ii] && type!=7 && type !=0 && type!=8 && type!=211) //no photon,no neutron, no zero, no EM-deposit
         {
          if(i==iL+1 && abs(oldx-x)<=0.1 && abs(oldy-y)<=0.1 && abs(oldz-z)<=0.1 ) //if the segment of track is not the first of the hit 
           {
@@ -585,7 +610,7 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
            EDEP.push_back(Edep);
            nL++;//Increment the number of segments that compose the hit
           }//if
-        else //if this segment of track is the first part of the hit
+         else //if this segment of track is the first part of the hit
           {
            //Fill the data at the entrance of the particle in the tracker layer
            h->set_mregMC(mreg); 
@@ -607,7 +632,7 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
            h->set_xout(x);
            h->set_yout(y);   
            h->set_zout(z);
-	  // if(h->get_mregMC()!=mreg)   cout << "Region mreg  = " << mreg << " , mregMC " << h->get_mregMC() <<  endl;
+	   // if(h->get_mregMC()!=mreg)   cout << "Region mreg  = " << mreg << " , mregMC " << h->get_mregMC() <<  endl;
            h->set_x(x);
            h->set_y(y);
            h->set_z(z);
@@ -631,34 +656,40 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
    }//i
 
   //Fill the last event
-  if(nFoam>0) {
-     e->add_EneIsofoam(EneFoam); e->add_timeIsofoam(timeFoam); 
-  }  	 
- if(nShell>0) {
-     e->add_EneShell(EneShell); e->add_timeShell(timeShell);
-       }
- if(nT1>0){
-	 e->add_EneT1(EneT1);e->add_timeT1(timeT1);
-	 if (EneT1 > TrigThresh[0]) e->set_T1(true);
- 	}
- if(nT2>0){
-         e->add_EneT2(EneT2);
-         //e->add_timeT2(timeT2);
-         if (EneT2 > TrigThresh[1]) e->set_T2(true);
-        }
-
- if(nT3>0){
-	 e->add_EneT3(EneT3);e->add_timeT3(timeT3);
-	 if (EneT3 > TrigThresh[2]) e->set_T3(true);
- 	}
- if(nT4>0){
-	 e->add_EneT4(EneT4);e->add_timeT4(timeT4);
-	 if(EneT4 > TrigThresh[3]) e->set_T4(true);
-    }
- if(ng>0){
-	 e->add_Eneg(Eneg);e->add_timeg(timeg);
-	 if (Eneg > TrigThresh[4]) e->set_guard(true);
- 	}
+  if(nFoam>0)
+   {
+    e->add_EneIsofoam(EneFoam); e->add_timeIsofoam(timeFoam); 
+   }  	 
+  if(nShell>0)
+   {
+    e->add_EneShell(EneShell); e->add_timeShell(timeShell);
+   }
+  if(nT1>0)
+   {
+    e->add_EneT1(EneT1);e->add_timeT1(timeT1); 
+    if (EneT1 > TrigThresh[0]) e->set_T1(true);
+   }
+  if(nT2>0)
+   {
+    e->add_EneT2(EneT2);
+    //e->add_timeT2(timeT2);
+    if (EneT2 > TrigThresh[1]) e->set_T2(true);
+   }
+  if(nT3>0)
+   {
+    e->add_EneT3(EneT3);e->add_timeT3(timeT3);
+    if (EneT3 > TrigThresh[2]) e->set_T3(true);
+   }
+  if(nT4>0)
+   {
+    e->add_EneT4(EneT4);e->add_timeT4(timeT4);
+    if(EneT4 > TrigThresh[3]) e->set_T4(true);
+   }
+  if(ng>0)
+   {
+    e->add_Eneg(Eneg);e->add_timeg(timeg);
+    if (Eneg > TrigThresh[4]) e->set_guard(true);
+   }
  
  
  //APPLY DISCRETISATION
@@ -670,8 +701,16 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
  
  if((int)X.size()!=0) 
   {
-   CoordDisc=Discretize(h->get_L(),X,Y,Z,CZ,T,EDEP,&chip,&fstrip,&fstripID,&nstrip,OffsetLL,OffsetRL,true);
-  cout << "CoordDisc2=" <<  CoordDisc <<endl; 
+   //CoordDisc=Discretize(h->get_L(),X,Y,Z,CZ,T,EDEP,&chip,&fstrip,&fstripID,&nstrip,OffsetLL,OffsetRL,true);
+  
+   OffsetLL=ladderOffsetLeft[h->get_L()];
+   OffsetRL=ladderOffsetRight[h->get_L()];
+   OffsetLL=OffsetRL=0;
+
+   CoordDisc=Discretize(h->get_L(),X,Y,Z,CZ,T,EDEP,&chip,&fstrip,&fstripID,&nstrip,OffsetLL,OffsetRL,true);   
+      
+   
+   cout << "CoordDisc2=" <<  CoordDisc <<endl; 
    
    if(CoordDisc!=-999.)
     {   
@@ -717,13 +756,11 @@ int MakeRawEventAtmoMC(int typeT,int layer, int cycle,string Inppath,string Inpp
  //Write tree in output file 
  tree->Write();
 
-
-
  //Close files
  fileout->Close();
  file->Close();
  //Delete TTree
-// tree->Delete(); int*TckReg=new int[7];
+ // tree->Delete(); int*TckReg=new int[7];
  delete[] TckReg;
  delete[] TrigReg;
  delete[] GReg;
