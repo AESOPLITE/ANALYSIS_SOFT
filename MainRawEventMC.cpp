@@ -17,9 +17,9 @@ int main(int argc, char*argv[])
    cout << "Second is energy in MeV" <<endl;
    cout << "Third is random seed configuration" << endl;
    cout << "Fourth is first cycle to reconstruct (Starts at 1)" <<endl;
-   cout << "Fifth is the number of cycle to reconstruct" <<endl;
-   cout << "Sixth is the MC source tag" << endl;	
-   return -1;
+   cout << "Fifth is the number of cycle to reconstruct" <<endl;  
+   cout << "Sixth is MC source tag" <<endl;
+ return -1;
   }
  //Fluka type of particle
  int type=(int) atoi(argv[1]); //3 for electrons
@@ -30,22 +30,19 @@ int main(int argc, char*argv[])
  string source=argv[6];
 
  //Input files 
- string Inppath="/data/smechbal/Fluka/NonUniB/V4";
+ string Inppath="/data/smechbal/Fluka/NonUniB/V8";
  string Inppath2="rootfiles";
- string startfile="aesopliteNonUniB_V4";
+ string startfile="aesopliteNonUniB_V8";
  string endfile="_fort.99";
  
  //Output files
- string Outpath="/home/smechbal/MCproduction/AESOPLITE/rootfiles/NonUniB/V4";
+ string Outpath="/data2/smechbal/MCproduction/AESOPLITE/rootfiles/NonUniB/V8";
  
 
 //for(int j=0;j<1;j++)//Number of cycles
  for(int j=Ncycles;j<Ncycles+Ncycles2;j++)//Number of cycles
       {
-       if((type==3) || (type==1)) {
-       cout << Form("%s/%d/%s/%s/%s_%d_%dMeV%d%03d%s.root",Inppath.c_str(),type,source.c_str(),Inppath2.c_str(),startfile.c_str(),type,Ene,seed,j,endfile.c_str()) <<endl;
-	}
-       else cout << Form("%s/%d/%s/%s_%d_%dGeV%03d%s.root",Inppath.c_str(),type,Inppath2.c_str(),startfile.c_str(),type,Ene,j,endfile.c_str()) <<endl;
+       cout << Form("%s/%d/%s/%s/%s_%d_%dMeV%d%03d%s.root",Inppath.c_str(),type,source.c_str(),Inppath2.c_str(),startfile.c_str(),type,Ene,seed,j,endfile.c_str()) <<endl;	
        	
        //Create the RawEvent
      MakeRawEventMCDisc(type,Ene,seed,j,Inppath,source,Inppath2,Outpath,startfile,endfile);
@@ -53,8 +50,6 @@ int main(int argc, char*argv[])
 
       }//j
 
-//TObjectTable*gObjectTable = new TObjectTable;
-//gObjectTable->Print(); 
  
  return 0;
 }

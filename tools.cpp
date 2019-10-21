@@ -10,9 +10,9 @@ using namespace std;
 
 float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<float> cz,vector<float>type,vector<float> Edep,int*chip,int* fstrip,int* fstripID,int*nstrip,float offsetLL, float offsetRL,bool MCflag)
 {
- //cout << "In Discretize" <<endl;
- int Nn=(int )x.size(); 
- // cout << "Number of segments: "  <<Nn << " in Layer "<< L << endl;
+// cout << "In Discretize" <<endl;
+ const int Nn=(int )x.size(); 
+//  cout << "Number of segments: "  <<Nn << " in Layer "<< L << endl;
 
  float* X=new float[Nn];
  float* Y=new float[Nn];
@@ -55,7 +55,7 @@ float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<f
 for(int i=0;i<Nn;i++)
  {  
   Ss[i]=CoordtoStrip(X[i],Y[i],offsetLL,offsetRL,MCflag);
-  //cout << "StripID="<< Ss[i] <<endl ;
+ // cout << "StripID="<< Ss[i] <<endl ;
  }//i
 
 //Check if there is any strip touched
@@ -68,6 +68,16 @@ for(int i=0;i<Nn;i++)
 if(nostrip)
  { 
  // cout << "No strip hitted" <<endl;
+ //delete pointers
+ delete[] X;
+ delete[] Y;
+ delete[] Z;
+ delete[] CZ;
+ delete[] T;
+ delete[] E;
+ delete[] xx;
+ delete[] Ss;
+
   return Xout;
  }
 
@@ -84,6 +94,16 @@ for(int i=0;i<Nn;i++)
   
 if(kfirst<0 || klast<0)
  { 
+ //delete pointers
+ delete[] X;
+ delete[] Y;
+ delete[] Z;
+ delete[] CZ;
+ delete[] T;
+ delete[] E;
+ delete[] xx;
+ delete[] Ss;
+
   return Xout; 
  }
 
@@ -97,7 +117,7 @@ if(kfirst<0 || klast<0)
  
  *nstrip=(int) abs(Ss[klast]-Ss[kfirst])+1;
  
-// cout << "Xout="<< Xout <<endl ;
+ //cout << "Xout="<< Xout <<endl ;
 
  
  if(*nstrip>100)
@@ -113,7 +133,18 @@ if(kfirst<0 || klast<0)
       //cout << "Edep"<< i << "= " << Edep[i] <<endl;
      }//i
   }
+ //delete pointers
+ delete[] X;
+ delete[] Y;
+ delete[] Z;
+ delete[] CZ;
+ delete[] T;
+ delete[] E;
+ delete[] xx;
+ delete[] Ss;
+
  return Xout;
+
 }
 
 float StriptoCoord(int strip,float OffsetLL,float OffsetRL,bool MCflag)

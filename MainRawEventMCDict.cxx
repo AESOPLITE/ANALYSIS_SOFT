@@ -41,6 +41,7 @@ namespace std {} using namespace std;
 #include "/home/smechbal/ANALYSIS_SOFT/src/ALSim/MakeRawBPDEvent.h"
 #include "/home/smechbal/ANALYSIS_SOFT/src/ALSim/MakeEventData.h"
 #include "/home/smechbal/ANALYSIS_SOFT/src/ALSim/MakeRawEventMC.h"
+#include "/home/smechbal/ANALYSIS_SOFT/src/ALSim/MakeRawEventAtmoMC.h"
 #include "/home/smechbal/ANALYSIS_SOFT/src/ALKalman/ALKalman.h"
 #include "/home/smechbal/ANALYSIS_SOFT/src/ALPatternRecognition/ALPatternRecognition.h"
 #include "/home/smechbal/ANALYSIS_SOFT/src/RKFitter/RKfitter.h"
@@ -57,6 +58,7 @@ namespace {
 "src/ALSim/MakeRawBPDEvent.h",
 "src/ALSim/MakeEventData.h",
 "src/ALSim/MakeRawEventMC.h",
+"src/ALSim/MakeRawEventAtmoMC.h",
 "src/ALKalman/ALKalman.h",
 "src/ALPatternRecognition/ALPatternRecognition.h",
 "src/RKFitter/RKfitter.h",
@@ -90,6 +92,7 @@ extern int __Cling_Autoloading_Map;
 #include "src/ALSim/MakeRawBPDEvent.h"
 #include "src/ALSim/MakeEventData.h"
 #include "src/ALSim/MakeRawEventMC.h"
+#include "src/ALSim/MakeRawEventAtmoMC.h"
 #include "src/ALKalman/ALKalman.h"
 #include "src/ALPatternRecognition/ALPatternRecognition.h"
 #include "src/RKFitter/RKfitter.h"

@@ -183,7 +183,7 @@ FieldMap *fM = new FieldMap(fN, "binary", 81);
 	 else 
 	 	{
 		   cout << "reconstructed by PR" << endl;
-         if(NL ==7 && nnhits > 6) { 				//number of hit condition	                       		 
+//         if(NL ==7 && nnhits > 6) { 				//number of hit condition	                       		 
 		 //////////////////////////////
 		 //Runge-Kutta integration fit
 		 //////////////////////////////
@@ -340,7 +340,7 @@ FieldMap *fM = new FieldMap(fN, "binary", 81);
 
 	  delete rkf;
  
-		 } //end nnhit condition
+	//		 } //end nnhit condition
   } //if reconstructed by PR
 
 
