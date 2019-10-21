@@ -40,8 +40,9 @@ static const double kAlpha = 3.727379378;				//alpha mass in GeV
  TF1*tmpfB2;
 
 int ALPatternRecognition::FindPattern(ALEvent *re, int DataType, float* zL,float* OffsetLL,float* OffsetRL,float* TrigThresh) {
+
 //cout << "Calling function FindPattern() " << endl;	
-	
+gROOT->Reset();	
 int nnhits = re->get_Nhits(); 
 //int i = re->get_eventnumber();
 double E0 = re->get_EkMC();
@@ -59,8 +60,9 @@ vector<int> ibend1, ibend2, ibend3, ibend4;//keep track of index of hit
 vector<int> itop, imid, ibottom;	//keep track of index of hit
 vector<int> nstrip1, nstrip2, nstrip3,nstrip4;   //keep track of number of strips that make up a hit
 vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strips of make up a hit
- 
- int*LayerWithHit= new int[7];
+
+ int* LayerWithHit = NULL;
+ LayerWithHit = new int[7];
  for(int i=0;i<7;i++)LayerWithHit[i]=0;
  re->get_Layers(LayerWithHit);
  //for(int i=0;i<7;i++) cout << LayerWithHit[i];
@@ -75,8 +77,11 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
  int NLNB =  re->get_Layer(0) + re->get_Layer(4) + re->get_Layer(6);
  //cout << "NL = " << NL << "  NLB = " << NLB << "  NLNB = " << NLNB << endl;
   //if not less than 5 layers were touched then don't try pattern recognition
-  if(NL<5) return 0;  
-
+  if(NL<5){
+  
+  delete[] LayerWithHit;
+  return 0;  
+	}
  //cout << "nnhits = " << nnhits << endl;
 	for(int j=0;j<nnhits;j++) { 
 		
@@ -126,17 +131,19 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
     if((xbend3->GetEntries())!=0) layer3 = xbend3->GetEntries() ; 
     if((xbend4->GetEntries())!=0) layer4 = xbend4->GetEntries() ; 
  //   cout << "entries in layer1 = " << xbend1->GetEntries() << "  , layer2 = " << xbend2->GetEntries() << "  , layer3 = " << xbend3->GetEntries() << "  , layer4= " << xbend4->GetEntries() << endl;
-     ncomb   = layer1*layer2*layer3*layer4; 
+     ncomb = layer1*layer2*layer3*layer4; 
 	//cout << "ncomb = " << ncomb << "  l1 = " << layer1 << "  l2 = " << layer2 << "  l3 = " << layer3 << "  l4 = " << layer4 << endl;
 // if less then 3 layers with hits in bending plane, can't reconstruct
 	if(NLB < 3) {
 	//cout << "NLB < 3, quitting function" << endl;
+  	delete[] LayerWithHit;
 	return 0;
 	}
 	    if(ncomb<=0||ncomb>MAXB)
       {
          //  cout << " ncomb<=0||ncomb>MAXB " << endl;
-	   return 0;
+	   delete[] LayerWithHit;
+ 	   return 0;
       }
 	
     vector<double> chisquareB;
@@ -259,7 +266,9 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
 				 	int k1 = ibend1.at(m);
 			 	 	indicesB[ncombination]->AddAt(k1,point);
 					//cout << "PR, bending plane, point added at index " << k1 << endl;
-					  }
+			  }
+	//	      delete gBending[ncombination];
+	//	      delete gBendingInverted[ncombination];
 		      ncombination++;
 
                }//end p	 
@@ -281,10 +290,16 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
     double sigmatop,sigmamid,sigmabottom;
 	
 // if less then 2 hits in non-bending plane, can't reconstruct
-	if(NLNB < 2)return 0;
-	
-    if(NConf<=0||NConf>MAXNB) return 0;
-      
+	if(NLNB < 2){
+	 
+	delete[] LayerWithHit;
+	return 0;
+	}
+
+    if(NConf<=0||NConf>MAXNB) {
+ 	 delete[] LayerWithHit;
+	 return 0;
+      }
     
   
    // cout << "There are " << NConf << " possible combinations in the non-bending plane " << endl;
@@ -392,7 +407,8 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
 	   //    cout << "PR, non-bending plane, point added at index " << k1 << endl;
                index++;
               }
-                        
+	  //   delete gNonBending[NConfig];
+	    // delete gNonBending2[NConfig];
              NConfig++;
             }//end o
          }//end n
@@ -468,10 +484,10 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
 //        cout << "next one " << endl;
      }
 //cout << "Interpolation in B plane done" << endl;	
-		
+
+/*
  //For events with <1 hit per layer: create ghost hit
-    int kold = re->get_Nhits();
-    
+    int kold = re->get_Nhits();   
     vector<ALTckhit*> Hh;
 	ALTckhit *h = new ALTckhit();
 	for(int l=0;l<7;l++) {
@@ -513,6 +529,7 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
 //add missing hits to event
     for(int ij=0;ij<(int)Hh.size();ij++) re->add_hit(Hh.at(ij));
 
+	*/
 
 //Calculate and set momentum and total energy of particle from PR fit
 	   double slopeNB = re->get_slopePR();
@@ -558,7 +575,7 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
 	   else if(type==10 || type ==11)  mass = kMuon;	//for muons in GeV
 	   else if(type==1)  mass = kProton;	//for protons in GeV
 	   else if(type==-6)  mass = kAlpha;	//for alphas in GeV   
-	   double EkPR=TMath::Sqrt(p0PR*p0PR+mass*mass);
+	   double EkPR=TMath::Sqrt(p0PR*p0PR+mass*mass);			//total energy
 	   re->set_EkPR(EkPR);
 	   re->set_p0PR(p0PR);
 	
@@ -580,8 +597,44 @@ vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strip
 		} //if flag
 	}	//end for
 //cout << "end of PR function " << endl;
-return 1;
+
+ //delete pointers
+	
+
+//cout << "bending? " << endl;
+
+     for(int z =0; z<ncomb;z++)
+	{
+//		cout << "bending, z = " << z << endl;
+		delete indicesB[z];
+        }
+ 
+	
+    for(int z =0; z<NConf;z++)
+        {
+  //           cout << "nonbending z = " << z << endl;
+                delete indicesNB[z];
+	 }
+
+
+    delete[] LayerWithHit;
+    delete[] parabolas;
+    delete[] invertedparabolas;
+    delete[] line;
+    delete[] nhitB;
+    delete[] nhitNB;
+    delete[] gBending;
+    delete[] gBendingInverted;
+    delete[] gNonBending;
+    delete[] gNonBending2;
+    delete[] indicesB;
+    delete[] indicesNB; 
+//   gROOT->gObjectTable->Print()
+
+    return 1;
  
 }
+
+
 
 
