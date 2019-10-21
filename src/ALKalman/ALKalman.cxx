@@ -44,13 +44,12 @@ static const double chi2lim= 1e10;					//limit on chi2 value of first iteration 
 static const Bool_t kDir = kIterForward;				//first hit to last (does not work as well...)
 static const Bool_t kDirFirst= kIterForward;
 int uhitnid[7]={0,0,0,0,0,0,0};
- bool testlayer[7]={false,false,false,false,false,false,false};
+bool testlayer[7]={false,false,false,false,false,false,false};
 //Class constructor 
-
 ALKalman::ALKalman(ALEvent *re) 
 {
-		   cout <<endl;
-   cout << "Calling class constructor ALKalman() " << endl;
+		   //cout <<endl;
+   //cout << "Calling class constructor ALKalman() " << endl;
 
    // ===================================================================
    //  Prepare a detector
@@ -60,12 +59,12 @@ ALKalman::ALKalman(ALEvent *re)
    detector = new ALKalDetector();
    cradle->Install(*detector); 	
    int nlayers = cradle->GetEntries();
-   cout << "Number of detectors in cradle = " << nlayers << endl;
-	kalhits = new TObjArray(7);
+//   cout << "Number of detectors in cradle = " << nlayers << endl;
+     kalhits = new TObjArray(7);
 	
 
    int nnhits = (int)re->get_Nhits();
-   //cout << "Event " << re->get_eventnumber() << "   number of hits = " << nnhits << endl;
+   cout << "Event " << re->get_eventnumber() << "   number of hits = " << nnhits << endl;
    //Index of the hits used to reconstruct the track
 
    int ij = 0 ;
@@ -79,9 +78,8 @@ ALKalman::ALKalman(ALEvent *re)
 	      bool flagPR = re->get_hits().at(j)->get_flagPR();
 	      bool fGhost = re->get_hits().at(j)->get_fGhost();
 	      int k = re->get_hits().at(j)->get_k();
-	      //cout << " Hit " << j << "  , flagPR? " << flagPR << endl;
-	      
-	      if(flagPR) {	
+	    if(fGhost) continue;    
+	    if(!flagPR) continue;	
 	    count++;
 	    int L = re->get_hits().at(j)->get_L();
 	    int nstrip = re->get_hits().at(j)->get_nstrips();
@@ -93,30 +91,13 @@ ALKalman::ALKalman(ALEvent *re)
 	    Float_t xPR=(re->get_hits().at(j)->get_xPR())*10;		//in mm
             Float_t yPR=(re->get_hits().at(j)->get_yPR())*10;       //in mm		
             Float_t zPR=(re->get_hits().at(j)->get_zPR())*10;		//in mm	
-	    
-	  //  cout << "Ghost hit? = " << fGhost << endl;
-	    //cout << "MC or data coordinates x = " << x << "  y = " << y << "  z = " << z << endl;
-	    //cout << "PR coordinates xPR = " << xPR << "  yPR = " << yPR << "  zPR = " << zPR << endl;
-	    TVector3 xx; 
-	    if(!fGhost) {	                     							
-		if(L==0||L==4||L==6)//non-bending plane
-		{
-           	xx.SetXYZ(x,yPR,z);	
-			//xx.SetXYZ(x,y,z);
-		}
+	   // cout << "L = " << L << ", x = " << x << ", y = " << y << " , z = " << z << endl;
+	    TVector3 xx; 	    	                     							
+	    if(L==0||L==4||L==6)//non-bending plane 
+		{xx.SetXYZ(x,yPR,z);}
 	    else 
-			{
-			xx.SetXYZ(xPR,y,z);
-		//		xx.SetXYZ(x,y,z);
-			}  
-		}
-	    else {
-	     xx.SetXYZ(xPR, yPR, zPR);
-	     }
-	    if(nstrip==-1) { 
-	    //cout << "Event = " <<  re->get_eventnumber() << endl;
-	   // cout << "Hitxx " << j << ", index " << k << "  nstrip = " << nstrip <<  " x = "<< xx.Y() << "   y= "<< xx.Z()<< "   z= "<< xx.X() << endl;
-	}	
+		{xx.SetXYZ(xPR,y,z);}  	
+	
 		//loop over layer to choose active ones over dummy ones to record hit in the right layer
 		for(int n=0; n<nlayers;n++) {
 			ALMeasLayer &ms = *static_cast<ALMeasLayer *>(cradle->At(n));
@@ -127,19 +108,19 @@ ALKalman::ALKalman(ALEvent *re)
 			if((isactive) && (!inuse)) {
 				ms.Set_InUseFlag();
 				ms.ProcessHit(xx, *kalhits, bending, L,nstrip);
-				//cout << "called ms.ProcessHit " << endl;
+		//		cout << "n= " << n <<", hit added to L = "<<  L << ", bending = " << bending << endl;
 				testlayer[ij] = true;
 			//We record the index of the hit so we will be able to record the reconstructed variables at the right place 
-				uhitnid[ij]=k;
+				uhitnid[ij]=L;
 				ij++;
 				break;
 				}
 	    	} //end loop over layers
-	  	}//if flagPR
+	 
   	} //end j	
  	
      //if we have found one hit in each layer then we stop looking for more
-     if(testlayer[0]&&testlayer[1]&&testlayer[2]&&testlayer[3]&&testlayer[4]&&testlayer[5]&&testlayer[6]) cout << "retrieved the hits" <<endl;
+   if(testlayer[0]&&testlayer[1]&&testlayer[2]&&testlayer[3]&&testlayer[4]&&testlayer[5]&&testlayer[6]) //cout << "retrieved the hits" <<endl;
      if(testlayer[0]&&testlayer[1]&&testlayer[2]&&testlayer[3]&&testlayer[4]&&testlayer[5]&&testlayer[6]==false) 
       {
        cout << "We did not find hits on all layer!!" <<endl;
@@ -147,11 +128,21 @@ ALKalman::ALKalman(ALEvent *re)
 	if(count > 7) {
 		cout << "Too many hits, PatternReco messed up! " << endl;
 	}
-   cout << "Indexes of the hits used in the reconstruction" << endl;
-   for(int i=0;i<7;i++) cout << uhitnid[i] << " ";//Check the layer
-   cout << endl;
-  // cout << "number of entries in kalhit buffer is " << kalhits->GetEntries() << endl;
-  
+   //cout << "Indexes of the hits used in the reconstruction" << endl;
+   for(int i=0;i<7;i++) cout << uhitnid[i] << " "; //Check the layer
+   //cout << endl;
+//  cout << "number of entries in kalhit buffer is " << kalhits->GetEntries() << endl;
+ 
+ for (int ind = 0; ind < kalhits->GetEntries(); ind++) 
+	{
+	       index = uhitnid[ind];	
+	       ALHit hitd = *dynamic_cast<ALHit *>(kalhits->At(index));
+	       TVector3 Pos = hitd.GetRawXv();
+//	       cout << "kalhit index = " << ind << ", index = " <<  Pos.Y() << endl;
+	}		
+
+
+
 }
 
 //class destructor
@@ -176,10 +167,10 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
 	double kappa_3, phi0_3,  tanL_3;
 	kappa_3=phi0_3=tanL_3=0;
 	int type;
-    double deflec = re->get_deflecPR();
+	double deflec = re->get_deflecPR();
 	double slope_PR = re->get_slopePR();
 	double Q =  TMath::Sign(1,deflec);
-	cout << "slope from PR = " <<  slope_PR <<endl;
+	//cout << "slope from PR = " <<  slope_PR <<endl;
 	   if (DataType==1) { 
 	   if (re->get_T2()) {			//if CK fired, electrons or positrons
 	      if (Q>0) type=4;
@@ -197,13 +188,22 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
          svd_first(0,0) = 0.;
          svd_first(3,0) = 0.;
          if (kSdim == 6) svd_first(5,0) = 0.;
-	
-
+	 int lTop = 99;
+	 for(int k=0;k<re->get_Nhits();k++)
+            {
+             int Lindex=(int)re->get_hits().at(k)->get_L();
+             bool flagPR = re->get_hits().at(k)->get_flagPR();
+             if (!flagPR) continue;
+             if (Lindex < lTop) lTop=Lindex;
+			}	
+           //cout << "check, the topmost layer is " << lTop << endl;  
 	   for(int k=0;k<re->get_Nhits();k++) 
 	    {
-	     int Lindex=(int)re->get_hits().at(k)->get_L();
-	     //LAYER L0, NB plane		
-	     if(Lindex==0) {								
+	     int Lindex=(int)re->get_hits().at(k)->get_L(); 		
+             bool flagPR = re->get_hits().at(k)->get_flagPR();
+	     if (!flagPR) continue;	   
+	     if(Lindex==lTop) {
+		cout  << "The topmost layer is " << lTop << endl;								
 	       //Convert from FLUKA to KALTEST coordinates!!
 		double cxL0 = re->get_hits().at(k)->get_cy();
 		double cyL0 = re->get_hits().at(k)->get_cz();
@@ -247,7 +247,7 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
 		 // ----------------------------------------
 		 // Create initial helix using 3 hits
 		 // ----------------------------------------
-
+/*
 		 ALHit   &h1 = *dynamic_cast<ALHit *>(kalhits->At(i1));   // first hit
 		 ALHit   &h2 = *dynamic_cast<ALHit *>(kalhits->At(i2));   // last hit
 		 ALHit   &h3 = *dynamic_cast<ALHit *>(kalhits->At(i3));   // middle hit
@@ -261,7 +261,7 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
 	    	 phi0_3 = helstart.GetPhi0();
 	     	 kappa_3 = helstart.GetKappa();
 	     	 tanL_3 = helstart.GetTanLambda();
-	     
+*/	     
 	     if(InitType==0) {				//MC init
 	     	kappa_init=kappa_MC;
 	     	tanL_init=tanL_MC;
@@ -272,20 +272,21 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
 	     	tanL_init=tanL_PR;
 	     	phi0_init=phi0_PR;
 		}
-	     else {
-	     phi0_init=phi0_3;
-	     kappa_init=kappa_3;
-	     tanL_init=tanL_3;
-		}
+
+	//     else {
+	//     phi0_init=phi0_3;
+	//     kappa_init=kappa_3;
+	//     tanL_init=tanL_3;
+//		}
         
 
 	  svd_first(1,0) = phi0_init;
 	  svd_first(2,0) = kappa_init;
           svd_first(4,0) = tanL_init;
-	//  cout << "phi_init = " << phi0_init << "  cpa_init = " << kappa_init << "  tanL = " << tanL_init << endl;
-	//  cout << "phi_MC = " << phi0_MC << "  cpa_MC = " << kappa_MC << "  tanL_MC = " << tanL_MC << endl;
-	//  cout << "phi_PR = " << phi0_PR << "  cpa_PR = " << kappa_PR << "  tanL_PR = " << tanL_PR << endl;
-	//  cout << "phi_3 = " << phi0_3 << "  cpa_3 = " << kappa_3 << "  tanL_3 = " << tanL_3 << endl;
+	  //cout << "phi_init = " << phi0_init << "  cpa_init = " << kappa_init << "  tanL = " << tanL_init << endl;
+	  //cout << "phi_MC = " << phi0_MC << "  cpa_MC = " << kappa_MC << "  tanL_MC = " << tanL_MC << endl;
+	  //cout << "phi_PR = " << phi0_PR << "  cpa_PR = " << kappa_PR << "  tanL_PR = " << tanL_PR << endl;
+	  //cout << "phi_3 = " << phi0_3 << "  cpa_3 = " << kappa_3 << "  tanL_3 = " << tanL_3 << endl;
       static TKalMatrix C_first(kSdim,kSdim);
        for (Int_t k=0; k<kSdim; k++) {
 		   C_first(k,k) = CovMElement;  //huge error matrix to start with
@@ -305,7 +306,7 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
    state = svd_last;
    covariant = C_last;
    if(initfit == 0) {
-     //   cout << "initfit set to 0, exiting InitializeHelix" << endl;
+        //cout << "initfit set to 0, exiting InitializeHelix" << endl;
 	return 0;
 }
 	}  //end if 2nd iteration
@@ -324,9 +325,9 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
 	re->set_cpa_init(state(2,0));
 	re->set_tanl_init(state(4,0));
       //  re->set_Cov_init(covariant);
-//	state.DebugPrint("initial state vector");
+      //	state.DebugPrint("initial state vector");
     //covariant.DebugPrint("initial cov matrix");
-  //   cout << "end initialize helix function " << endl;
+     //cout << "end initialize helix function " << endl;
      return type;
 
 }	
@@ -337,7 +338,7 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
 {
 	cout << "InitialFit called, doing first iteration KF " << endl;  
 	
-// cout << " number of entries kalhit buffer = " << kalhits->GetEntries() << endl;
+// //cout << " number of entries kalhit buffer = " << kalhits->GetEntries() << endl;
 	kalhits->SetOwner(false);						
 
       
@@ -403,13 +404,13 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
    svd_last(4,0) = Hel_last.GetTanLambda();
    svd_last(5,0) = 0.0;
    if (kSdim == 6) svd_last(5,0) = 0.;
- //  svd_last.DebugPrint("state vector from 1st KF iteration");
+   svd_last.DebugPrint("state vector from 1st KF iteration");
    C_last = theLastState->GetCovMat();
    Double_t mom = Hel_last.GetMomentum();
-   //cout << "Momentum from fist filter iteration p = " << mom * 1000 << " MeV" << endl; 
+  cout << "Momentum from fist filter iteration p = " << mom * 1000 << " MeV" << endl; 
    double chi2first = kalfirst.GetChi2();
    if(fabs(chi2first) > chi2lim) {
- //   cout << "Initial fit chi2 too high, throwing event away" << endl;	
+    cout << "Initial fit chi2 too high, throwing event away" << endl;	
     return 0;
 	}
    else return 1;
@@ -421,12 +422,12 @@ int ALKalman::InitializeHelix(ALEvent *re, int InitType, bool secondIter, int Da
 int ALKalman::DoKF(ALEvent *re, int DataType, int InitType, bool secondIter)
 {	
 	
-  //cout << "DoKF() function called" << endl; 
+  cout << "DoKF() function called" << endl; 
   static TKalMatrix state(kSdim,1);
   static TKalMatrix covariant(kSdim,kSdim);
   int type = InitializeHelix(re, InitType, secondIter, DataType, state, covariant);
   if(type==0) {
-	cout << " exiting DoKF function" << endl;
+	//cout << " exiting DoKF function" << endl;
 	return 0;
 	} 	
 
@@ -434,7 +435,8 @@ int ALKalman::DoKF(ALEvent *re, int DataType, int InitType, bool secondIter)
       // ---------------------------
       //  Create a dummy site: sited
       // ---------------------------
-      int i1 = (kDir == kIterForward) ? 0 : kalhits->GetEntries()-1;
+      int i1 = (kDir == kIterForward) ? uhitnid[0] : uhitnid[6];
+     
       ALHit hitd = *dynamic_cast<ALHit *>(kalhits->At(i1));
       hitd(0,1) = 1.e6;   // give a huge error to x
       hitd(1,1) = 1.e6;   // give a huge error to y
@@ -462,13 +464,11 @@ int ALKalman::DoKF(ALEvent *re, int DataType, int InitType, bool secondIter)
 
 TIter next(kalhits, kDir);
 ALHit *hitp = 0;
-int hit_index;
-//hit_index must follow direction of filter
- if (kDir == kIterBackward) hit_index = 6;	
-	else hit_index= 0;
-
-       while ((hitp = dynamic_cast<ALHit *>(next()))) {
-      cout << "-----------------------Next Hit--------------------------- " << endl;
+int usedSites=0;
+int hit_index = (kDir == kIterForward) ? uhitnid[0] : uhitnid[6];
+      
+ while ((hitp = dynamic_cast<ALHit *>(next()))) {
+      //cout << "-----------------------Next Hit--------------------------- " << endl;
       const ALMeasLayer &ml = dynamic_cast<const ALMeasLayer &>(hitp->GetMeasLayer());	
       Bool_t isactive = ml.IsActive();
       Bool_t bend = ml.IsBending();
@@ -477,15 +477,15 @@ int hit_index;
       TKalTrackSite  &site = *new TKalTrackSite(*hitp); // create a site for this hit
       TVector3 TVbfield = TBField::GetGlobalBfield(xv);
       double B = TVbfield.Mag();
- //    cout << "x = "  << xv.X() << " y ="  << xv.Y() << " z ="  << xv.Z() << endl;
-  //    cout << "B = (" << TVbfield.X() << "," << TVbfield.Y() << "," << TVbfield.Z() << ")"  << endl;	
-	//	  cout << "Phi = "  <<  xv.Phi() << " Perp = " << xv.Perp() << endl;
+     //cout << "x = "  << xv.X() << " y ="  << xv.Y() << " z ="  << xv.Z() << endl;
+     //cout << "B = (" << TVbfield.X() << "," << TVbfield.Y() << "," << TVbfield.Z() << ")"  << endl;	
+//		  //cout << "Phi = "  <<  xv.Phi() << " Perp = " << xv.Perp() << endl;
 	  		 	 
       if (!kaltrack.AddAndFilter(site))
        { // add and filter this site
-       // site.DebugPrint();
-     //  kaltrack.GetState(TVKalSite::kFiltered).DebugPrint();
-      //  cerr << " site discarded!" << endl;
+        //site.DebugPrint();
+      // kaltrack.GetState(TVKalSite::kFiltered).DebugPrint();
+//        cerr << " site discarded!" << endl;
         delete &site;
        } 
 /////////////////////////////////IF SITE ACCEPTED/////////////////////////////////
@@ -502,14 +502,15 @@ int hit_index;
 		   
 		  //smooth back
 
-	        //   TVector3 x_smoothed = kaltrack.SmoothBackLastSite(hit_index+1);                  
+	
+        //   TVector3 x_smoothed = kaltrack.SmoothBackLastSite(hit_index+1);                  
 	 	//  TVKalState &state_smoothed = site.GetState(TVKalSite::kSmoothed);
                 //  THelicalTrack hel_smoothed = (dynamic_cast<TKalTrackState &>(state_smoothed)).GetHelix();
                   //TVector3 x_smoothed=hel_smoothed.CalcXAt(0.0);  
-		//  cout << "\t xraw   =("<< xraw.X()<<",  "<<xraw.Y()<<", "<<xraw.Z()<<"): \n";
-               //   cout << "\t x_fil=("<< x_fil.X()<<",  "<<x_fil.Y()<<", "<<x_fil.Z()<<"): \n";
-                //  cout << "\t x_smoothed=("<< x_smoothed.X()<<",  "<<x_smoothed.Y()<<", "<<x_smoothed.Z()<<"): \n";
-	        //  cout << "\t x_glob=("<< x_glob.X()<<",  "<<x_glob.Y()<<", "<<x_glob.Z()<<"): \n";	
+		  //cout << "\t xraw   =("<< xraw.X()<<",  "<<xraw.Y()<<", "<<xraw.Z()<<"): \n";
+                  //cout << "\t x_fil=("<< x_fil.X()<<",  "<<x_fil.Y()<<", "<<x_fil.Z()<<"): \n";
+                //  //cout << "\t x_smoothed=("<< x_smoothed.X()<<",  "<<x_smoothed.Y()<<", "<<x_smoothed.Z()<<"): \n";
+	          //cout << "\t x_glob=("<< x_glob.X()<<",  "<<x_glob.Y()<<", "<<x_glob.Z()<<"): \n";	
 		   
     
    // -------------------------------------------------------------------------------
@@ -526,7 +527,7 @@ int hit_index;
 	 }
 	 else {
 	 xreco = x_glob.Z();
-     yreco = x_glob.X();
+     	 yreco = x_glob.X();
 	 zreco = x_glob.Y();	
 	 }
 		
@@ -547,9 +548,9 @@ int hit_index;
 	float czreco = (vtan.Y())/mag;
 
 	float tot=(cxreco*cxreco) + (cyreco*cyreco) + (czreco*czreco);
-//	cout << "tot = " << tot << "  cxreco = " << cxreco << "  cyreco = " << cyreco << "  czreco = " << czreco << endl;
-//	cout << "cxMC = " << re->get_hits().at(hit_index)->get_cx() << " cyMC = " << re->get_hits().at(hit_index)->get_cy() << "  czMC = " << re->get_hits().at(hit_index)->get_cz() <<endl;
-//		cout << "cxPR = " << re->get_hits().at(hit_index)->get_cxPR() << " cyPR = " << re->get_hits().at(hit_index)->get_cyPR() << "  czPR = " << re->get_hits().at(hit_index)->get_czPR() <<endl;
+//	//cout << "tot = " << tot << "  cxreco = " << cxreco << "  cyreco = " << cyreco << "  czreco = " << czreco << endl;
+//	//cout << "cxMC = " << re->get_hits().at(hit_index)->get_cx() << " cyMC = " << re->get_hits().at(hit_index)->get_cy() << "  czMC = " << re->get_hits().at(hit_index)->get_cz() <<endl;
+//		//cout << "cxPR = " << re->get_hits().at(hit_index)->get_cxPR() << " cyPR = " << re->get_hits().at(hit_index)->get_cyPR() << "  czPR = " << re->get_hits().at(hit_index)->get_czPR() <<endl;
 		   
 	//kinetic energy of particle   
 	    if(type==3 || type==4)  ereco = sqrt(mom*mom + (RestMassE)*(RestMassE))  - RestMassE;   //for electrons
@@ -565,9 +566,10 @@ int hit_index;
 	re->set_hcyreco(uhitnid[hit_index],cyreco);
 	re->set_hczreco(uhitnid[hit_index],czreco);
 	re->set_hereco(uhitnid[hit_index], ereco);
-	re->get_hits().at(uhitnid[hit_index])->set_fUsed(true);	
-	cout << "reconstructed info added hit_index = " << hit_index << " at index " << uhitnid[hit_index] << endl;
-	cout << "zreco = " << zreco << "  fUsed bool set to true" << endl;
+	re->get_hits().at(uhitnid[hit_index])->set_fUsed(true);
+	usedSites++;	
+	//cout << "reconstructed info added hit_index = " << hit_index << " at index " << uhitnid[hit_index] << endl;
+	//cout << "zreco = " << zreco << "  fUsed bool set to true" << endl;
 
  		} //end if active
  }//end else  
@@ -584,7 +586,7 @@ int hit_index;
    // =======================================================================
    //  Find tangent to helix at first site and extrapolate injection point
    // =======================================================================   
-   cout << "Find tangent to helix at site and extrapolate injection point" <<endl;
+   //cout << "Find tangent to helix at site and extrapolate injection point" <<endl;
    TVKalState *state_first =(TVKalState*) &(cursite.GetCurState());
    THelicalTrack hel_first = (dynamic_cast<TKalTrackState *>(state_first))->GetHelix();
    TVector3 pivot = hel_first.CalcXAt(0.0);
@@ -592,19 +594,19 @@ int hit_index;
    TVector3 vtan(dxdphi(0,0),dxdphi(1,0),dxdphi(2,0));    
 /*
    for(int isite=0;isite<7;isite++) {
-     cout << "site " << isite << endl;       
+     //cout << "site " << isite << endl;       
      TVKalSite &cursite = static_cast<TVKalSite &>(*kaltrack[isite]);
  	  
    // =======================================================================
    //  Find tangent to helix at first site and extrapolate injection point
    // =======================================================================   
-   cout << "Find tangent to helix at site and extrapolate injection point" <<endl;
+   //cout << "Find tangent to helix at site and extrapolate injection point" <<endl;
    TVKalState *state_first =(TVKalState*) &(cursite.GetCurState());
    THelicalTrack hel_first = (dynamic_cast<TKalTrackState *>(state_first))->GetHelix();
    TVector3 pivot = hel_first.CalcXAt(0.0);
    TMatrixD dxdphi = hel_first.CalcDxDphi(0.0);					// tangent vector at destination surface
    TVector3 vtan(dxdphi(0,0),dxdphi(1,0),dxdphi(2,0));				// convert matrix diagonal to vector
-  // cout << "Tangent vector vtan=("<< vtan.X()<<",  "<<vtan.Y()<<", "<<vtan.Z()<<"): \n";
+  // //cout << "Tangent vector vtan=("<< vtan.X()<<",  "<<vtan.Y()<<", "<<vtan.Z()<<"): \n";
   
       double deflec = re->get_deflecPR();
         double Q =  TMath::Sign(1,deflec);
@@ -619,7 +621,7 @@ int hit_index;
         float cxreco = (vtan.Z())/mag;
         float cyreco = (vtan.X())/mag;
         float czreco = (vtan.Y())/mag;
-cout << "site " << isite << "cx = " << cxreco << "   cy = " << cyreco << " cz = " << czreco << endl;
+//cout << "site " << isite << "cx = " << cxreco << "   cy = " << cyreco << " cz = " << czreco << endl;
 
 }
 
@@ -679,8 +681,8 @@ cout << "site " << isite << "cx = " << cxreco << "   cy = " << cyreco << " cz = 
    re->set_dzerr2(dzerr2);
    double tanlerr2 = Cov_final(4,4);
    re->set_tanlerr2(tanlerr2);
-   cout << "phi0last = " << phi0 << "  cpalast = " << cpa << "  tanl_last " << tanl << endl;
-   cout << "phi0err2 = " << phi0err2 << "  cpaerr2 = " << cpaerr2 << "  tanlerr2 = " << tanlerr2 << endl;
+   //cout << "phi0last = " << phi0 << "  cpalast = " << cpa << "  tanl_last " << tanl << endl;
+   //cout << "phi0err2 = " << phi0err2 << "  cpaerr2 = " << cpaerr2 << "  tanlerr2 = " << tanlerr2 << endl;
   // re->set_Cov_last(Cov_final);
    double pt = 0;
    if(cpa!=0)pt=fabs(1.0/cpa);
@@ -696,10 +698,12 @@ cout << "site " << isite << "cx = " << cxreco << "   cy = " << cyreco << " cz = 
 
    re->set_Ekreco(Ekreco);
    
-   cout << "EkReco = " << Ekreco << " MeV" << endl; 
+   cout << "preco = " << p0 << " MeV" << endl; 
    cout << "chi2   =  " << chi2 << endl;
    cout <<  "ndf   =  " << ndf << endl;
-   
+   cout << "used sites = " <<         usedSites << endl;
+   //cout << "End of MakeRecoEventMC" <<endl;
+   next.Reset(); 
 	return 1;
  }
 

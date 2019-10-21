@@ -33,7 +33,7 @@ const int DetLayer = 7;
 //const Double_t TckZPosBottom[]= {-15.0, -35.0, -95.0, -155.0, -175.0, -195.0, -215.0};	        //in mm
 const Double_t width = 90;					  //width from center of layer in mm
 const Double_t thick = -0.4;					 //thickness of layer in mm
-const Double_t step = -1;					//step between dummy layers in mm
+const Double_t step = -5;					//step between dummy layers in mm
 const Double_t xoffset[] = {}; 
 const Double_t yoffset[] = {};
 Double_t ALKalDetector::fgBfield = 0.3;			//in T	
@@ -140,7 +140,15 @@ ALKalDetector::ALKalDetector(Int_t m): TVKalDetector(m)
 
 	}
 	SetOwner();
- }
+ } 
+ delete[] TckReg;
+ delete[] TrigReg;
+ delete[] GReg;
+ delete[] ShellReg;
+ delete[] TckZPosTop;
+ delete[] TckZPosBottom;
+ delete[] GuardThresh;
+ delete[] TrigThresh;
 }
 
 ALKalDetector::~ALKalDetector()
