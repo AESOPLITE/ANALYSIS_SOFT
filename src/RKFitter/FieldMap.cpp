@@ -256,3 +256,4 @@ FieldMap::~FieldMap()
 	delete[] fMapZ;
 	fMapZ = NULL;
 }
+

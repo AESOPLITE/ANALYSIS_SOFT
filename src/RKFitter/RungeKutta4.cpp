@@ -5,7 +5,7 @@ RungeKutta4::RungeKutta4(double dz, FieldMap *fM) {  // Version with no scatteri
 	// fM is the magnetic field map
 	this->fM = fM;
 	h = dz;
-	h2 = h*h;
+	h2 = h/2.;
 	nStep = 0;
 	aSize = 100 * floor(5.1 / dz) + 50;
 	xA = new double[aSize];
@@ -31,7 +31,7 @@ RungeKutta4::RungeKutta4(double dz, FieldMap *fM, int nScat, double zScat[]) {
 	// fM is the magnetic field map
 	this->fM = fM;
 	h = dz;
-	h2 = h*h;
+	h2 = h/2.;
 	nStep = 0;
 	aSize = 100 * floor(5.1 / dz) + 50;
 	xA = new double[aSize];
@@ -77,6 +77,7 @@ double *RungeKutta4::Integrate(double Q, double r0[3], double p0[3], double s, d
 		r[i + 3] = p0[i];
 	}
 	nStep = (int)(s / h) + 1;
+  //cout << "RungeKutta4::Integrate - s= " << s << " h=" << h << "   steps=" << nStep << endl;
 	if (nStep > aSize) {
 		delete[] xA;
 		delete[] yA;
@@ -97,6 +98,7 @@ double *RungeKutta4::Integrate(double Q, double r0[3], double p0[3], double s, d
 	}
 	double sNow = 0.;
 	int iScat = 0;
+  //double pInitial = sqrt(p0[0]*p0[0]+p0[1]*p0[1]+p0[2]*p0[2]);
 	for (int step = 0; step < nStep; step++) {
 		double ri[3] = { r[0], r[1], r[2] };
 		double pi[3] = { r[3], r[4], r[5] };
@@ -167,6 +169,8 @@ double *RungeKutta4::Integrate(double Q, double r0[3], double p0[3], double s, d
 			}
 		}
 	}
+  //double pFinal = sqrt(r[3]*r[3]+r[4]*r[4]+r[5]*r[5]);
+  //cout << "RungeKutta4.Integrate: Initial momentum=" << pInitial << "     Final momentum=" << pFinal << endl;
 	for (int i = iScat; i < nScat; i++) scatAng[iScat] = -99.;
 	return r;
 }
@@ -212,14 +216,14 @@ double *RungeKutta4::getX(double z, bool *flag) {
 	int i0 = (int)floor((z - zA[0]) / dz);
 	if (i0 >= imax - 1) i0 = imax - 2;
 	if (i0 < 0) i0 = 0;
-	/*
-	cout << "zA= ";
-	for (int i = 0; i < nStep; i++) {
-		cout << zA[i] << " ";
-	}
-	cout << endl;
-	cout << " z=" << z << " dz=" << dz << " zA[0]=" << zA[0] << " imax=" << imax << " sgn=" << sgn << endl;
-	*/
+	
+	//cout << "nStep=" << nStep << " zA= ";
+	//for (int i = 0; i < nStep; i++) {
+	//	cout << zA[i] << " ";
+	//}
+	//cout << endl;
+	//cout << " z=" << z << " dz=" << dz << " zA[0]=" << zA[0] << " imax=" << imax << " sgn=" << sgn << endl;
+	
 	int idx = i0;
 	if (sgn < 0) {
 		//cout << "getX:" << i0 << " " << zA[i0] << " " << z << endl;
@@ -292,12 +296,14 @@ double RungeKutta4::getS(int i) {
 }
 
 double *RungeKutta4::f(double x[3], double p[3]) { // Return all the derivatives for Lorentz force
+  // The momentum is GeV/c, the field is Tesla, and distance (s) is mm.
 	double *B= fM->GetField(x[0], x[1], x[2]);
 	double *d = new double[6];
 	double pmag = sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
-	d[0] = p[0] / pmag; // dx/ds (assuming the electron moves at the speed of light)
+	d[0] = p[0] / pmag; // dx/ds 
 	d[1] = p[1] / pmag;
 	d[2] = p[2] / pmag;
+  // alpha includes the charge sign plus unit conversions
 	d[3] = alpha * (d[1] * B[2] - d[2] * B[1]); // dp/ds
 	d[4] = alpha * (d[2] * B[0] - d[0] * B[2]);
 	d[5] = alpha * (d[0] * B[1] - d[1] * B[0]);
@@ -336,3 +342,4 @@ RungeKutta4::~RungeKutta4()
 	delete[] zScat;
 	zScat = NULL;
 }
+

@@ -1,4 +1,81 @@
 #include "RKfitter.h"
+#include "TkrData.h"
+
+// Plot a single event for debugging
+void RKfitter::plotEvent(double pMC, double pPR) {
+	if (tD->nLayers < 1) {
+		cout << "RKfitter.plotEvent: no data are available." << endl;
+		return;
+	}
+	int Npt = rk4->getNsteps();
+	if (Npt < 0) {
+		cout << "RKfitter.plotEvent, no track data are available." << endl;
+		return;
+	}
+	char strbuf[80];
+	sprintf(strbuf, "event%d.gp", tD->eventNumber);
+	FILE* oFile = fopen(strbuf, "w");
+	if (oFile == NULL) {
+		cout << "RKfitter.plotEvent: cannot open the output file " << strbuf << endl;
+		return;
+	}
+
+	fprintf(oFile, "#*** This file is intended to be displayed by gnuplot.\n");
+	fprintf(oFile, "#*** Either double click on the file (works in Windows at least),\n");
+	fprintf(oFile, "#*** or else start up gnuplot and use the load command to display the plot.\n");
+	fprintf(oFile, "set xtics font 'Verdana,12'\n");
+	fprintf(oFile, "set ytics font 'Verdana,12'\n");
+	fprintf(oFile, "set title 'Event %d: chi^2=%8.1f, pFT=%8.3f, pMC=%8.3f, pPR=%8.3f' font 'Verdana,12'\n", tD->eventNumber, ynewlo, 1/a[4], pMC, pPR);
+	fprintf(oFile, "set xlabel 'X (mm)' font 'Verdana,12'\n");
+	fprintf(oFile, "set ylabel 'Y (mm)' font 'Verdana,12'\n");
+	fprintf(oFile, "set zlabel 'Z (mm)' font 'Verdana,12'\n");
+	fprintf(oFile, "set xrange[-100. : 100.]\n");
+	fprintf(oFile, "set yrange[-100. : 100.]\n");
+	fprintf(oFile, "set nokey\n");
+	fprintf(oFile, "$hitsN << EOD\n");
+	for (int lyr = 0; lyr < tD->nLayers; ++lyr) {
+    if (tD->orientation.at(lyr) == 'b') continue;
+		for (int ht = 0; ht < tD->hits[lyr].size(); ++ht) {
+			double x = tD->xHitMC[lyr].at(ht);
+			double y = tD->yHitMC[lyr].at(ht);
+			double z = tD->zLayer[lyr];
+			fprintf(oFile, "%10.5f %10.5f %10.5f\n", x, y, z);
+		}
+	}
+	fprintf(oFile, "EOD\n");
+ 	fprintf(oFile, "$hitsB << EOD\n");
+	for (int lyr = 0; lyr < tD->nLayers; ++lyr) {
+    if (tD->orientation.at(lyr) == 'n') continue;
+		for (int ht = 0; ht < tD->hits[lyr].size(); ++ht) {
+			double x = tD->xHitMC[lyr].at(ht);
+			double y = tD->yHitMC[lyr].at(ht);
+			double z = tD->zLayer[lyr];
+			fprintf(oFile, "%10.5f %10.5f %10.5f\n", x, y, z);
+		}
+	}
+	fprintf(oFile, "EOD\n");
+
+	fprintf(oFile, "$hitsPR << EOD\n");
+	for (int lyr = 0; lyr < tD->nLayers; ++lyr) {
+		for (int ht = 0; ht < tD->hits[lyr].size(); ++ht) {
+			double x = tD->xHitPR[lyr].at(ht);
+			double y = tD->yHitPR[lyr].at(ht);
+			double z = tD->zLayer[lyr];
+			fprintf(oFile, "%10.5f %10.5f %10.5f\n", x, y, z);
+		}
+	}
+	fprintf(oFile, "EOD\n");
+
+	fprintf(oFile, "$tks << EOD\n");
+	for (int pt = 0; pt < Npt; ++pt) {
+		double *r = rk4->getX(pt);
+		fprintf(oFile, "%10.5f %10.5f %10.5f\n", r[0], r[1], r[2]);
+	}
+	fprintf(oFile, "EOD\n");
+	fprintf(oFile, "splot $hitsPR u 1:2:3 with points pt 2 ps 2, $hitsN u 1:2:3 with points pt 6 ps 2, $hitsB u 1:2:3 with points pt 7 ps 2, $tks u 1:2:3 with lines lw 3\n");
+
+	fclose(oFile);
+}
 
 // Calculate the chi^2 of the fit for a given track. This is what we try to minimize. 
 double RKfitter::chi2_2(double S, double C) {
@@ -26,6 +103,11 @@ double RKfitter::chi2nm(double a[]) {  // Version without multiple scattering
 		return 9.9e9;
 	}
 	double Delta_z = z0 - (tD->zLayer[tD->nLayers - 1]);
+  //cout << "RKfitter::chi2nm, z0=" << z0 << " Delta_z=" << Delta_z;
+  //for (int lyr=0; lyr<tD->nLayers; ++lyr) {
+  //  cout << " lyr " << lyr << " z=" << tD->zLayer[lyr];
+  //}
+  //cout << endl;
 	double ctz = -sqrt(arg);
 	double s = -Delta_z / ctz + 200.0;
 	if (s > 500. || s < 0.) s = 500.;
@@ -38,12 +120,12 @@ double RKfitter::chi2nm(double a[]) {  // Version without multiple scattering
 	double p0[3] = { p*a[2], p*a[3], p*ctz };
 
 	// Integrate all the way through the instrument
-	//if (verbose) {
-	//	cout << "RKfitter::chi2nm: r0=" << r0[0] << " " << r0[1] << " " << r0[2];
-	//	cout << "   p0=" << p0[0] << " " << p0[1] << " " << p0[2] << "  s=" << s << endl;
-	//}
+	if (verbose) {
+		cout << "RKfitter::chi2nm: r0=" << r0[0] << " " << r0[1] << " " << r0[2];
+		cout << "   p0=" << p0[0] << " " << p0[1] << " " << p0[2] << "  s=" << s << endl;
+	}
 	double *xEnd = rk4->Integrate(Q, r0, p0, s, abs(Delta_z));
-	if (verbose) cout << "completed integration at xEnd=" << xEnd[0] << " " << xEnd[1] << " " << xEnd[2] << endl;
+	//if (verbose) cout << "completed integration at xEnd=" << xEnd[0] << " " << xEnd[1] << " " << xEnd[2] << endl;
 	delete[] xEnd;
 
 	// Loop over layers and add up the chi^2
@@ -69,7 +151,7 @@ double RKfitter::chi2nm(double a[]) {  // Version without multiple scattering
 			double incr = pow((xInterp - xMeas) / sigma, 2);
 			result += incr;
 			delete[] rInterp;
-			//if (verbose) cout << "   Layer " << lyr << " flag=" << flag << " xInterp=" << xInterp << " xMeas=" << xMeas << " chi2_inc=" << incr << endl;
+			if (verbose) cout << "   Layer " << lyr << " flag=" << flag << " xInterp=" << xInterp << " xMeas=" << xMeas << " chi2_inc=" << incr << endl;
 		}
 		else {
 			double *rInterp = rk4->getX(tD->zLayer[lyr], &flag);
@@ -87,7 +169,7 @@ double RKfitter::chi2nm(double a[]) {  // Version without multiple scattering
 			double incr = pow((yInterp - yMeas) / sigma, 2);
 			result += incr;
 			delete[] rInterp;
-			//if (verbose) cout << "   Layer " << lyr << " flag=" << flag << " yInterp=" << yInterp << " yMeas=" << yMeas << " chi2_inc=" << incr << endl;
+			if (verbose) cout << "   Layer " << lyr << " flag=" << flag << " yInterp=" << yInterp << " yMeas=" << yMeas << " chi2_inc=" << incr << endl;
 		}
 	}
 	if (verbose) {
@@ -320,7 +402,7 @@ RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD, bool mul
 	//       1 = dlib bobyqa algorithm (doesn't work well; not sure why)
 	//       2 = dlib gradient algorithm (numerical derivatives); goes to Nelder-Mean if chi^2 is bad
 	//       Algorithm 2 is faster than 0 but only slightly better in resolution
-	if (verbose) cout << "Entering the RKfitter constructor with z0=" << z0 << endl;
+	if (verbose) cout << "Entering the RKfitter constructor with z0=" << z0 << " alg=" << alg << endl;
 	this->verbose = verbose;
 	this->z0 = z0;
 	this->fM = fM;
@@ -338,11 +420,11 @@ RKfitter::RKfitter(bool verbose, double z0,  FieldMap *fM, TkrData *tD, bool mul
 	maxCalls = 1000;   // Maximum function calls allowed in the minimization search
 	reqmin = 0.0001;    // convergence check parameter
 	step = new double[5];
-	step[0] = 1.;    // initial step for x position in the minimization search
-	step[1] = 1.;    // initial step for y position
-	step[2] = 0.04;  // initial step size for x direction cosine
-	step[3] = 0.04;  // initial step size for y direction cosine
-	step[4] = 20.0;    // initial step size for 1/p as a percentage
+	step[0] = 4.;    // initial step for x position in the minimization search
+	step[1] = 4.;    // initial step for y position
+	step[2] = 0.1;  // initial step size for x direction cosine
+	step[3] = 0.1;  // initial step size for y direction cosine
+	step[4] = 25.0;    // initial step size for 1/p as a percentage
 	this->stepSize = stepSize;   // Runge-Kutta integration step size (comparable to the B field map precision)
 	double rho = 2.329;           // Density of silicon in g/cm^2
 	SiThickness = 0.4;
@@ -369,6 +451,7 @@ int RKfitter::fitIt(bool genStartGuess, double guess[5], std::vector<int> hitSel
 	// guess[5] is the externally supplied starting guess for the track
 	// if genStartGuess is true, then the program will generate an initial guess from a linear fit
 
+  cout << "RKfitter::fitIt event " << tD->eventNumber << ", chi^2 of the initial guess is " << chi2(guess) << endl;
 	if (verbose) cout << "RKfitter::fitIt: guess=" << guess[0] << " " << guess[1] << " " << guess[2] << " " << guess[3] << " " << guess[4] << endl;
 	if (hitSelection.size() != tD->nLayers) {
 		cout << "RKfitter:fitIt, wrong number of hits specified, need " << tD->nLayers << endl;
@@ -1305,4 +1388,5 @@ void RKfitter::timestamp(void)
 	return;
 # undef TIME_SIZE
 }
+
 

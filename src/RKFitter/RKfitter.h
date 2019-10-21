@@ -77,6 +77,8 @@ public:
 	RKfitter(bool verbose, double z0, FieldMap *fM, TkrData *tD, bool multScat=true, double stepSize=5.0, int alg=0);
 	double chi2(double a[]);
 	double chi2_2(double S, double C);
+	void plotEvent(double pMC, double pPR);
+
 #ifdef DLIB
 	static double chi2b(column_vector b); 
 	static double chi2bend(double S, double C);

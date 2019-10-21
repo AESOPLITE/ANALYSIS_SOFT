@@ -9,7 +9,7 @@ using namespace std;
 // Perform a 4th order Runge-Kutta numerical integration of the Lorentz force through a B field map
 // Robert P. Johnson       May 3, 2018
 class RungeKutta4 {
-	double h, h2;   // The step size along the arc and its square
+	double h, h2;   // The step size along the arc and the half step size
 	double alpha;
 	FieldMap *fM;
 	double *f(double x[3], double p[3]);
