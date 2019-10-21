@@ -11,7 +11,7 @@ using namespace std;
 #ifndef LOADMCPARAMETERS_H
 #define LOADMCPARAMETERS_H
 
-void LoadMCparameters(string filename,int*,int*,int*,float*,float*,float*);
+void LoadMCparameters(string filename,int*,int*,int*,float*,float*,float*,int*);
 void LoadMCparameters(string filename,double*,double*,double*);
 
 

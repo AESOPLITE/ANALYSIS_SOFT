@@ -1,8 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 ///    Author: Pierre-Simon Mangeard, psmangeard@gmail.com
-///    Department of Physics and Astronomy, University of Delaware, January 10, 2017
-////////////////////////////////////////////////////////////////////////////////////////// 
-
+///    Department of Physics and Astronomy, University of Delaware, October 28, 2016
+///			   Sarah Mechbal, smechbal@ucsc.edu
+///	   Santa Cruz Institute for Particle Physics, University of California, Santa Cruz, March 2019 
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 #include <iostream>
@@ -58,15 +59,6 @@
 #include "LoadMCparameters.h"
 #include "tools.h"
 
-//ClassImp(ALTckhit)
-//ClassImp(ALEvent)
 
-int MakeRawEventMC(int ,int ,int,int,string,string,string,string,string,string);
 
-//int MakeRawEventMC(int typeT,int Ene,int cycle,string Inppath,string Inppath2,string Outpath,string startfile,string endfile);
-int MakeRawEventMCDisc(int ,int ,int,int,string,string,string,string,string,string);
-/*
-float Discretize(int L,vector<float> x, vector<float> y,vector<float> z,vector<float> cz,vector<float>type,vector<float> Edep,int*chip,int* fstrip,int* fstripID,int*nstrip,float offsetLL, float offsetRL,bool MCflag);
-float StriptoCoord(int strip,float OffsetLL,float OffsetRL,bool MCflag);
-int CoordtoStrip(float Coord,float SecCoord,float OffsetLL,float OffsetRL,bool MCflag);
-*/
+int MakeRawEventAtmoMC(int,int,int,string,string,string,string,string);
