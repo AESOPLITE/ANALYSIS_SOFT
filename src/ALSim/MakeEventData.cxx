@@ -225,7 +225,7 @@ int MakeEventData(string filename,int geoconfig,float* zL,float* OffsetLL,float*
       //Pattern Recognition   Sarah's Code
       ////////////////////////////////////
   // cout << "Event " << k <<", NL = " << NL << endl;
-   if (NL<7) continue;
+//   if (NL<7) continue;
    int DataType = 1;
    ALPatternRecognition* PR = new ALPatternRecognition();
    int EventPR = PR->FindPattern(de,DataType,zL,OffsetLL,OffsetRL,TrigThresh);
@@ -236,7 +236,7 @@ int MakeEventData(string filename,int geoconfig,float* zL,float* OffsetLL,float*
       continue;
       }
 
-
+/*
     /////////////////////    
     //RECONSTRUCTION
   /////////////////////    
@@ -249,7 +249,8 @@ int MakeEventData(string filename,int geoconfig,float* zL,float* OffsetLL,float*
         continue;
         }
     }
- 
+
+*/
     /////////////////////    
     //Fill the output file 
     /////////////////////
