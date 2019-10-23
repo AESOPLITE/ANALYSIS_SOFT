@@ -1,9 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////// 
+//////////////////////////////////////////////////////////////////////////////////////////
 ///    Author: Pierre-Simon Mangeard, psmangeard@gmail.com
 ///    Department of Physics and Astronomy, University of Delaware, October 28, 2016
 ///				Sarah Mechbal, smechbal@ucsc.edu
 ////   Department of Physics, University of California Santa Cruz
-////////////////////////////////////////////////////////////////////////////////////////// 
+//////////////////////////////////////////////////////////////////////////////////////////
 #ifndef __ALEVENT__
 #define __ALEVENT__
 #include "headers.h"
@@ -14,9 +14,9 @@
 class ALEvent:public TObject
 {
  private:
-  
+
    int eventnumber; //Event number
-   
+
    //Data FROM "PHA" LINE, trigger information
    int yPHA;//Year from PHA line linked to the event
    int mPHA;//Month from PHA line linked to the event
@@ -26,36 +26,36 @@ class ALEvent:public TObject
    int sPHA;//Second from PHA line linked to the event
    double GoPHA;//Go counter
    double tPHA;//timer
-   
+
    //Data FROM "EVT" LINE, tracker information
    int yEVT;//Year from EVT line linked to the event
    int mEVT;//Month from EVT line linked to the event
    int dEVT;//Day from EVT line linked to the event
    int hEVT;//Hour from EVT line linked to the event
    int miEVT;//Minute from EVT line linked to the event
-   int sEVT;//Second from EVT line linked to the event  
-   string EVT; //Data from EVT line linked to the event  
+   int sEVT;//Second from EVT line linked to the event
+   string EVT; //Data from EVT line linked to the event
    double GoEVT;//Go counter
    double tEVT;//timer
-   
+
    int nHitLEVT;//nHitL from EVT line linked to the event added 12/05/2017
    int CCEVT;//CC from EVT line linked to the event   added 12/05/2017
    int PatternEVT;//CC from EVT line linked to the event   added 12/05/2017
    int Q1EVT;//Q1 from EVT line linked to the event   added 12/05/2017
    double TrigEVT;//Q1 from EVT line linked to the event   added 12/05/2017
-   
+
    //Data FROM "ASI" LINE
    string L[7];//Data from  ASI lines of the event
    int flagL[7];//1 if ASI line was present
-   
-   
-   //Monte Carlo information: Truth variable names finish with MC 
-   int ncase; 
+
+
+   //Monte Carlo information: Truth variable names finish with MC
+   int ncase;
    int typeMC; 					//type of particle
    double EkMC;   				//kinetic energy of the particle at injection point
    double pMC;	        			//momentum of particle at injection point
-   double X0MC,Y0MC,Z0MC;			//Coordinates of the partcle at the injection point 
-   double CX0MC,CY0MC,CZ0MC; 			//Incidence cosines of the partcle at the injection point 
+   double X0MC,Y0MC,Z0MC;			//Coordinates of the partcle at the injection point
+   double CX0MC,CY0MC,CZ0MC; 			//Incidence cosines of the partcle at the injection point
    int typePP;
    double EkPP;
    double ZenPP;
@@ -63,38 +63,39 @@ class ALEvent:public TObject
    double CoLatSP;
    double CoLonSP;
    int Nhits; 					//Number of hits in the event (MC && data)
-   
-   
+
+   int Nhnoisy;//Number of hits with noisy channel added 23/10/2019
+
    //Pattern Recognition info
-   
+
    double EkPR, p0PR;				//kinetic energy and momentum of particle from least squares fit
    double chi2NBPR, chi2BPR, clNBPR, clBPR;	//chi2 of parabolic/linear fit in bending/nonbending plane
    double aPR, bPR, cPR;			//parameters of parabolic fit ( y(x) = c + bx + ax*x)
-   double slopePR, interPR;			//parameters of linear fit 
+   double slopePR, interPR;			//parameters of linear fit
    double deflecPR;                       	//deflection from layer 2 to layer 6 in the beding plane: Difference of the slope of straight line
-   
+
   //Reconstruction information: variables finish with reco
    int typereco;                    		//type of particle
    double Ekreco, p0reco;           		//kinetic energy and momentum of the particle
-   double X0reco,Y0reco,Z0reco;     		//Coordinates of the partocle at the injection point 
-   double CX0reco,CY0reco,CZ0reco;  		//Incidence cosines of the particle at the injection point 
+   double X0reco,Y0reco,Z0reco;     		//Coordinates of the partocle at the injection point
+   double CX0reco,CY0reco,CZ0reco;  		//Incidence cosines of the particle at the injection point
    int ndf;                         		// number of degrees of freedom
    double chi2, cl;                 		//chi2 of fit and confidence level (cl = Prob(chi2, ndf)
    double d0, phi0, cpa, dz, tanl;  		//reconstructed helical track parameters
    double phi0_init, cpa_init, tanl_init;  	//initial helical track parameters
    double d0err2, phi0err2, cpaerr2, dzerr2, tanlerr2; //err^2 of track parameters
    TMatrixD Cov_init, Cov_last;			//covariance matrix at initialization and last site
-   
+
    //Hits information
-   std::vector<ALTckhit*> hits;  
-   
+   std::vector<ALTckhit*> hits;
+
    //NEW: all segments informations for MC (full position & directional cosines & momentum & age & type)
    std::vector<float> posX;
    std::vector<float> posY;
    std::vector<float> posZ;
    std::vector<float> posCX;
    std::vector<float> posCY;
-   std::vector<float> posCZ;   
+   std::vector<float> posCZ;
    std::vector<float> posType;
    std::vector<float> posAge;
    std::vector<float> posP;
@@ -105,32 +106,32 @@ class ALEvent:public TObject
    bool T4;
    bool guard;
    //Energy for MC, PHA pulse height for data
-   std::vector<double> EneT1;  
-   std::vector<double> EneT2;  
+   std::vector<double> EneT1;
+   std::vector<double> EneT2;
    std::vector<double> EneT3;
    std::vector<double> EneT4;
-   std::vector<double> Eneg; 
-   std::vector<double> PHA6; //for data only 6th PHA 
+   std::vector<double> Eneg;
+   std::vector<double> PHA6; //for data only 6th PHA
    //For MC, energy deposit in insulation and shell
-   std::vector<double> EneIsofoam;  
-   std::vector<double> EneShell;  
-     
+   std::vector<double> EneIsofoam;
+   std::vector<double> EneShell;
+
    //Timing for MC, Not available for data
-   std::vector<double> timeT1;  
-   std::vector<double> timeT2;  
+   std::vector<double> timeT1;
+   std::vector<double> timeT2;
    std::vector<double> timeT3;
    std::vector<double> timeT4;
-   std::vector<double> timeg;     
-   std::vector<double> timeIsofoam;  
-   std::vector<double> timeShell;  
-   
-   
+   std::vector<double> timeg;
+   std::vector<double> timeIsofoam;
+   std::vector<double> timeShell;
+
+
    //MC: Number of optical photon produced in T2 (20/05/2019: For testing CK in MC, no sure it is working fine in Fluka yet)
    int NphCK;
-   
-   
-   
-   //Internal Triggers 
+
+
+
+   //Internal Triggers
    //Tracker layer for 0 to 6. top layer is 0
    //integer value coded with 7 bits values
    //\Sum\Limits_{k=0}^{6} 2^k
@@ -148,7 +149,7 @@ class ALEvent:public TObject
    int OnTimeCT1;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
    int LastCT1;//The last command received by the payload, expressed as a decimal number (it is in HeX on the GUI display)
    int CountCT1;//Count of commands received by the payload since power on
-   
+
    //Barometer information: NOT INTERPRETED from line CT1
    float Baro1T;//Barometer 1 Temperature
    float Baro1P;//Barometer 1 Pressure
@@ -159,14 +160,14 @@ class ALEvent:public TObject
    float TempB2;//Barometer 2 Temperature
    float PressB1;//Barometer 1 Pressure
    float PressB2;//Barometer 2 Pressure
-   
+
    float GOCT1;
    float coinCT1;
-   
+
    //Voltages
    float Volt5VCT1;  // Positive 5V from line CT1
    float Volt15VCT1; // Positive 15V from line CT1
- 
+
    //Data FROM "CT3" LINE
    int yCT3;//Year from CT3 line linked to the event (last read CT3 line)
    int mCT3;//Month from CT3 line linked to the event (last read CT3 line)
@@ -179,11 +180,11 @@ class ALEvent:public TObject
    int OnTimeCT3;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
    int LastCT3;//The last command received by the payload, expressed as a decimal number (it is in HeX on the GUI display)
    int CountCT3;//Count of commands received by the payload since power on
-  
+
    //Voltages
    float Volt5VCT3=-999;  // Positive 5V from line CT3
    float Volt15VCT3=-999; // Positive 15V from line CT3
-  
+
    //TRIGGER RATES (PHA AND LOGIC) from CT3
    float T1L;
    float T1A;
@@ -195,7 +196,18 @@ class ALEvent:public TObject
    float T4A;
    float GRDL;
    float GRDA;
-  
+
+   //Data from "VCI" LINE added 23/10/2019
+   int yVCI;//Year from VCI line linked to the event (last read VCI line)
+   int mVCI;//Month from VCI line linked to the event (last read VCI line)
+   int dVCI;//Day from VCI line linked to the event (last read VCI line)
+   int hVCI;//Hour from VCI line linked to the event (last read VCI line)
+   int miVCI;//Minute from VCI line linked to the event (last read VCI line)
+   int sVCI;//Second from VCI line linked to the event (last read VCI line)
+   int Lrate[7];    //Tracker Layer rate  from the last VCI read line
+
+
+
    //HOUSEKEEPING FROM POW
    int yPOW;//Year from POW line linked to the event (last read POW line)
    int mPOW;//Month from POW line linked to the event (last read POW line)
@@ -209,12 +221,12 @@ class ALEvent:public TObject
    float HeatC;
    float HeatV;
    float TrackC;
-   float TrackV;  
- public: 
+   float TrackV;
+ public:
    //Constructors
    ALEvent();// Default
    //Destructor
-   ~ALEvent(){};   
+   ~ALEvent(){};
    ///////////////////////////////
    // Methods
    ///////////////////////////////
@@ -223,7 +235,7 @@ class ALEvent:public TObject
    //"setting" member methods
    ////////////////////////////////
    void set_eventnumber(int a){eventnumber=a;}
-   
+
    void set_yPHA(int a){yPHA=a;}
    void set_mPHA(int a){mPHA=a;}
    void set_dPHA(int a){dPHA=a;}
@@ -247,11 +259,12 @@ class ALEvent:public TObject
    void set_PatternEVT(int a){PatternEVT=a;}
    void set_Q1EVT(int a){Q1EVT=a;}
    void set_TrigEVT(double a){TrigEVT=a;}
- 
+
    void set_L(int k, string a){if(k<7)L[k]=string(a);}
    void set_flagL(int k, int a){if(k<7)flagL[k]=a;}
-   
-   ////////////////////////////////  
+
+
+   ////////////////////////////////
    void set_ncase(int a){ncase=a;}
    void set_typeMC(int a){typeMC=a;}
    void set_EkMC(double a){EkMC=a;}
@@ -268,12 +281,18 @@ class ALEvent:public TObject
    void set_AziPP(double a){AziPP=a;}
    void set_CoLatSP(double a){CoLatSP=a;}
    void set_CoLonSP(double a){CoLonSP=a;}
-   
+
    ////////////////////////////////
    void set_Nhits(int a){Nhits=a;}
    void add_Nhits(){Nhits++;}
-   ////////////////////////////////  
-   
+
+   void set_Nhnoisy(int a){Nhnoisy=a;};
+   void add_Nhnoisy(){Nhnoisy++;};
+
+
+
+   ////////////////////////////////
+
    void set_EkPR(double a){EkPR=a;}
    void set_p0PR(double a){p0PR=a;}
    void set_aPR(double b){aPR=b;}
@@ -286,7 +305,7 @@ class ALEvent:public TObject
    void set_clBPR(double a){clBPR=a;}
    void set_clNBPR(double a){clNBPR=a;}
    void set_deflecPR(double a){deflecPR=a;}
-   
+
    ////////////////////////////////
    void set_typereco(int a){typereco=a;}
    void set_Ekreco(double a){Ekreco=a;}
@@ -316,9 +335,9 @@ class ALEvent:public TObject
    void set_Cov_init(TMatrixD a){Cov_init=a;}
    void set_Cov_last(TMatrixD a){Cov_last=a;}
 
-   
+
    void add_hit(ALTckhit* h){hits.push_back(h);Nhits++;}
-   
+
    //Set Pattern Reco variable at the position of the hit of index k
    void set_hxPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_xPR(a);}
    void set_hyPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_yPR(a);}
@@ -326,7 +345,7 @@ class ALEvent:public TObject
    void set_hcxPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_cxPR(a);}
    void set_hcyPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_cyPR(a);}
    void set_hczPR(int k, float a){if(k<(int)hits.size())(hits.at(k))->set_czPR(a);}
-   
+
    //Set reconstruted variable at the position of the hit of index k
    void set_hxreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_xreco(a);}
    void set_hyreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_yreco(a);}
@@ -336,23 +355,23 @@ class ALEvent:public TObject
    void set_hcyreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_cyreco(a);}
    void set_hczreco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_czreco(a);}
    void set_hereco(int k,float a){if(k<(int)hits.size())(hits.at(k))->set_ereco(a);}
-   
+
    //set all positions in vector
-   void add_posX(float a){posX.push_back(a);} 
-   void add_posY(float a){posY.push_back(a);} 
-   void add_posZ(float a){posZ.push_back(a);} 
-   void add_posCX(float a){posCX.push_back(a);} 
-   void add_posCY(float a){posCY.push_back(a);} 
-   void add_posCZ(float a){posCZ.push_back(a);} 
-   void add_posType(float a){posType.push_back(a);} 
+   void add_posX(float a){posX.push_back(a);}
+   void add_posY(float a){posY.push_back(a);}
+   void add_posZ(float a){posZ.push_back(a);}
+   void add_posCX(float a){posCX.push_back(a);}
+   void add_posCY(float a){posCY.push_back(a);}
+   void add_posCZ(float a){posCZ.push_back(a);}
+   void add_posType(float a){posType.push_back(a);}
    void add_posAge(float a){posAge.push_back(a);}
-   void add_posP(float a){posP.push_back(a);} 
+   void add_posP(float a){posP.push_back(a);}
    void set_T1(bool a){T1=a;}
    void set_T2(bool a){T2=a;}
    void set_T3(bool a){T3=a;}
    void set_T4(bool a){T4=a;}
    void set_guard(bool a){guard=a;}
-   void add_EneT1(double a){EneT1.push_back(a);} 
+   void add_EneT1(double a){EneT1.push_back(a);}
    void add_EneT2(double a){EneT2.push_back(a);}
    void add_EneT3(double a){EneT3.push_back(a);}
    void add_EneT4(double a){EneT4.push_back(a);}
@@ -362,15 +381,15 @@ class ALEvent:public TObject
    void add_timeT2(double a){timeT2.push_back(a);}
    void add_timeT3(double a){timeT3.push_back(a);}
    void add_timeT4(double a){timeT4.push_back(a);}
-   void add_timeg(double a){timeg.push_back(a);}   
+   void add_timeg(double a){timeg.push_back(a);}
    void set_Ti(int a){Ti=a;}
-   void add_EneIsofoam(double a){EneIsofoam.push_back(a);} 
-   void add_EneShell(double a){EneShell.push_back(a);}   
+   void add_EneIsofoam(double a){EneIsofoam.push_back(a);}
+   void add_EneShell(double a){EneShell.push_back(a);}
    void add_timeIsofoam(double a){timeIsofoam.push_back(a);}
    void add_timeShell(double a){timeShell.push_back(a);}
    void set_NphCK(int a){NphCK=a;}
-   
-  //HOUSEKEEPING FROM COUNTERS 1 AND 3   
+
+  //HOUSEKEEPING FROM COUNTERS 1 AND 3
    void set_yCT1(int a){yCT1=a;}
    void set_mCT1(int a){mCT1=a;}
    void set_dCT1(int a){dCT1=a;}
@@ -385,14 +404,14 @@ class ALEvent:public TObject
    void set_Baro1P(float a){Baro1P=a;}
    void set_Baro2T(float a){Baro2T=a;}
    void set_Baro2P(float a){Baro2P=a;}
-   void set_TempB1(float a){TempB1=a;} 
-   void set_TempB2(float a){TempB2=a;} 
+   void set_TempB1(float a){TempB1=a;}
+   void set_TempB2(float a){TempB2=a;}
    void set_PressB1(float a){PressB1=a;}
    void set_PressB2(float a){PressB2=a;}
-   void set_Volt5VCT1(float a){Volt5VCT1=a;}  
-   void set_Volt15VCT1(float a){Volt15VCT1=a;} 
-   void set_GOCT1(float a){GOCT1=a;} 
-   void set_coinCT1(float a){coinCT1=a;} 
+   void set_Volt5VCT1(float a){Volt5VCT1=a;}
+   void set_Volt15VCT1(float a){Volt15VCT1=a;}
+   void set_GOCT1(float a){GOCT1=a;}
+   void set_coinCT1(float a){coinCT1=a;}
 
    //Data FROM "CT3" LINE
    void set_yCT3(int a){yCT3=a;}
@@ -415,10 +434,10 @@ class ALEvent:public TObject
    void set_T4L(float a){T4L=a;}
    void set_GRDL(float a){GRDL=a;}
    void set_GRDA(float a){GRDA=a;}
-   void set_Volt5VCT3(float a){Volt5VCT3=a;}  
+   void set_Volt5VCT3(float a){Volt5VCT3=a;}
    void set_Volt15VCT3(float a){Volt15VCT3=a;}
-   
-   
+
+
    void set_yPOW(int a){yPOW=a;}
    void set_mPOW(int a){mPOW=a;}
    void set_dPOW(int a){dPOW=a;}
@@ -433,6 +452,19 @@ class ALEvent:public TObject
    void set_HeatV(float a){HeatV=a;}
    void set_TrackC(float a){TrackC=a;}
    void set_TrackV(float a){TrackV=a;}
+
+   //Data FROM "VCI" LINE
+
+   void set_yVCI(int a){yVCI=a;}
+   void set_mVCI(int a){mVCI=a;}
+   void set_dVCI(int a){dVCI=a;}
+   void set_hVCI(int a){hVCI=a;}
+   void set_miVCI(int a){miVCI=a;}
+   void set_sVCI(int a){sVCI=a;}
+   void set_Lrate(int k, int a){if(k<7)Lrate[k]=a;}
+
+
+
    ////////////////////////////////
    //"Getting" member methods
    ////////////////////////////////
@@ -455,18 +487,19 @@ class ALEvent:public TObject
    double get_GoEVT(){return GoEVT;}
    double get_tEVT(){return tEVT;}
    string get_EVT(){return EVT;}
-   
+
    int get_nHitLEVT(){return nHitLEVT;}
    int get_CCEVT(){return CCEVT;}
    int get_PatternEVT(){return PatternEVT;}
    int get_Q1EVT(){return Q1EVT;}
    double get_TrigEVT(){return TrigEVT;}
-  
+
    string get_L(int k){if(k<7)return L[k];else return "";}
    int get_flagL(int k){if(k<7)return flagL[k];else return 0;}
-   
+
+
    ////////////////////////////////
-  
+
    int get_ncase(){return ncase;}
    int get_typeMC(){return typeMC;}
    double get_EkMC(){return EkMC;}
@@ -486,8 +519,11 @@ class ALEvent:public TObject
 
    ////////////////////////////////
    int get_Nhits(){return Nhits;}
+   int get_Nhnoisy(){return Nhnoisy;}
+
+
    ////////////////////////////////
-   
+
    double get_EkPR(){return EkPR;}
    double get_p0PR(){return p0PR;}
    double get_aPR(){return aPR;}
@@ -529,7 +565,7 @@ class ALEvent:public TObject
    double get_tanlerr2(){return tanlerr2;}
    TMatrixD get_Cov_init(){return Cov_init;}
    TMatrixD get_Cov_last(){return Cov_last;}
-   std::vector<ALTckhit*>& get_hits(){return hits;}  
+   std::vector<ALTckhit*>& get_hits(){return hits;}
    std::vector<float>&  get_posX(){return posX;}
    std::vector<float>&  get_posY(){return posY;}
    std::vector<float>&  get_posZ(){return posZ;}
@@ -542,7 +578,7 @@ class ALEvent:public TObject
 
 
 
- 
+
    bool get_T1(){return T1;}
    bool get_T2(){return T2;}
    bool get_T3(){return T3;}
@@ -564,12 +600,12 @@ class ALEvent:public TObject
    std::vector<double>&  get_EneShell(){return EneShell;}
    std::vector<double>&  get_timeIsofoam(){return timeIsofoam;}
    std::vector<double>&  get_timeShell(){return timeShell;}
-   
-   
+
+
    int get_NphCK(){return NphCK;}
 
-   
-    //HOUSEKEEPING FROM COUNTERS 1 AND 3   
+
+    //HOUSEKEEPING FROM COUNTERS 1 AND 3
    int get_yCT1(){return yCT1;}
    int get_mCT1(){return mCT1;}
    int get_dCT1(){return dCT1;}
@@ -584,14 +620,14 @@ class ALEvent:public TObject
    float get_Baro1P(){return Baro1P;}
    float get_Baro2T(){return Baro2T;}
    float get_Baro2P(){return Baro2P;}
-   float get_TempB1(){return TempB1;} 
-   float get_TempB2(){return TempB2;} 
+   float get_TempB1(){return TempB1;}
+   float get_TempB2(){return TempB2;}
    float get_PressB1(){return PressB1;}
    float get_PressB2(){return PressB2;}
-   float get_Volt5VCT1(){return Volt5VCT1;}  
-   float get_Volt15VCT1(){return Volt15VCT1;} 
-   float get_GOCT1(){return GOCT1;} 
-   float get_coinCT1(){return coinCT1;} 
+   float get_Volt5VCT1(){return Volt5VCT1;}
+   float get_Volt15VCT1(){return Volt15VCT1;}
+   float get_GOCT1(){return GOCT1;}
+   float get_coinCT1(){return coinCT1;}
 
    int get_yCT3(){return yCT3;}
    int get_mCT3(){return mCT3;}
@@ -613,8 +649,8 @@ class ALEvent:public TObject
    float get_T4A(){return T4A;}
    float get_GRDL(){return GRDL;}
    float get_GRDA(){return GRDA;}
-   float get_Volt5VCT3(){return Volt5VCT3;}  
-   float get_Volt15VCT3(){return Volt15VCT3;} 
+   float get_Volt5VCT3(){return Volt5VCT3;}
+   float get_Volt15VCT3(){return Volt15VCT3;}
 
    int get_yPOW(){return yPOW;}
    int get_mPOW(){return mPOW;}
@@ -631,6 +667,18 @@ class ALEvent:public TObject
    float get_TrackC(){return TrackC;}
    float get_TrackV(){return TrackV;}
 
+   //From VCI line
+   int get_yVCI(){return yVCI;}
+   int get_mVCI(){return mVCI;}
+   int get_dVCI(){return dVCI;}
+   int get_hVCI(){return hVCI;}
+   int get_miVCI(){return miVCI;}
+   int get_sVCI(){return sVCI;}   int get_Lrate(int k){if(k<7)return Lrate[k];else return 0;}
+
+
+
+
+
    ////////////////////////////////
    //Methods to get number of layerS and layer with hits
    ////////////////////////////////
@@ -645,10 +693,3 @@ class ALEvent:public TObject
 };
 
 #endif
-
-
-
-
-
-
-

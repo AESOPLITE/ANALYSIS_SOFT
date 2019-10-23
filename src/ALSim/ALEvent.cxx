@@ -1,9 +1,9 @@
-////////////////////////////////////////////////////////////////////////////////////////// 
+//////////////////////////////////////////////////////////////////////////////////////////
 ///    Author: Pierre-Simon Mangeard, psmangeard@gmail.com
 ///    Department of Physics and Astronomy, University of Delaware, October 28, 2016
 ///				Sarah Mechbal, smechbal@ucsc.edu
 ////   Department of Physics, University of California Santa Cruz
-////////////////////////////////////////////////////////////////////////////////////////// 
+//////////////////////////////////////////////////////////////////////////////////////////
 
 #include "ALEvent.h"
 ClassImp(ALEvent)
@@ -13,7 +13,7 @@ ClassImp(ALTckhit)
 ALEvent::ALEvent()// Default
 {
  eventnumber=0; //Event number
- 
+
  yPHA=-1;//Year from PHA line linked to the event
  mPHA=-1;//Month from PHA line linked to the event
  dPHA=-1;//Day from PHA line linked to the event
@@ -27,7 +27,7 @@ ALEvent::ALEvent()// Default
  dEVT=-1;//Day from EVT line linked to the event
  hEVT=-1;//Hour from EVT line linked to the event
  miEVT=-1;//Minute from EVT line linked to the event
- sEVT=-1;//Second from EVT line linked to the event  
+ sEVT=-1;//Second from EVT line linked to the event
  EVT="";//Data from EVT line linked to the event
  GoEVT=-1;//Go counter from EVT line linked to the event
  tEVT=-1;//timer from from EVT line linked to the event
@@ -40,15 +40,18 @@ ALEvent::ALEvent()// Default
  for(int i=0;i<7;i++) L[i]=string();//Data from  ASI lines of the event
  for(int i=0;i<7;i++) flagL[i]=0;////1 if ASI line was present
 
+
+
+
  //////////////////////////
  ///////MC variable////////
  //////////////////////////
-	
- ncase=0; 
+
+ ncase=0;
  typeMC=-99; //type of particle
  EkMC=0;   //kinetic energy of the particle
  pMC=0;		//momentum at point of injection
- X0MC=Y0MC=Z0MC=0;//Coordinates of the partcle at the injection point 
+ X0MC=Y0MC=Z0MC=0;//Coordinates of the partcle at the injection point
  CX0MC=CY0MC=CZ0MC=0; //Incidence cosines of the partcle at the injection point
 
  typePP=-99;
@@ -57,21 +60,23 @@ ALEvent::ALEvent()// Default
  AziPP=0;
  CoLatSP=0;
  CoLonSP=0;
- 	
+
  Nhits=0; //Number of hits in the event
+ Nhnoisy=0;//Number of hits with noisy channel added 23/10/2019
+
  typereco=-999; //type of particle
  Ekreco=-999;   //kinetic energy of the particle
  p0reco=-999;  //momentum of the particle
- X0reco=Y0reco=Z0reco=0;//Coordinates of the partcle at the injection point 
- CX0reco=CY0reco=CZ0reco=0; //Incidence cosines of the partcle at the injection point 
+ X0reco=Y0reco=Z0reco=0;//Coordinates of the partcle at the injection point
+ CX0reco=CY0reco=CZ0reco=0; //Incidence cosines of the partcle at the injection point
  ndf=0;
  chi2=cl=-1;
  d0=phi0=cpa=dz=tanl=0;
  phi0_init=cpa_init=tanl_init=0;
  d0err2=phi0err2=cpaerr2=dzerr2=tanlerr2=0;
  Cov_init=Cov_last=0;
-	
- EkPR=-999; 
+
+ EkPR=-999;
  p0PR =-999;
  aPR=bPR=cPR=0;
  interPR=slopePR=0;
@@ -85,7 +90,7 @@ ALEvent::ALEvent()// Default
  guard=false;
  Ti=0;
  NphCK=0;
- 
+
  //HOUSEKEEPING FROM COUNTERS 1 AND 3
  //Data FROM "CT1" LINE
  yCT1=-1;//Year from CT1 line linked to the event (last read CT1 line)
@@ -99,7 +104,7 @@ ALEvent::ALEvent()// Default
  OnTimeCT1=-1;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
  LastCT1=-1;//The last command received by the payload, expressed as a decimal number (it is in HeX on the GUI display)
  CountCT1=-1;//Count of commands received by the payload since power on
- 
+
  //Barometer information: NOT INTERPRETED from line CT1
  Baro1T=-999;//Barometer 1 Temperature
  Baro1P=-999;//Barometer 1 Pressure
@@ -110,10 +115,10 @@ ALEvent::ALEvent()// Default
  TempB2=-999;//Barometer 2 Temperature
  PressB1=-999;//Barometer 1 Pressure
  PressB2=-999;//Barometer 2 Pressure
- 
+
  GOCT1=-999;
  coinCT1=-199;
- 
+
  //Voltages
  Volt5VCT1=-999;  // Positive 5V from line CT1
  Volt15VCT1=-999; // Positive 15V from line CT1
@@ -133,7 +138,7 @@ ALEvent::ALEvent()// Default
 
  Volt5VCT3=-999;  // Positive 5V from line CT3
  Volt15VCT3=-999; // Positive 15V from line CT3
- 
+
  //TRIGGER RATES (PHA AND LOGIC) from CT3
  T1L=-1;
  T1A=-1;
@@ -145,7 +150,7 @@ ALEvent::ALEvent()// Default
  T4A=-1;
  GRDL=-1;
  GRDA=-1;
- 
+
  //HOUSEKEEPING FROM POW
  int yPOW=-1;//Year from POW line linked to the event (last read POW line)
  int mPOW=-1;//Month from POW line linked to the event (last read POW line)
@@ -160,13 +165,23 @@ ALEvent::ALEvent()// Default
  float HeatV=-999;
  float TrackC=-999;
  float TrackV=-999;
+
+  //From VCI line
+ int yVCI=-1;//Year from VCI line linked to the event (last read VCI line)
+ int mVCI=-1;//Month from VCI line linked to the event (last read VCI line)
+ int dVCI=-1;//Day from VCI line linked to the event (last read VCI line)
+ int hVCI=-1;//Hour from VCI line linked to the event (last read VCI line)
+ int miVCI=-1;//Minute from VCI line linked to the event (last read VCI line)
+ int sVCI=-1;//Second from VCI line linked to the event (last read VCI line)
+ for(int i=0;i<7;i++) Lrate[i]=0;//// from VCI line
+
 }
 
 
 void ALEvent::Copy(ALEvent* e)
 {
-  //Single variables 
-  
+  //Single variables
+
   eventnumber =e->get_eventnumber();
   yPHA=e->get_yPHA();
   mPHA=e->get_mPHA();
@@ -190,7 +205,7 @@ void ALEvent::Copy(ALEvent* e)
   PatternEVT=e->get_PatternEVT();
   Q1EVT=e->get_Q1EVT();
   TrigEVT=e->get_TrigEVT();
-  
+
   for(int i=0;i<7;i++)L[i]=e->get_L(i);
   for(int i=0;i<7;i++)flagL[i]=e->get_flagL(i);
 
@@ -211,6 +226,7 @@ void ALEvent::Copy(ALEvent* e)
    CoLatSP=e->get_CoLatSP();
    CoLonSP=e->get_CoLonSP();
    Nhits =e->get_Nhits();
+   Nhnoisy =e->get_Nhnoisy();
    typereco =e->get_typereco();
    Ekreco =e->get_Ekreco();
    p0reco =e->get_p0reco();
@@ -251,7 +267,7 @@ void ALEvent::Copy(ALEvent* e)
    clBPR = e->get_clBPR();
    clNBPR = e->get_clNBPR();
    deflecPR = e->get_deflecPR();
-   
+
    T1 =e->get_T1();
    T2 =e->get_T2();
    T3 =e->get_T3();
@@ -271,7 +287,7 @@ void ALEvent::Copy(ALEvent* e)
    for(int i=0;i<(int)(e->get_posP()).size();i++) posP.push_back((e->get_posP()).at(i));
 
 
-   
+
    //Vectors of double
    for(int i=0;i<(int)(e->get_EneT1()).size();i++) EneT1.push_back((e->get_EneT1()).at(i));
    for(int i=0;i<(int)(e->get_EneT2()).size();i++) EneT2.push_back((e->get_EneT2()).at(i));
@@ -290,7 +306,7 @@ void ALEvent::Copy(ALEvent* e)
    for(int i=0;i<(int)(e->get_timeShell()).size();i++) timeShell.push_back((e->get_timeShell()).at(i));
    //Vectors of ALTckhit
    for(int i=0;i<(int)(e->get_hits()).size();i++) hits.push_back((e->get_hits()).at(i));
-  //HOUSEKEEPING FROM COUNTERS 1 AND 3   
+  //HOUSEKEEPING FROM COUNTERS 1 AND 3
    yCT1  = e->get_yCT1();
    mCT1  = e->get_mCT1();
    dCT1  = e->get_dCT1();
@@ -311,7 +327,7 @@ void ALEvent::Copy(ALEvent* e)
    PressB2  = e->get_PressB2();
    GOCT1=  e->get_GOCT1();
    coinCT1=  e->get_coinCT1();
- 
+
    Volt5VCT1  = e->get_Volt5VCT1();
    Volt15VCT1  = e->get_Volt15VCT1();
    yCT3  = e->get_yCT3();
@@ -334,7 +350,7 @@ void ALEvent::Copy(ALEvent* e)
    T4A  = e->get_T4A();
    GRDL  = e->get_GRDL();
    GRDA  = e->get_GRDA();
-   
+
    Volt5VCT3  = e->get_Volt5VCT3();
    Volt15VCT3  = e->get_Volt15VCT3();
 
@@ -353,8 +369,16 @@ void ALEvent::Copy(ALEvent* e)
    TrackC= e->get_TrackC();
    TrackV= e->get_TrackV();
 
+   //from VCI line
+   yVCI= e->get_yVCI();
+   mVCI= e->get_mVCI();
+   dVCI= e->get_dVCI();
+   hVCI= e->get_hVCI();
+   miVCI= e->get_miVCI();
+   sVCI= e->get_sVCI();
+   for(int i=0;i<7;i++)Lrate[i]=e->get_Lrate(i);
 
- 
+
 }
 ////////////////////////////////
 //Methods to get number of layerS and layer with hits
@@ -366,7 +390,7 @@ int ALEvent::get_NLayers()
  // cout << "get_NLayers tmpTi = " << unsigned(tmpTi) << endl;
   int NL=0;
   for(int ij=0;ij<7;ij++) NL+=(int)((tmpTi >>ij) & 0x01);
-  return NL; 
+  return NL;
  }
 int ALEvent::get_Layer(int i)
  {
@@ -374,7 +398,7 @@ int ALEvent::get_Layer(int i)
   int Ni=0;
   if(i<7) Ni=(int)((tmpTi >>i) & 0x01);
  // cout << " Layer " << i << " Ni = " << Ni << endl;
-  return Ni; 
+  return Ni;
  }
 void ALEvent::get_Layers(int*Lay)
  {
@@ -382,10 +406,3 @@ void ALEvent::get_Layers(int*Lay)
   // cout << "get_Layers tmpTi = " << unsigned(tmpTi) << endl;
   for(int ij=0;ij<7;ij++) Lay[ij]=(int)((tmpTi >>ij) & 0x01);
  }
-
-
-
-
-
-
-
