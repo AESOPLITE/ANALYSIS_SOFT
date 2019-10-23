@@ -7,7 +7,6 @@
 
 int MakeRawBPDEvent(string filename)
 {
-
  //Get input filename and ASIC Length
  vector<string> input;
  //Split the line
@@ -277,7 +276,8 @@ int MakeRawBPDEvent(string filename)
 
       //Decode ASIC code
       if(ASILength==0)DecodeASIShort(dataline.at(3),&Hh,Titmp);
-      if(ASILength==1)DecodeASILong(dataline.at(3),&Hh,Titmp);
+      int n=0;
+      if(ASILength==1)DecodeASILong(dataline.at(3),&Hh,Titmp,&n);
 
       for(int ij=0;ij<(int)Hh.size();ij++)
         {
@@ -325,6 +325,7 @@ int MakeRawBPDEvent(string filename)
 int MakeRawBPDEventIT(string filename)
 {
 
+  cout << "In MakeRawBPDEvent"  <<endl;
 
 
  //Get input filename and ASIC Length and EVT Length
@@ -343,7 +344,7 @@ int MakeRawBPDEventIT(string filename)
   }
 
  //Output root file
- TFile*fileout=new TFile(Form("%s.root",input.at(0).c_str()),"RECREATE");
+ TFile*fileout=new TFile(Form("%s_Cleaned.root",input.at(0).c_str()),"RECREATE");
  cout << "Output file is created" <<endl;
 
  // Create a TTree
@@ -455,9 +456,20 @@ int MakeRawBPDEventIT(string filename)
  float TrackC=-999;
  float TrackV=-999;
 
+ //From VCI line
+ int yVCI=-1;
+ int mVCI=-1;
+ int dVCI=-1;
+ int hVCI=-1;
+ int miVCI=-1;
+ int sVCI=-1;
+ int* LrVCI=new int[7];
+ for (int ijk=0;ijk<7;ijk++)LrVCI[ijk]=0;
+
  int NCT1words=25; //CT1 line
  int NCT3words=21; //CT3 line
  int NPOWwords=16; //POW line
+ int NVCIwords=33; //VCI line
 
  //number of words per line
  //int NPHAwords=13; //PHA line for MIPFlit3.30
@@ -476,6 +488,9 @@ int MakeRawBPDEventIT(string filename)
  int kEVT=0;
  int kPHA=0;
  int flagGoodGo=0;
+ int NoisyClus=0;
+
+
 //Start to read the file
  for (string line; getline(filestr,line);)
    {
@@ -588,7 +603,7 @@ int MakeRawBPDEventIT(string filename)
     if (line.compare(0,3,"POW",3)==0)
      {
       ///////////////////////////////////////////////
-      //Extract the data from the last CT3 line
+      //Extract the data from the last POW line
       ///////////////////////////////////////////////
       vector<string> datalinePOW;
       //Split the line
@@ -618,10 +633,41 @@ int MakeRawBPDEventIT(string filename)
       HeatC=s2f(&datalinePOW.at(7));
       TrackV=s2f(&datalinePOW.at(8));
       TrackC=s2f(&datalinePOW.at(9));
+     }
 
+///////////////////////////////////////////////
+//Compare the first 3 char of the line to "VCI"
+///////////////////////////////////////////////
 
+    if (line.compare(0,3,"VCI",3)==0)
+     {
+      ///////////////////////////////////////////////
+      //Extract the data from the last VCI line
+      ///////////////////////////////////////////////
+      vector<string> datalineVCI;
+      //Split the line
+      datalineVCI=split(&line,' ');
+
+      if((int)datalineVCI.size()!=NVCIwords)
+       {
+        cout << "Number of words in the VCI line is wrong : " << (int)datalineVCI.size() << " (Should be " << NVCIwords  << "): "<< endl;
+        cout << line <<endl;
+        continue;
+       }
+
+      //Extract datalineVCI date
+      //cout << "extract datalineVCI date" <<endl;
+      //cout << dataline.at(1) <<endl;
+      extractdate(&yVCI,&miVCI,&dVCI,&datalineVCI.at(1));
+      //cout << "extract POW date is done" <<endl;
+      //cout << "extract POW time" <<endl;
+      extracttime(&hVCI,&miVCI,&sVCI,&datalineVCI.at(2));
+
+      //Format from Paul's email of April 26, 2019
+      for(int ijk=0;ijk<7;ijk++) LrVCI[ijk]=s2i(&datalineVCI.at(19+ijk));
 
      }
+
 
 ///////////////////////////////////////////////
 //Compare the first 3 char of the line to "PHA"
@@ -636,6 +682,7 @@ int MakeRawBPDEventIT(string filename)
        {
         int t=0;
         for (int ij=0;ij<7;ij++) t+=Titmp[ij]*(int)TMath::Power(2,ij);
+        e->set_Nhnoisy(NoisyClus);
         e->set_Ti(t);
         tree->Fill();
         //reset event
@@ -643,6 +690,7 @@ int MakeRawBPDEventIT(string filename)
         kASI=0;
         kPHA=0;
         flagGoodGo=0;
+        NoisyClus=0;
         delete e;
        }
 
@@ -773,6 +821,16 @@ int MakeRawBPDEventIT(string filename)
       e->set_TrackC(TrackC);
       e->set_TrackV(TrackV);
 
+      //VCI
+      e->set_yVCI(yVCI);
+      e->set_mVCI(mVCI);
+      e->set_dVCI(dVCI);
+      e->set_hVCI(hVCI);
+      e->set_miVCI(miVCI);
+      e->set_sVCI(sVCI);
+
+      for(int ijk=0;ijk<7;ijk++)  e->set_Lrate(ijk,LrVCI[ijk]);
+
      }//end read line starting with PHA
 
 ///////////////////////////////////////////////
@@ -899,10 +957,11 @@ int MakeRawBPDEventIT(string filename)
       //cout << "extract ASI time" <<endl;
       extracttime(&hourASI,&minuteASI,&secondASI,&dataline.at(2));
       //cout << "extract ASI time is done" <<endl;
+      int tmpNoisyClus=0;
 
       //Decode ASIC code
       if(ASILength==0)DecodeASIShort(dataline.at(3),&Hh,Titmp);
-      if(ASILength==1)DecodeASILong(dataline.at(3),&Hh,Titmp);
+      if(ASILength==1)DecodeASILong(dataline.at(3),&Hh,Titmp,&tmpNoisyClus);
 
       for(int ij=0;ij<(int)Hh.size();ij++)
         {
@@ -916,6 +975,9 @@ int MakeRawBPDEventIT(string filename)
          Hh.at(ij)->set_s(minuteASI);
          e->add_hit(Hh.at(ij));
         }
+      NoisyClus+=tmpNoisyClus;
+
+
       //Clear hits
       Hh.clear();
      }//end read line starting with ASI
@@ -925,6 +987,7 @@ int MakeRawBPDEventIT(string filename)
  //Fill last event
  int t=0;
  for (int ij=0;ij<7;ij++) t+=Titmp[ij]*(int)TMath::Power(2,ij);
+ e->set_Nhnoisy(NoisyClus);
  e->set_Ti(t);
  tree->Fill();
  //reset event
@@ -1155,7 +1218,7 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
           if(L==3&&tmpstrip==9){tmpH->set_noisy(1);}
                 if(L==4&&tmpstrip==357){tmpH->set_noisy(1);}
                 if(L==4&&tmpstrip==358){tmpH->set_noisy(1);}
-                if(L==5&&tmpstrip==691){tmpH->set_noisy(1);}
+                //if(L==5&&tmpstrip==691){tmpH->set_noisy(1);}
                           //if(L==6&&tmpstrip==576){tmpH->set_noisy(1);}
          }
 
@@ -1172,6 +1235,7 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
     int chip=tmpHV.at(i)->get_chip();
     int fstrip=tmpHV.at(i)->get_fstrip();
     int nstrips=tmpHV.at(i)->get_nstrips();
+    int noisy=tmpHV.at(i)->get_nstrips();
 
     if(fstrip==0 && chip<11 && chip!=5) //The last strip is touched not chip 5 nor 11
      {
@@ -1179,12 +1243,14 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
       //There is a cluster on the first strip of the next chip
       if(ij!=-1)
        {
+        if (noisy==0)
+          tmpHV.at(i)->set_noisy(tmpHV.at(ij)->get_noisy());
+
         tmpHV.at(i)->set_nstrips(nstrips+tmpHV.at(ij)->get_nstrips()+1);
         tmpHV.at(i)->set_nstripsNC(tmpHV.at(ij)->get_nstrips());
         tmpHV.at(i)->set_overflow((unsigned int)1,tmpHV.at(ij)->get_overflow(0));
         tmpHV.at(i)->set_chiperr((unsigned int)1,tmpHV.at(ij)->get_chiperr(0));
         tmpHV.at(i)->set_parityerr((unsigned int)1,tmpHV.at(ij)->get_parityerr(0));
-        tmpHV.at(i)->set_noisy(tmpHV.at(ij)->get_noisy());
 
        }
       Hh->push_back(tmpHV.at(i));
@@ -1195,14 +1261,16 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
       //There is not a cluster on the last strip of the previous chip: This is a real hit
       if(ij==-1)
        {
-        Hh->push_back(tmpHV.at(i));
+        if(!(noisy==1 && nstrips==0))  //Do not add cluster with 1 single inner strip that is noisy
+          Hh->push_back(tmpHV.at(i));
        }
       //If there is a cluster on the last strip of the previous we don't record the information.
       //The information is filled  with the other cluster.
      }
     else //Fill the non boudary clusters
      {
-      Hh->push_back(tmpHV.at(i));
+       if(!(noisy==1 && nstrips==0))  //Do not add cluster with 1 single inner strip that is noisy
+        Hh->push_back(tmpHV.at(i));
      }
    }//i
 
@@ -1212,13 +1280,13 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
 
 
 
-int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
+int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti,int* Nhitnoisy)
 {
 
 //For data from November, 2017
 
 //Get string length
-
+ int noisyhit=0;
  int datalength=data.length();
  //Check the number of characters
  //It must be 9 + a multiple of 3
@@ -1382,7 +1450,7 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
          tmpH->set_chiperr(chiperr,-1.);
          tmpH->set_parityerr(parityerr,-1.);
         //Fill up the vector
-         Hh->push_back(tmpH);
+         //Hh->push_back(tmpH);
          //Increment the index to the next 3-digit word
          index+=3;
          continue;
@@ -1428,15 +1496,17 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
        Ti[L]=1;
        tmpH->set_noisy(0);
        //Mask of bad strips
-       for(int k=0;k<Nstrip;k++)
+       for(int k=0;k<Nstrip+1;k++)
          {
           //For flight configuration 2018
 	        int tmpstrip=firstStripNumber+k;
-	        if(L==3&&tmpstrip==9){tmpH->set_noisy(1);}
+	        //if(L==3&&tmpstrip==9){tmpH->set_noisy(tmpH->get_noisy()+1);}
+          //if(L==4&&tmpstrip==357){tmpH->set_noisy(tmpH->get_noisy()+1);}
+          // if(L==4&&tmpstrip==358){tmpH->set_noisy(tmpH->get_noisy()+1);}
           if(L==4&&tmpstrip==357){tmpH->set_noisy(1);}
           if(L==4&&tmpstrip==358){tmpH->set_noisy(1);}
-          if(L==5&&tmpstrip==691){tmpH->set_noisy(1);}
-          //if(L==6&&tmpstrip==576){tmpH->set_noisy(1);}
+        //  if(L==5&&tmpstrip==691){tmpH->set_noisy(tmpH->get_noisy()+1);}
+        //  if(L==6&&tmpstrip==576){tmpH->set_noisy(1);}
          }
 
        //Fill up the vector
@@ -1452,8 +1522,8 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
    {
     int chip=tmpHV.at(i)->get_chip();
     int fstrip=tmpHV.at(i)->get_fstrip();
+    int noisy=tmpHV.at(i)->get_noisy();
     int nstrips=tmpHV.at(i)->get_nstrips();
-
 
     if(fstrip==0 && chip<11 && chip!=5) //The last strip is touched not chip 5 nor 11
     //if(fstrip-nstrips==0 && chip<11 && chip!=5) //The last strip is touched not chip 5 nor 11
@@ -1462,15 +1532,19 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
       //There is a cluster on the first strip of the next chip
       if(ij!=-1)
        {
-        tmpHV.at(i)->set_nstrips(nstrips+tmpHV.at(ij)->get_nstrips()+1);
+        if(noisy==0){ tmpHV.at(i)->set_noisy(noisy+tmpHV.at(ij)->get_noisy());noisy=noisy+tmpHV.at(ij)->get_noisy();}
+        nstrips=nstrips+tmpHV.at(ij)->get_nstrips()+1;
+        tmpHV.at(i)->set_nstrips(nstrips);
         tmpHV.at(i)->set_nstripsNC(tmpHV.at(ij)->get_nstrips());
         tmpHV.at(i)->set_overflow((unsigned int)1,tmpHV.at(ij)->get_overflow(0));
         tmpHV.at(i)->set_chiperr((unsigned int)1,tmpHV.at(ij)->get_chiperr(0));
         tmpHV.at(i)->set_parityerr((unsigned int)1,tmpHV.at(ij)->get_parityerr(0));
-      	tmpHV.at(i)->set_noisy(tmpHV.at(ij)->get_noisy());
-
        }
-      Hh->push_back(tmpHV.at(i));
+      if(nstrips<3)
+        {
+         Hh->push_back(tmpHV.at(i));
+         noisyhit+=noisy;
+        }
      }
      else if(fstrip+nstrips==63 && chip>0 && chip!=6) //The first strip is touched not chip 0 nor 6
      //else if(fstrip==63 && chip>0 && chip!=6) //The first strip is touched not chip 0 nor 6
@@ -1479,17 +1553,26 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti)
       //There is not a cluster on the last strip of the previous chip: This is a real hit
       if(ij==-1)
        {
-        Hh->push_back(tmpHV.at(i));
+         if(nstrips<3)
+           {
+            Hh->push_back(tmpHV.at(i));
+            noisyhit+=noisy;
+           }
+
        }
       //If there is a cluster on the last strip of the previous we don't record the information.
       //The information is filled  with the other cluster.
      }
     else //Fill the non boudary clusters
      {
-      Hh->push_back(tmpHV.at(i));
+       if(nstrips<3)
+         {
+          Hh->push_back(tmpHV.at(i));
+          noisyhit+=noisy;
+         }
      }
    }//i
-
+ *Nhitnoisy=noisyhit;
  return 1;
 }
 
