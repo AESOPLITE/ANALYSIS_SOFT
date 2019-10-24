@@ -152,27 +152,27 @@ ALEvent::ALEvent()// Default
  GRDA=-1;
 
  //HOUSEKEEPING FROM POW
- int yPOW=-1;//Year from POW line linked to the event (last read POW line)
- int mPOW=-1;//Month from POW line linked to the event (last read POW line)
- int dPOW=-1;//Day from POW line linked to the event (last read POW line)
- int hPOW=-1;//Hour from POW line linked to the event (last read POW line)
- int miPOW=-1;//Minute from POW line linked to the event (last read POW line)
- int sPOW=-1;//Second from POW line linked to the event (last read POW line)
- int OnTimePOW=-1;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
- float MainC=-999;
- float MainV=-999;
- float HeatC=-999;
- float HeatV=-999;
- float TrackC=-999;
- float TrackV=-999;
+ yPOW=-1;//Year from POW line linked to the event (last read POW line)
+ mPOW=-1;//Month from POW line linked to the event (last read POW line)
+  dPOW=-1;//Day from POW line linked to the event (last read POW line)
+  hPOW=-1;//Hour from POW line linked to the event (last read POW line)
+  miPOW=-1;//Minute from POW line linked to the event (last read POW line)
+  sPOW=-1;//Second from POW line linked to the event (last read POW line)
+  OnTimePOW=-1;//1/second counter which now gives time since power on (the on-chip batteries have failed; this used to keep incrementing with power off)
+  MainC=-999;
+  MainV=-999;
+  HeatC=-999;
+  HeatV=-999;
+  TrackC=-999;
+  TrackV=-999;
 
   //From VCI line
- int yVCI=-1;//Year from VCI line linked to the event (last read VCI line)
- int mVCI=-1;//Month from VCI line linked to the event (last read VCI line)
- int dVCI=-1;//Day from VCI line linked to the event (last read VCI line)
- int hVCI=-1;//Hour from VCI line linked to the event (last read VCI line)
- int miVCI=-1;//Minute from VCI line linked to the event (last read VCI line)
- int sVCI=-1;//Second from VCI line linked to the event (last read VCI line)
+  yVCI=-1;//Year from VCI line linked to the event (last read VCI line)
+  mVCI=-1;//Month from VCI line linked to the event (last read VCI line)
+  dVCI=-1;//Day from VCI line linked to the event (last read VCI line)
+  hVCI=-1;//Hour from VCI line linked to the event (last read VCI line)
+  miVCI=-1;//Minute from VCI line linked to the event (last read VCI line)
+  sVCI=-1;//Second from VCI line linked to the event (last read VCI line)
  for(int i=0;i<7;i++) Lrate[i]=0;//// from VCI line
 
 }
