@@ -1209,17 +1209,17 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
        if(Stripadd-Nstrip==0) laststr[Chipadd]=tmpHV.size();
 
        //Internal trigger for Layer L set to 1
-              Ti[L]=1;
+       Ti[L]=1;
        tmpH->set_noisy(0);
        //Mask of bad strips
        for(int k=0;k<Nstrip;k++)
          {
           int tmpstrip=firstStripNumber+k;
-          if(L==3&&tmpstrip==9){tmpH->set_noisy(1);}
-                if(L==4&&tmpstrip==357){tmpH->set_noisy(1);}
-                if(L==4&&tmpstrip==358){tmpH->set_noisy(1);}
-                //if(L==5&&tmpstrip==691){tmpH->set_noisy(1);}
-                          //if(L==6&&tmpstrip==576){tmpH->set_noisy(1);}
+          //if(L==3&&tmpstrip==9){tmpH->set_noisy(1);}
+          if(L==4&&tmpstrip==357){tmpH->set_noisy(1);}
+          if(L==4&&tmpstrip==358){tmpH->set_noisy(1);}
+          //if(L==5&&tmpstrip==691){tmpH->set_noisy(1);}
+          //if(L==6&&tmpstrip==576){tmpH->set_noisy(1);}
          }
 
        //Fill up the vector
@@ -1495,22 +1495,23 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti,int* Nhitnoisy)
        //Internal trigger for Layer L set to 1
        Ti[L]=1;
        tmpH->set_noisy(0);
+
+       //Flag is 1: Don't use the hit
+       int flagN=0;
+       if(L==4&&firstStripNumber==357&&Nstrip<=1)flagN=1;
+       if(L==4&&firstStripNumber==358&&Nstrip==0)flagN=1;
+
        //Mask of bad strips
        for(int k=0;k<Nstrip+1;k++)
          {
           //For flight configuration 2018
 	        int tmpstrip=firstStripNumber+k;
-	        //if(L==3&&tmpstrip==9){tmpH->set_noisy(tmpH->get_noisy()+1);}
-          //if(L==4&&tmpstrip==357){tmpH->set_noisy(tmpH->get_noisy()+1);}
-          // if(L==4&&tmpstrip==358){tmpH->set_noisy(tmpH->get_noisy()+1);}
           if(L==4&&tmpstrip==357){tmpH->set_noisy(1);}
           if(L==4&&tmpstrip==358){tmpH->set_noisy(1);}
-        //  if(L==5&&tmpstrip==691){tmpH->set_noisy(tmpH->get_noisy()+1);}
-        //  if(L==6&&tmpstrip==576){tmpH->set_noisy(1);}
          }
 
        //Fill up the vector
-       tmpHV.push_back(tmpH);
+       if(flagN==0) tmpHV.push_back(tmpH);
 
        //Increment the index to the next 3-digit word
        index+=3;
@@ -1540,26 +1541,20 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti,int* Nhitnoisy)
         tmpHV.at(i)->set_chiperr((unsigned int)1,tmpHV.at(ij)->get_chiperr(0));
         tmpHV.at(i)->set_parityerr((unsigned int)1,tmpHV.at(ij)->get_parityerr(0));
        }
-      if(nstrips<3)
-        {
-         Hh->push_back(tmpHV.at(i));
-         noisyhit+=noisy;
-        }
+      Hh->push_back(tmpHV.at(i));
+      noisyhit+=noisy;
      }
-     else if(fstrip+nstrips==63 && chip>0 && chip!=6) //The first strip is touched not chip 0 nor 6
+    else if(fstrip+nstrips==63 && chip>0 && chip!=6) //The first strip is touched not chip 0 nor 6
      //else if(fstrip==63 && chip>0 && chip!=6) //The first strip is touched not chip 0 nor 6
      {
       int ij= laststr[chip-1];
       //There is not a cluster on the last strip of the previous chip: This is a real hit
       if(ij==-1)
        {
-         if(nstrips<3)
-           {
-            Hh->push_back(tmpHV.at(i));
-            noisyhit+=noisy;
-           }
-
+        Hh->push_back(tmpHV.at(i));
+        noisyhit+=noisy;
        }
+
       //If there is a cluster on the last strip of the previous we don't record the information.
       //The information is filled  with the other cluster.
      }
