@@ -38,7 +38,7 @@ class ALTckhit:public TObject
   int year;//Year from first ASI line of the event
   int m;//Month from first ASI line of the event
   int d;//Day from first ASI line of the event
-  int h;//Hour from first ASI line of the event
+  int hour;//Hour from first ASI line of the event
   int mi;//Minute from first ASI line of the event
   int s;//Second from first ASI line of the event
   
@@ -88,6 +88,11 @@ class ALTckhit:public TObject
    ALTckhit();// Default
    //Destructor
    ~ALTckhit(){};  
+   
+   ///////////////////////////////
+   // Methods
+   ///////////////////////////////
+   void Copy(ALTckhit*);
      ////////////////////////////////
    //"setting" member methods
    ////////////////////////////////
@@ -122,7 +127,7 @@ class ALTckhit:public TObject
    void set_year(int a){y=a;}
    void set_m(int a){m=a;}
    void set_d(int a){d=a;}
-   void set_h(int a){h=a;}
+   void set_hour(int a){hour=a;}
    void set_mi(int a){mi=a;}
    void set_s(int a){s=a;}       
    void set_L(int a){L=a;}       
@@ -170,6 +175,7 @@ class ALTckhit:public TObject
    float get_cx( ){return cx;}
    float get_cy( ){return cy;}
    float get_cz( ){return cz;}
+   float get_age(){return age;}
    int get_flag( ){return flag;}
    float get_DeltaE( ){return DeltaE;}
      
@@ -177,7 +183,7 @@ class ALTckhit:public TObject
    int get_year(){return year;}
    int get_m(){return m;}
    int get_d(){return d;}
-   int get_h(){return h;}
+   int get_hour(){return hour;}
    int get_mi(){return mi;}
    int get_s(){return s;}       
    int get_L(){return L;}         
