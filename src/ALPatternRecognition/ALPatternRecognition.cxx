@@ -612,7 +612,7 @@ for(int j=0;j<nnhits;j++)
 	   double B=0.3; //in T
 	   double Pt=0.3 * B *	0.01*Rmean; //in GeV
 	   double p0PR= Pt / TMath::Cos(fabs(thetaNB));   //in GeV
-	   double mass;
+	   double mass=0;
 	   int type;
 	   double deflec = re->get_deflecPR();
 	   double Q =  TMath::Sign(1,deflec);
