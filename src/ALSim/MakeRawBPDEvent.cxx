@@ -286,7 +286,7 @@ int MakeRawBPDEvent(string filename)
          Hh.at(ij)->set_year(yearASI);
          Hh.at(ij)->set_m(monthASI);
          Hh.at(ij)->set_d(dayASI);
-         Hh.at(ij)->set_h(hourASI);
+         Hh.at(ij)->set_hour(hourASI);
          Hh.at(ij)->set_mi(minuteASI);
          Hh.at(ij)->set_s(minuteASI);
          e->add_hit(Hh.at(ij));
@@ -344,7 +344,7 @@ int MakeRawBPDEventIT(string filename)
   }
 
  //Output root file
- TFile*fileout=new TFile(Form("%s_Cleaned.root",input.at(0).c_str()),"RECREATE");
+ TFile*fileout=new TFile(Form("%s.root",input.at(0).c_str()),"RECREATE");
  cout << "Output file is created" <<endl;
 
  // Create a TTree
@@ -970,7 +970,7 @@ int MakeRawBPDEventIT(string filename)
          Hh.at(ij)->set_year(yearASI);
          Hh.at(ij)->set_m(monthASI);
          Hh.at(ij)->set_d(dayASI);
-         Hh.at(ij)->set_h(hourASI);
+         Hh.at(ij)->set_hour(hourASI);
          Hh.at(ij)->set_mi(minuteASI);
          Hh.at(ij)->set_s(minuteASI);
          e->add_hit(Hh.at(ij));
