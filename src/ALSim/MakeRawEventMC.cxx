@@ -27,27 +27,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
  for(int i=0;i<7;i++)TckZPos[i]=0;
  for(int i=0;i<4;i++)TrigThresh[i]=0;
  for(int i=0;i<1;i++)GuardThresh[i]=0;
- int nL0 = 0;
- int nL1 = 0;
- int nL2 = 0;
- int nL3 = 0;
- int nL4 = 0;
- int nL5 = 0;
- int nL6 = 0;
- int mreg11=0;
- int mreg12=0;
- int mreg13=0;
- int mreg14=0;
- int mreg15=0;
- int mreg16=0;
- int mreg17=0;
- int rL0 = 0;
- int rL1 = 0;
- int rL2 = 0;
- int rL3 = 0;
- int rL4 = 0;
- int rL5 = 0;
- int rL6 = 0;
+
 	
  string MCparamfile="../src/ALSim/MCparameters.dat"; 
  
@@ -196,13 +176,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 	float etot = mass + eMC;
 	float pMC = TMath::Sqrt((etot*etot) - (mass*mass));
     e->add_posP(pMC);
-   if(mreg==11) mreg11++;
-   if(mreg==12) mreg12++;
-   if(mreg==13) mreg13++;
-   if(mreg==14) mreg14++;
-   if(mreg==15) mreg15++;
-   if(mreg==16) mreg16++;
-   if(mreg==17) mreg17++;
+
 
     ////////////////////////////////// 
     // Triggers
@@ -288,13 +262,6 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
       if((int)X.size()!=0) 
        {
 //	cout << "applying discretization" << endl;
-              if(h->get_L()==0) nL0++;
-           if(h->get_L()==1) nL1++;
-           if(h->get_L()==2) nL2++;
-           if(h->get_L()==3) nL3++;
-           if(h->get_L()==4) nL4++;
-           if(h->get_L()==5) nL5++;
-           if(h->get_L()==6) nL6++;
 
 	 CoordDisc=Discretize(h->get_L(),X,Y,Z,CZ,T,EDEP,&chip,&fstrip,&fstripID,&nstrip,OffsetLL,OffsetRL,true);
 //        cout << "CoordDisc=" <<  CoordDisc <<endl; 
@@ -303,35 +270,199 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
           //Update parameters of the hit after discretisation
           if(h->get_L()==0||h->get_L()==4||h->get_L()==6) h->set_x(CoordDisc); //Non bending plane
           if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5) h->set_y(CoordDisc);//Bending plane
-          h->set_fstripID(fstripID);//from 0 to 767
-          h->set_fstrip(fstrip);//from 0 to 63
-          h->set_nstrips(nstrip);//number of strips in cluster
-          h->set_chip(chip);//chip 0 to 11 of the first strip (strip lowest index)
-          if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}
-          //End of the hit.
-          //Add the hit to the event
-	  //index k of hit starts at 0
-          h->set_k(nh);
-	  nh++;
+			
+		  	
+		  //If hit is one of the dead channels, exclude the hit from the event (added 10/28/2019)
+		  bool deadChannel = false;
+		  bool deadCluster = false;
+		  bool noisyCluster = false;				//cluster is made of ONLY the 2 noisy channel 357-358 in L4
+		  int noisyChannel;
+		  int fstripIDLeft;
+		  int nstripLeft;
+		  int fstripLeft; 
+		  int chipLeft ;
+		  int fstripIDRight;
+		  int nstripRight;
+		  int fstripRight;
+		  int chipRight;
+			
+				  
+			
+		///////////////////////////
+		//Deal with noisy channels
+		///////////////////////////			
+
+		int strip[nstrip];
+		 for(int ij=0;ij<nstrip;ij++) 
+			{
+			  strip[ij] = 0;
+			  int stripID = fstripID+ij;
+			  if ((h->get_L()==4 && stripID == 357) |(h->get_L()==4 && stripID == 358)) 
+			  {
+				 strip[ij] = 1;
+			 	cout << "Event " << i  << ": stripID  " << stripID <<", in L = " << h->get_L() << " is in cluster of size " << nstrip <<  endl;
+			  }
+		    }
+		
+		int stripSum=0;
+		for(int ij=0;ij<nstrip;ij++)
+		{
+			stripSum +=strip[ij];
+		}
+		if(stripSum == nstrip) 
+		{
+			noisyCluster = true;
+			cout << "Event " << i << ", removed lone noisy cluster" << endl;
+		}
+					
+			
+		///////////////////////////
+		//Deal with dead channels
+		///////////////////////////
+			
+		for(int ij=0;ij<nstrip;ij++) 
+		{
+		  int stripID = fstripID+ij;
+		  if ((h->get_L()==3 && stripID == 10) | (h->get_L()==5 && stripID == 692))
+		  {
+			  deadCluster = true;
+			  noisyChannel = (int)stripID;
+			  }
+		  if ((h->get_L()==3 && fstripID == 10) | (h->get_L()==5 && fstripID == 692))  deadChannel = true;		
+		 }
+
+		if(deadCluster) 
+			{	
+			 cout << "Cluster at channel " << fstripID <<" (coord = " << CoordDisc << "cm) of size " << nstrip << " in L" <<  h->get_L() << " includes dead channel " << noisyChannel << endl;
+			 for(int ij=0;ij<nstrip;ij++) 
+					{
+					  int stripID = fstripID+ij;
+					  cout << "ij is " << ij << ", stripID  " << stripID <<", eq. to fstrip = " << fstrip << " is in cluster " << endl;
+					}
+
+			 ALTckhit* hLeft = new ALTckhit();					//cluster to the left of dead channel
+			 hLeft->Copy(h);
+			 fstripIDLeft = fstripID;
+			 nstripLeft = noisyChannel - (int)fstripIDLeft;
+			 fstripLeft = fstripIDLeft%64;
+			 chipLeft = chip;
+			 float coordLeft = (StriptoCoord(fstripIDLeft,OffsetLL,OffsetRL,true)+StriptoCoord(fstripIDLeft+(nstripLeft-1),OffsetLL,OffsetRL,true))/2 ;
+
+
+			 ALTckhit* hRight = new ALTckhit();					//cluster to the right of dead channel
+			 hRight->Copy(h);
+			 fstripIDRight = noisyChannel + 1;
+			 nstripRight = nstrip - (int)nstripLeft -1 ;
+			 fstripRight = fstripIDRight%64;
+			 chipRight = chip;
+			 float coordRight = (StriptoCoord(fstripIDRight,OffsetLL,OffsetRL,true)+StriptoCoord(fstripIDRight+(nstripRight-1),OffsetLL,OffsetRL,true))/2 ;
+
+			 //add 2 separate clusters 
+			 if(nstripLeft>0) 
+				{
+				 if(h->get_L()==0||h->get_L()==4||h->get_L()==6) hLeft->set_x(coordLeft); //Non bending plane
+				 if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5) hLeft->set_y(coordLeft);//Bending plane					 
+				 hLeft->set_fstripID(fstripIDLeft);//from 0 to 767
+				 hLeft->set_fstrip(fstripLeft);//from 0 to 62
+				 hLeft->set_nstrips(nstripLeft);//number of strips in cluster
+				 hLeft->set_chip(chipLeft);//chip 0 to 11
+				 hLeft->set_L(h->get_L());//layer
+				 if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}//add the last hit 
+				 //End of the hit.
+				 //Add the hit to the event
+				 hLeft->set_k(nh);
+				 nh++;
+				 e->add_hit(hLeft);
+				//Check the layer for internal trigger
+				 Titmp[(int)hLeft->get_L()]=1;
+				 cout << "fstripIDLeft = " << fstripIDLeft << ", coordLeft = " << coordLeft << ", nstripLeft " << nstripLeft << endl;
+
+			 }
+
+			 if (nstripRight>0) 
+			 {
+				 if(h->get_L()==0||h->get_L()==4||h->get_L()==6) hRight->set_x(coordLeft); //Non bending plane
+				 if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5) hRight->set_y(coordLeft);//Bending plane					 
+				 hRight->set_fstripID(fstripIDRight);//from 0 to 767
+				 hRight->set_fstrip(fstripRight);//from 0 to 62
+				 hRight->set_nstrips(nstripRight);//number of strips in cluster
+				 hRight->set_chip(chipRight);//chip 0 to 11
+				 hRight->set_L(h->get_L());//layer
+				 if(nL>0){hRight->set_cx(h->get_cx()/nL);hRight->set_cy(hRight->get_cy()/nL);hRight->set_cz(h->get_cz()/nL);}//add the last hit 
+				 //End of the hit.
+				 //Add the hit to the event
+				 hRight->set_k(nh);
+				 nh++;
+				 e->add_hit(hRight);
+				//Check the layer for internal trigger
+				 Titmp[(int)hRight->get_L()]=1;					
+				 cout << "fstripIDRight = " << fstripIDRight << ", coordRight = " << coordRight<< ",  nstripRight " << nstripRight << endl;
+
+				 }
+
+			}
+			
+	    
+		///////////////////////////
+		//Deal with chip 8, Layer 6 
+		///////////////////////////
+		bool badChip = false;
+		if(h->get_L()==6 && chip== 8) 
+		 {	
+		  double random = gRandom->Uniform();
+		  double thresh = 0.802241;	
+		  //double thresh = 0.0;
+		  if (random > thresh) 
+				 {
+		//	  cout << " L6, chip 8, random x = " << random << ", assigning channel " << fstripID << " to channel 575"  <<  endl;
+			  int fstripIDbad = 575;
+			  int fstripbad = 0;
+			  int nstripbad = 1;
+			  int chipbad = 8;
+			  int Lbad = 6;
+			  badChip = true;
+
+			  ALTckhit* hBad = new ALTckhit();				
+			  hBad->Copy(h);
+			  float coordbad = StriptoCoord(fstripIDbad,OffsetLL,OffsetRL,true);
+			  hBad->set_x(coordbad); //Non bending plane
+			  hBad->set_fstripID(fstripIDbad);//from 0 to 767
+			  hBad->set_fstrip(fstripbad);//from 0 to 62
+			  hBad->set_nstrips(nstripbad);//number of strips in cluster
+			  hBad->set_chip(chipbad);//chip 0 to 11
+			  hBad->set_L(Lbad);//layer
+			  if(nL>0){hBad->set_cx(h->get_cx()/nL);hBad->set_cy(h->get_cy()/nL);hBad->set_cz(h->get_cz()/nL);}//add the last hit 
+			  hBad->set_k(nh);
+			  nh++;
+			  e->add_hit(hBad);
+				}
+			 }
+				 
+		///////////////////////////
+		//Add all other "normal" hits 
+		///////////////////////////			
+	 	if((!deadCluster) && (!badChip) && (!noisyCluster))
+		 
+		 {
+			 h->set_fstripID(fstripID);//from 0 to 767
+			 h->set_fstrip(fstrip);//from 0 to 62
+			 h->set_nstrips(nstrip);//number of strips in cluster
+			 h->set_chip(chip);//chip 0 to 11
+			 if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}//add the last hit 
+			 //End of the hit.
+			 //Add the hit to the event
+			 h->set_k(nh);
+			 nh++;
+			 e->add_hit(h);
+			//Check the layer for internal trigger
+			 Titmp[(int)h->get_L()]=1;
+	 		}
+
+			
+		}
           if(h->get_x()==-999) cout << "X coord is -999. Event " << i <<endl;
           if(h->get_y()==-999) cout << "Y coord is -999. Event " << i <<endl;
           if(h->get_z()==-999) cout << "Z coord is -999. Event " << i <<endl;
-          e->add_hit(h);
-          Titmp[(int)h->get_L()]=1;
-         } 
-	else {
-	//  if(h->get_L()==0||h->get_L()==4||h->get_L()==6)  cout << " L = " << h->get_L() << ", x = " << x << ", z = "  << z << endl;
-         // if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5)  cout << " L = " << h->get_L() << ", y = " << y << ", z = "  << z << endl;
-
-	  if(h->get_L()==0) rL0++;
-           if(h->get_L()==1) rL1++;
-           if(h->get_L()==2) rL2++;
-           if(h->get_L()==3) rL3++;
-           if(h->get_L()==4) rL4++;
-           if(h->get_L()==5) rL5++;
-           if(h->get_L()==6) rL6++;
-
-    }
 		
         X.clear();
         Y.clear();
@@ -339,7 +470,6 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
         CZ.clear();
         T.clear();
         EDEP.clear();
-       //Check the layer for internal trigger       
        }
  
 
@@ -535,7 +665,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
            h->set_mregMC(mreg); 
            //set layer number (for MC and data)
            int L = (int)mreg%11;
-	   h->set_L(L);
+	       h->set_L(L);
            h->set_mtrackMC(mtrack);
            h->set_typeMC((int)type);
            h->set_eMC(eMC); 				//total energy of particle crossing region
@@ -622,19 +752,192 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
      //Update parameters of the hit after discretisation
      if(h->get_L()==0||h->get_L()==4||h->get_L()==6) h->set_x(CoordDisc); //Non bending plane
      if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5) h->set_y(CoordDisc);//Bending plane
-     h->set_fstripID(fstripID);//from 0 to 767
-     h->set_fstrip(fstrip);//from 0 to 62
-     h->set_nstrips(nstrip);//number of strips in cluster
-     h->set_chip(chip);//chip 0 to 11
-     if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}//add the last hit 
-     //End of the hit.
-     //Add the hit to the event
-     h->set_k(nh);
-     nh++;
-     e->add_hit(h);
-    //Check the layer for internal trigger
-     Titmp[(int)h->get_L()]=1;
-    } 
+	   
+		  //If hit is one of the dead channels, exclude the hit from the event (added 10/28/2019)
+		  bool deadChannel = false;
+		  bool deadCluster = false;
+		  bool noisyCluster = false;				//cluster is made of ONLY the 2 noisy channel 357-358 in L4
+		  int noisyChannel;
+		  int fstripIDLeft;
+		  int nstripLeft;
+		  int fstripLeft; 
+		  int chipLeft ;
+		  int fstripIDRight;
+		  int nstripRight;
+		  int fstripRight;
+		  int chipRight;
+						  
+			
+		///////////////////////////
+		//Deal with noisy channels
+		///////////////////////////			
+
+		int strip[nstrip];
+		
+		 for(int ij=0;ij<nstrip;ij++) 
+			{
+			  strip[ij] = 0;
+			  int stripID = fstripID+ij;
+			  if ((h->get_L()==4 && stripID == 357) |(h->get_L()==4 && stripID == 358)) 
+			  {
+				 strip[ij] = 1;
+			 	cout <<  "stripID  " << stripID <<", in L = " << h->get_L() << " is in cluster " << endl;
+			  }
+		    }
+		
+		int stripSum=0;
+		for(int ij=0;ij<nstrip;ij++) {stripSum =+ strip[ij];}
+		if(stripSum == nstrip) 
+		{
+			noisyCluster = true;
+			cout << "removed lone noisy cluster" << endl;
+		}
+					
+					
+			
+		///////////////////////////
+		//Deal with dead channels
+		///////////////////////////
+			
+		for(int ij=0;ij<nstrip;ij++) 
+		{
+		  int stripID = fstripID+ij;
+		  if ((h->get_L()==3 && stripID == 10) | (h->get_L()==5 && stripID == 692))
+		  {
+			  deadCluster = true;
+			  noisyChannel = (int)stripID;
+			  }
+		  if ((h->get_L()==3 && fstripID == 10) | (h->get_L()==5 && fstripID == 692))  deadChannel = true;		
+		 }
+
+		if(deadCluster) 
+			{	
+			 cout << "Cluster at channel " << fstripID <<" (coord = " << CoordDisc << "cm) of size " << nstrip << " in L" <<  h->get_L() << " includes dead channel " << noisyChannel << endl;
+			 for(int ij=0;ij<nstrip;ij++) 
+					{
+					  int stripID = fstripID+ij;
+					  cout << "ij is " << ij << ", stripID  " << stripID <<", eq. to fstrip = " << fstrip << " is in cluster " << endl;
+					}
+
+			 ALTckhit* hLeft = new ALTckhit();					//cluster to the left of dead channel
+			 hLeft->Copy(h);
+			 fstripIDLeft = fstripID;
+			 nstripLeft = noisyChannel - (int)fstripIDLeft;
+			 fstripLeft = fstripIDLeft%64;
+			 chipLeft = chip;
+			 float coordLeft = (StriptoCoord(fstripIDLeft,OffsetLL,OffsetRL,true)+StriptoCoord(fstripIDLeft+(nstripLeft-1),OffsetLL,OffsetRL,true))/2 ;
+
+
+			 ALTckhit* hRight = new ALTckhit();					//cluster to the right of dead channel
+			 hRight->Copy(h);
+			 fstripIDRight = noisyChannel + 1;
+			 nstripRight = nstrip - (int)nstripLeft -1 ;
+			 fstripRight = fstripIDRight%64;
+			 chipRight = chip;
+			 float coordRight = (StriptoCoord(fstripIDRight,OffsetLL,OffsetRL,true)+StriptoCoord(fstripIDRight+(nstripRight-1),OffsetLL,OffsetRL,true))/2 ;
+
+			 //add 2 separate clusters 
+			 if(nstripLeft>0) 
+				{
+				 if(h->get_L()==0||h->get_L()==4||h->get_L()==6) hLeft->set_x(coordLeft); //Non bending plane
+				 if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5) hLeft->set_y(coordLeft);//Bending plane					 
+				 hLeft->set_fstripID(fstripIDLeft);//from 0 to 767
+				 hLeft->set_fstrip(fstripLeft);//from 0 to 62
+				 hLeft->set_nstrips(nstripLeft);//number of strips in cluster
+				 hLeft->set_chip(chipLeft);//chip 0 to 11
+				 hLeft->set_L(h->get_L());//layer
+				 if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}//add the last hit 
+				 //End of the hit.
+				 //Add the hit to the event
+				 hLeft->set_k(nh);
+				 nh++;
+				 e->add_hit(hLeft);
+				//Check the layer for internal trigger
+				 Titmp[(int)hLeft->get_L()]=1;
+				 cout << "fstripIDLeft = " << fstripIDLeft << ", coordLeft = " << coordLeft << ", nstripLeft " << nstripLeft << endl;
+
+			 }
+
+			 if (nstripRight>0) 
+			 {
+				 if(h->get_L()==0||h->get_L()==4||h->get_L()==6) hRight->set_x(coordLeft); //Non bending plane
+				 if(h->get_L()==1||h->get_L()==2||h->get_L()==3||h->get_L()==5) hRight->set_y(coordLeft);//Bending plane					 
+				 hRight->set_fstripID(fstripIDRight);//from 0 to 767
+				 hRight->set_fstrip(fstripRight);//from 0 to 62
+				 hRight->set_nstrips(nstripRight);//number of strips in cluster
+				 hRight->set_chip(chipRight);//chip 0 to 11
+				 hRight->set_L(h->get_L());//layer
+				 if(nL>0){hRight->set_cx(h->get_cx()/nL);hRight->set_cy(hRight->get_cy()/nL);hRight->set_cz(h->get_cz()/nL);}//add the last hit 
+				 //End of the hit.
+				 //Add the hit to the event
+				 hRight->set_k(nh);
+				 nh++;
+				 e->add_hit(hRight);
+				//Check the layer for internal trigger
+				 Titmp[(int)hRight->get_L()]=1;					
+				 cout << "fstripIDRight = " << fstripIDRight << ", coordRight = " << coordRight<< ",  nstripRight " << nstripRight << endl;
+
+				 }
+
+			}
+			
+	    
+		///////////////////////////
+		//Deal with chip 8, Layer 6 
+		///////////////////////////
+		bool badChip = false;
+		if(h->get_L()==6 && chip== 8) 
+		 {	
+		  double random = gRandom->Uniform();
+		  double thresh = 0.802241;	
+		  //double thresh = 0.0;
+		  if (random > thresh) 
+				 {
+		//	  cout << " L6, chip 8, random x = " << random << ", assigning channel " << fstripID << " to channel 575"  <<  endl;
+			  int fstripIDbad = 575;
+			  int fstripbad = 0;
+			  int nstripbad = 1;
+			  int chipbad = 8;
+			  int Lbad = 6;
+			  badChip = true;
+
+			  ALTckhit* hBad = new ALTckhit();				
+			  hBad->Copy(h);
+			  float coordbad = StriptoCoord(fstripIDbad,OffsetLL,OffsetRL,true);
+			  hBad->set_x(coordbad); //Non bending plane
+			  hBad->set_fstripID(fstripIDbad);//from 0 to 767
+			  hBad->set_fstrip(fstripbad);//from 0 to 62
+			  hBad->set_nstrips(nstripbad);//number of strips in cluster
+			  hBad->set_chip(chipbad);//chip 0 to 11
+			  hBad->set_L(Lbad);//layer
+			  if(nL>0){hBad->set_cx(h->get_cx()/nL);hBad->set_cy(h->get_cy()/nL);hBad->set_cz(h->get_cz()/nL);}//add the last hit 
+			  hBad->set_k(nh);
+			  nh++;
+			  e->add_hit(hBad);
+				}
+			 }
+				 
+		///////////////////////////
+		//Add all other "normal" hits 
+		///////////////////////////			
+	 	if((!deadCluster) && (!badChip) && (!noisyCluster))
+		 
+		 {
+			 h->set_fstripID(fstripID);//from 0 to 767
+			 h->set_fstrip(fstrip);//from 0 to 62
+			 h->set_nstrips(nstrip);//number of strips in cluster
+			 h->set_chip(chip);//chip 0 to 11
+			 if(nL>0){h->set_cx(h->get_cx()/nL);h->set_cy(h->get_cy()/nL);h->set_cz(h->get_cz()/nL);}//add the last hit 
+			 //End of the hit.
+			 //Add the hit to the event
+			 h->set_k(nh);
+			 nh++;
+			 e->add_hit(h);
+			//Check the layer for internal trigger
+			 Titmp[(int)h->get_L()]=1;
+	 		}
+	
+       } 
    X.clear();
    Y.clear();
    Z.clear();
@@ -644,49 +947,18 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 //   delete h;
       
   }
-
+ 
+ 
  int tt=0;
  for (int ij=0;ij<7;ij++) tt+=Titmp[ij]*(int)TMath::Power(2,ij);
  e->set_Ti(tt);	  
  tree->Fill(); 
  delete e; 
-
+ 
+ 
  //Write tree in output file 
  tree->Write();
 
- //Load all ROOT files onto a TChain
-
- ALEvent *re = new ALEvent();
- tree->SetBranchAddress("event",&re); 
- int entries=tree->GetEntries();	
- cout << "Number  of events: " << entries << endl;  
- //loop through all entries
-int L0=0;
-int L1=0;
-int L2=0;
-int L3=0;
-int L4=0;
-int L5=0;
-int L6=0;
-for(int i=0; i<entries; i++) 
- {
-	tree->GetEntry(i);    //load up current event
-        int  nhits = re->get_Nhits();    //total number of hits
-	//To look at hits, you must run a loop through all ALTckhit 
-	for(int k=0;k<nhits;k++)
-         {
-	  int L=(int)re->get_hits().at(k)->get_L();  //from layer L0 on top to L6
-	  int mregMC = re->get_hits().at(k)->get_mregMC();
-           if(L==0) L0++;
-           if(L==1) L1++;
-           if(L==2) L2++;
-           if(L==3) L3++;
-           if(L==4) L4++;
-           if(L==5) L5++;
-           if(L==6) L6++;
-	}
-}
- delete re;
  //Close files
  fileout->Close();
  file->Close();
@@ -703,6 +975,10 @@ for(int i=0; i<entries; i++)
 
  return 1;
 }
+
+
+
+
 
 
 
