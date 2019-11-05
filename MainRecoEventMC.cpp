@@ -129,14 +129,16 @@ int main(int argc, char*argv[])
                    
       ALPatternRecognition* TestPattern = new ALPatternRecognition();
       int PR = TestPattern->FindPattern(re,DataType,TckZPos,ladderOffsetLeft,ladderOffsetLeft,TrigThresh);      
-    //cout << "FindPattern return = " << PR << endl;  
-      if(PR==0) {
+      //cout << "FindPattern return = " << PR << endl;  
+      double deflecPR = re->get_deflecPR(); 
+     if(deflecPR==0) {
         REtree->Fill();
         delete re;
         delete TestPattern;
         continue;
         }
-  
+
+/*  
      //////////////////////////////
      //Kalman Filter reconstruction
      //////////////////////////////
@@ -152,7 +154,8 @@ int main(int argc, char*argv[])
             }
       delete KalmanReco;
        }    
-/*
+
+     */   
      //////////////////////////////
      //Runge-Kutta reconstruction//
      //////////////////////////////
@@ -198,7 +201,7 @@ int main(int argc, char*argv[])
             int L = int(re->get_hits().at(j)->get_mregMC())%11;       //layer number 
             bool flagPR = re->get_hits().at(j)->get_flagPR();         //was hit selected by PR?
             if(!flagPR) {
-                cout << "    hit " << j << " L=" << L << " bad flagPR " << endl;
+               // cout << "    hit " << j << " L=" << L << " bad flagPR " << endl;
                 continue;
             }
             zLayers[L] = zz;
@@ -264,7 +267,7 @@ int main(int argc, char*argv[])
             //Fill in hits informations onto TkrData class
             if(L==0||L==4||L==6) Td->addHit(L,xx, xx, yy, xPR, yPR);
             else Td->addHit(L,yy, xx, yy, xPR, yPR);  
-            cout << j << ",k = " << k << ", l=" << L <<", x= " << xx << " " << xPR << " y= " << yy << " " << yPR << " z= " << zz << " " << zPR << endl;
+            cout  << k << ", l=" << L <<", x= " << xx << " ,xPR=" << xPR << " y= " << yy << ", yPR " << yPR << " z= " << zz << ", zPR " << zPR << endl;
             } // end loop on hits
         
         Td->print(" check ");
@@ -340,8 +343,8 @@ int main(int argc, char*argv[])
 
 
         } //end RK      
-	*/
-
+	
+	
 
         /////////////////////    
         //Fill the output file with the reconstructed event
