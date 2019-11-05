@@ -1,6 +1,9 @@
 # ANALYSIS_SOFT
 Analysis package for AESOPLITE: MC simulations with FLUKA, pattern recognition, track reconstructions with Kalman filter 
 
+Pre-requisite packages for installation:
+
+ROOT, libx11-dev, libxpm-dev 
 
 Instructions to install and use the package:
 
