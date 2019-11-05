@@ -276,7 +276,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 		  bool deadChannel = false;
 		  bool deadCluster = false;
 		  bool noisyCluster = false;				//cluster is made of ONLY the 2 noisy channel 357-358 in L4
-		  int noisyChannel;
+		  int noisyChannel = 0;
 		  int fstripIDLeft;
 		  int nstripLeft;
 		  int fstripLeft; 
@@ -757,7 +757,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 		  bool deadChannel = false;
 		  bool deadCluster = false;
 		  bool noisyCluster = false;				//cluster is made of ONLY the 2 noisy channel 357-358 in L4
-		  int noisyChannel;
+		  int noisyChannel = 0;
 		  int fstripIDLeft;
 		  int nstripLeft;
 		  int fstripLeft; 
