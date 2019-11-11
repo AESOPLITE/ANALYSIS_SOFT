@@ -70,6 +70,6 @@ void Quick_sort(int ,int ,float []);
 void extractdate(int *y,int*m,int*d,string*str);
 void extracttime(int *h,int*m,int*s,string*str);
 int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*);
-int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*,int *);
+int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*,int*,int *);
 int MakeRawBPDEvent(string);
 int MakeRawBPDEventIT(string);

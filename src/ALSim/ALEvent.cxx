@@ -89,6 +89,7 @@ ALEvent::ALEvent()// Default
  T4=false;
  guard=false;
  Ti=0;
+ Tic=0;
  NphCK=0;
 
  //HOUSEKEEPING FROM COUNTERS 1 AND 3
@@ -274,6 +275,7 @@ void ALEvent::Copy(ALEvent* e)
    T4 =e->get_T4();
    guard =e->get_guard();
    Ti =e->get_Ti();
+   Tic =e->get_Tic();
    NphCK=e->get_NphCK();
 
    for(int i=0;i<(int)(e->get_posX()).size();i++) posX.push_back((e->get_posX()).at(i));
@@ -406,3 +408,27 @@ void ALEvent::get_Layers(int*Lay)
   // cout << "get_Layers tmpTi = " << unsigned(tmpTi) << endl;
   for(int ij=0;ij<7;ij++) Lay[ij]=(int)((tmpTi >>ij) & 0x01);
  }
+
+
+ int ALEvent::get_NLayersc()
+  {
+   uint8_t tmpTi=(uint8_t)Tic;
+  // cout << "get_NLayers tmpTi = " << unsigned(tmpTi) << endl;
+   int NL=0;
+   for(int ij=0;ij<7;ij++) NL+=(int)((tmpTi >>ij) & 0x01);
+   return NL;
+  }
+ int ALEvent::get_Layerc(int i)
+  {
+   uint8_t tmpTi=(uint8_t)Tic;
+   int Ni=0;
+   if(i<7) Ni=(int)((tmpTi >>i) & 0x01);
+  // cout << " Layer " << i << " Ni = " << Ni << endl;
+   return Ni;
+  }
+ void ALEvent::get_Layersc(int*Lay)
+  {
+   uint8_t tmpTi=(uint8_t)Tic;
+   // cout << "get_Layers tmpTi = " << unsigned(tmpTi) << endl;
+   for(int ij=0;ij<7;ij++) Lay[ij]=(int)((tmpTi >>ij) & 0x01);
+  }

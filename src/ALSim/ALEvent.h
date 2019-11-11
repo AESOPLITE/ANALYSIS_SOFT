@@ -135,7 +135,8 @@ class ALEvent:public TObject
    //Tracker layer for 0 to 6. top layer is 0
    //integer value coded with 7 bits values
    //\Sum\Limits_{k=0}^{6} 2^k
-   int Ti=0;
+   int Ti;
+   int Tic;//Same as Ti for hits with a maximum of 3 strips
     //HOUSEKEEPING FROM COUNTERS 1 AND 3
    //Data FROM "CT1" LINE
    int yCT1;//Year from CT1 line linked to the event (last read CT1 line)
@@ -383,6 +384,7 @@ class ALEvent:public TObject
    void add_timeT4(double a){timeT4.push_back(a);}
    void add_timeg(double a){timeg.push_back(a);}
    void set_Ti(int a){Ti=a;}
+   void set_Tic(int a){Tic=a;}
    void add_EneIsofoam(double a){EneIsofoam.push_back(a);}
    void add_EneShell(double a){EneShell.push_back(a);}
    void add_timeIsofoam(double a){timeIsofoam.push_back(a);}
@@ -596,6 +598,7 @@ class ALEvent:public TObject
    std::vector<double>&  get_timeT4(){return timeT4;}
    std::vector<double>&  get_timeg(){return timeg;}
    int get_Ti(){return Ti;}
+   int get_Tic(){return Tic;}
    std::vector<double>&  get_EneIsofoam(){return EneIsofoam;}
    std::vector<double>&  get_EneShell(){return EneShell;}
    std::vector<double>&  get_timeIsofoam(){return timeIsofoam;}
@@ -673,19 +676,23 @@ class ALEvent:public TObject
    int get_dVCI(){return dVCI;}
    int get_hVCI(){return hVCI;}
    int get_miVCI(){return miVCI;}
-   int get_sVCI(){return sVCI;}   int get_Lrate(int k){if(k<7)return Lrate[k];else return 0;}
+   int get_sVCI(){return sVCI;}
 
-
-
+   int get_Lrate(int k){if(k<7)return Lrate[k];else return 0;}
 
 
    ////////////////////////////////
    //Methods to get number of layerS and layer with hits
    ////////////////////////////////
-
-    int  get_NLayers();
-    int get_Layer(int);
-    void get_Layers(int*);
+   int  get_NLayers();
+   int get_Layer(int);
+   void get_Layers(int*);
+   ////////////////////////////////
+   //Methods to get number of layerS and layer with hits (with max of 3 strips per hits )
+   ////////////////////////////////
+   int  get_NLayersc();
+   int get_Layerc(int);
+   void get_Layersc(int*);
 
    ////////////////////////////////
    ClassDef(ALEvent,1)

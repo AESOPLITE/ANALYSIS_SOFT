@@ -51,6 +51,8 @@ int MakeRawBPDEvent(string filename)
 //Temporary variable for internal triggers
  int*Titmp=new int[7];
  for (int i=0;i<7;i++)Titmp[i]=0;
+ int*Tictmp=new int[7];
+ for (int i=0;i<7;i++)Tictmp[i]=0;
 
  int nL=0;
  int iL=0;
@@ -107,8 +109,11 @@ int MakeRawBPDEvent(string filename)
       if(kEvent!=0)
        {
         int t=0;
+        int tc=0;
         for (int ij=0;ij<7;ij++) t+=Titmp[ij]*(int)TMath::Power(2,ij);
+        for (int ij=0;ij<7;ij++) tc+=Tictmp[ij]*(int)TMath::Power(2,ij);
         e->set_Ti(t);
+        e->set_Tic(tc);
         tree->Fill();
         //reset event
         delete e;
@@ -123,7 +128,8 @@ int MakeRawBPDEvent(string filename)
       //Define internal tracker trigger
       Titmp=new int[7];
       for(int ij=0;ij<7;ij++)Titmp[ij]=0;
-
+      Tictmp=new int[7];
+      for(int ij=0;ij<7;ij++)Tictmp[ij]=0;
       ///////////////////////////////////////////////
       //Extract the data from the last PHA line
       ///////////////////////////////////////////////
@@ -277,7 +283,7 @@ int MakeRawBPDEvent(string filename)
       //Decode ASIC code
       if(ASILength==0)DecodeASIShort(dataline.at(3),&Hh,Titmp);
       int n=0;
-      if(ASILength==1)DecodeASILong(dataline.at(3),&Hh,Titmp,&n);
+      if(ASILength==1)DecodeASILong(dataline.at(3),&Hh,Titmp,Tictmp,&n);
 
       for(int ij=0;ij<(int)Hh.size();ij++)
         {
@@ -299,8 +305,11 @@ int MakeRawBPDEvent(string filename)
 
  //Fill last event
  int t=0;
+ int tc=0;
  for (int ij=0;ij<7;ij++) t+=Titmp[ij]*(int)TMath::Power(2,ij);
+ for (int ij=0;ij<7;ij++) tc+=Tictmp[ij]*(int)TMath::Power(2,ij);
  e->set_Ti(t);
+ e->set_Tic(tc);
  tree->Fill();
  //reset event
  delete e;
@@ -357,6 +366,8 @@ int MakeRawBPDEventIT(string filename)
 //Temporary variable for internal triggers
  int*Titmp=new int[7];
  for (int i=0;i<7;i++)Titmp[i]=0;
+ int*Tictmp=new int[7];
+ for (int i=0;i<7;i++)Tictmp[i]=0;
 
  int nL=0;
  int iL=0;
@@ -681,9 +692,12 @@ int MakeRawBPDEventIT(string filename)
       if(kEvent!=0)
        {
         int t=0;
+        int tc=0;
         for (int ij=0;ij<7;ij++) t+=Titmp[ij]*(int)TMath::Power(2,ij);
+        for (int ij=0;ij<7;ij++) tc+=Tictmp[ij]*(int)TMath::Power(2,ij);
         e->set_Nhnoisy(NoisyClus);
         e->set_Ti(t);
+        e->set_Tic(tc);
         tree->Fill();
         //reset event
         kEVT=0;
@@ -704,7 +718,8 @@ int MakeRawBPDEventIT(string filename)
       //Define internal tracker trigger
       Titmp=new int[7];
       for(int ij=0;ij<7;ij++)Titmp[ij]=0;
-
+      Tictmp=new int[7];
+      for(int ij=0;ij<7;ij++)Tictmp[ij]=0;
       ///////////////////////////////////////////////
       //Extract the data from the last PHA line
       ///////////////////////////////////////////////
@@ -961,7 +976,7 @@ int MakeRawBPDEventIT(string filename)
 
       //Decode ASIC code
       if(ASILength==0)DecodeASIShort(dataline.at(3),&Hh,Titmp);
-      if(ASILength==1)DecodeASILong(dataline.at(3),&Hh,Titmp,&tmpNoisyClus);
+      if(ASILength==1)DecodeASILong(dataline.at(3),&Hh,Titmp,Tictmp,&tmpNoisyClus);
 
       for(int ij=0;ij<(int)Hh.size();ij++)
         {
@@ -986,9 +1001,12 @@ int MakeRawBPDEventIT(string filename)
 
  //Fill last event
  int t=0;
+ int tc=0;
  for (int ij=0;ij<7;ij++) t+=Titmp[ij]*(int)TMath::Power(2,ij);
+ for (int ij=0;ij<7;ij++) tc+=Tictmp[ij]*(int)TMath::Power(2,ij);
  e->set_Nhnoisy(NoisyClus);
  e->set_Ti(t);
+ e->set_Tic(tc);
  tree->Fill();
  //reset event
  delete e;
@@ -1280,7 +1298,7 @@ int DecodeASIShort(string data,vector<ALTckhit*>* Hh,int*Ti)
 
 
 
-int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti,int* Nhitnoisy)
+int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti,int*Tic,int* Nhitnoisy)
 {
 
 //For data from November, 2017
@@ -1542,6 +1560,7 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti,int* Nhitnoisy)
         tmpHV.at(i)->set_parityerr((unsigned int)1,tmpHV.at(ij)->get_parityerr(0));
        }
       Hh->push_back(tmpHV.at(i));
+      if(nstrips<3)Tic[L]=1;
       noisyhit+=noisy;
      }
     else if(fstrip+nstrips==63 && chip>0 && chip!=6) //The first strip is touched not chip 0 nor 6
@@ -1552,6 +1571,7 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti,int* Nhitnoisy)
       if(ij==-1)
        {
         Hh->push_back(tmpHV.at(i));
+        if(nstrips<3)Tic[L]=1;
         noisyhit+=noisy;
        }
 
@@ -1560,11 +1580,10 @@ int DecodeASILong(string data,vector<ALTckhit*>* Hh,int*Ti,int* Nhitnoisy)
      }
     else //Fill the non boudary clusters
      {
-       if(nstrips<3)
-         {
-          Hh->push_back(tmpHV.at(i));
-          noisyhit+=noisy;
-         }
+      Hh->push_back(tmpHV.at(i));
+      if(nstrips<3)Tic[L]=1;
+      noisyhit+=noisy;
+
      }
    }//i
  *Nhitnoisy=noisyhit;
