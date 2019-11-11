@@ -82,6 +82,15 @@ ALEvent::ALEvent()// Default
  interPR=slopePR=0;
  chi2BPR=chi2NBPR=clBPR=clNBPR=-1;
  deflecPR=0;
+ XT1PR =-999;
+ XT3PR =-999;
+ XT4PR =-999;
+ YT1PR =-999;
+ YT3PR =-999;
+ YT4PR =-999;
+
+
+
  //Triggers: default is false
  T1=false;
  T2=false;
@@ -268,6 +277,12 @@ void ALEvent::Copy(ALEvent* e)
    clBPR = e->get_clBPR();
    clNBPR = e->get_clNBPR();
    deflecPR = e->get_deflecPR();
+   XT1PR =e->get_XT1PR();
+   XT3PR =e->get_XT3PR();
+   XT4PR =e->get_XT4PR();
+   YT1PR =e->get_YT1PR();
+   YT3PR =e->get_YT3PR();
+   YT4PR =e->get_YT4PR();
 
    T1 =e->get_T1();
    T2 =e->get_T2();

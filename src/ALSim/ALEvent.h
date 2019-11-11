@@ -74,6 +74,14 @@ class ALEvent:public TObject
    double slopePR, interPR;			//parameters of linear fit
    double deflecPR;                       	//deflection from layer 2 to layer 6 in the beding plane: Difference of the slope of straight line
 
+   //Extrapolated positions of the PR track in the scintillators
+   float XT1PR;
+   float XT3PR;
+   float XT4PR;
+   float YT1PR;
+   float YT3PR;
+   float YT4PR;
+
   //Reconstruction information: variables finish with reco
    int typereco;                    		//type of particle
    double Ekreco, p0reco;           		//kinetic energy and momentum of the particle
@@ -306,6 +314,12 @@ class ALEvent:public TObject
    void set_clBPR(double a){clBPR=a;}
    void set_clNBPR(double a){clNBPR=a;}
    void set_deflecPR(double a){deflecPR=a;}
+   void set_XT1PR(float a){XT1PR=a;}
+   void set_XT3PR(float a){XT3PR=a;}
+   void set_XT4PR(float a){XT4PR=a;}
+   void set_YT1PR(float a){YT1PR=a;}
+   void set_YT3PR(float a){YT3PR=a;}
+   void set_YT4PR(float a){YT4PR=a;}
 
    ////////////////////////////////
    void set_typereco(int a){typereco=a;}
@@ -538,6 +552,12 @@ class ALEvent:public TObject
    double get_clBPR(){return clBPR;}
    double get_clNBPR(){return clNBPR;}
    double get_deflecPR(){return deflecPR;}
+   float get_XT1PR(){return XT1PR;}
+   float get_XT3PR(){return XT3PR;}
+   float get_XT4PR(){return XT4PR;}
+   float get_YT1PR(){return YT1PR;}
+   float get_YT3PR(){return YT3PR;}
+   float get_YT4PR(){return YT4PR;}
 
    ////////////////////////////////
    int get_typereco(){return typereco;}
