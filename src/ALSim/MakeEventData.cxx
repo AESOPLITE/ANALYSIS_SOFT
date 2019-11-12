@@ -87,7 +87,7 @@ int MakeEventData(string filename,int geoconfig,float* zL,float* OffsetLL,float*
     //cout << "Make Event Data: "<<k <<endl;
     //Copy the raw event into a Data event with same structure 
     //if(k>2){k==nentries;continue;}
-    if(k%100==0) cout << "Event " << k << endl;
+    if(k%10000==0) cout << "Event " << k << endl;
 	de=new ALEvent();
     de->Copy(e);  
      
