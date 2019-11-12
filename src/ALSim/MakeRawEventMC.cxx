@@ -470,7 +470,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 			 e->add_hit(h);
 			//Check the layer for internal trigger
 			 Titmp[(int)h->get_L()]=1;
-			 if(nstrip<4)Titcmp[(int)h->get_L()]=1;			
+			 if(nstrip<4)Tictmp[(int)h->get_L()]=1;			
 
 	 		}
 		}
@@ -954,7 +954,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 			 e->add_hit(h);
 			//Check the layer for internal trigger
 			 Titmp[(int)h->get_L()]=1;
-	    	 if (nstrip<4)Titcmp[(int)h->get_L()]=1;
+	    	 if (nstrip<4)Tictmp[(int)h->get_L()]=1;
 
 		}
 	   
