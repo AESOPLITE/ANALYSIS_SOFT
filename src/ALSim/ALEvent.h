@@ -413,7 +413,7 @@ class ALEvent:public TObject
    void add_XT4(double a){XT4.push_back(a);}
    void add_YT1(double a){YT1.push_back(a);}
    void add_YT3(double a){YT3.push_back(a);}
-   void add_YT4(double a){YT4.push_back(a);} 
+   void add_YT4(double a){YT4.push_back(a);}
    void add_timeT1(double a){timeT1.push_back(a);}
    void add_timeT2(double a){timeT2.push_back(a);}
    void add_timeT3(double a){timeT3.push_back(a);}
@@ -636,14 +636,14 @@ class ALEvent:public TObject
    std::vector<double>&  get_EneT4(){return EneT4;}
    std::vector<double>&  get_Eneg(){return Eneg;}
    std::vector<double>&  get_PHA6(){return PHA6;}
-   
+
    std::vector<double>&  get_XT1(){return XT1;}
    std::vector<double>&  get_XT3(){return XT3;}
    std::vector<double>&  get_XT4(){return XT4;}
    std::vector<double>&  get_YT1(){return YT1;}
    std::vector<double>&  get_YT3(){return YT3;}
    std::vector<double>&  get_YT4(){return YT4;}
-   
+
    std::vector<double>&  get_timeT1(){return timeT1;}
    std::vector<double>&  get_timeT2(){return timeT2;}
    std::vector<double>&  get_timeT3(){return timeT3;}
@@ -746,7 +746,12 @@ class ALEvent:public TObject
    int  get_NLayersc();
    int get_Layerc(int);
    void get_Layersc(int*);
-
+   ////////////////////////////////
+   //Methods to get number of layers and layer with hits (with max of 3 strips per hits )and pass geometry cuts
+   ////////////////////////////////
+   int  get_NLayersPR();
+   int get_LayerPR(int);
+   void get_LayersPR(int*);
    ////////////////////////////////
    ClassDef(ALEvent,1)
 
