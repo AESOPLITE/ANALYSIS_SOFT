@@ -607,7 +607,8 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
     if (mreg == TrigReg[0]&& type!=7 && type !=0 && type!=8 && type!=211)//T1
       {
        if(i==iT1+1){EneT1+=Edep;nT1++;}
-       else{nT1=1;EneT1=Edep;timeT1=age; XT1=x;YT1=y;}
+       else{nT1=1;EneT1=Edep;timeT1=age;}
+	   XT1=x;YT1=y;
        iT1=i;
       }
     if (mreg == TrigReg[1]&& type!=7 && type !=0 && type!=8 && type!=211)//T2
@@ -633,13 +634,15 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
     if (mreg == TrigReg[2]&& type!=7 && type !=0 && type!=8 && type!=211)//T3
       {
        if(i==iT3+1){EneT3+=Edep;nT3++;}
-       else{nT3=1;EneT3=Edep;timeT3=age; XT3=x; YT3=y;}
+       else{nT3=1;EneT3=Edep;timeT3=age;}
+	   XT3=x; YT3=y;
        iT3=i;
       }
     if (mreg == TrigReg[3]&& type!=7 && type !=0 && type!=8 && type!=211)//T4
       {
        if(i==iT4+1){EneT4+=Edep;nT4++;}
-       else{nT4=1;EneT4=Edep;timeT4=age;XT4=x; YT4=y;}
+       else{nT4=1;EneT4=Edep;timeT4=age;}
+	   XT4=x; YT4=y;
        iT4=i;
       }
     if (mreg == GReg[0]&& type!=7 && type !=0 && type!=8 && type!=211)//guard
