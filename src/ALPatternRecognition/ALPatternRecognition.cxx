@@ -62,16 +62,8 @@ vector<int> nstrip1, nstrip2, nstrip3,nstrip4;   //keep track of number of strip
 vector<int> nstriptop, nstripmid,nstripbottom;	 //keep  track of number of strips of make up a hit
 vector<int> L6S575;
 
-int* LayerWithHit = NULL;
-LayerWithHit = new int[7];
-for(int i=0;i<7;i++)LayerWithHit[i]=0;
-re->get_Layers(LayerWithHit);
-//for(int i=0;i<7;i++) cout << LayerWithHit[i];
-//cout << endl;
-uint8_t Ti=(uint8_t)re->get_Ti();
-//cout << " Ti = " << re->get_Ti() << "  unsigned Ti = " << unsigned(Ti) << endl;
-//Number of layers with hit(s)
-int NL= re->get_NLayers();
+//Number of layers with hit(s) with max 3 strips
+int NL= re->get_NLayersc();
 //Number of layers with hit(s) in bending/non-bending plane
 //int NLB = re->get_Layer(1) + re->get_Layer(2) + re->get_Layer(3) + re->get_Layer(5);
 //int NLNB =  re->get_Layer(0) + re->get_Layer(4) + re->get_Layer(6);
@@ -83,11 +75,12 @@ bool NL4 = false;
 bool NL5 = false;
 bool NL6 = false;
 
+int* NLPRtmp= new int[7];
+for(int i=0;i<7;i++)NLPRtmp[i]=0;
 //cout << "NL = " << NL << "  NLB = " << NLB << "  NLNB = " << NLNB << endl;
 //if not less than 5 layers were touched then don't try pattern recognition
 if(NL<5)
  {
-  delete[] LayerWithHit;
   return 0;
  }
 
@@ -109,18 +102,13 @@ for(int j=0;j<nnhits;j++)
    Double_t zz=(re->get_hits().at(j))->get_z();
 
 
-   if (L==6 && fstripID==575 &&nstrip==1) 
-	{
-	 xx = xx - 32.5*strippitch; //For flight 2018, put the hit in middle of chip 8
-//	 re->get_hits().at(j)->set_x(xx);
-	}
+   if (L==6 && fstripID==575 &&nstrip==1)
+	  {
+	   xx = xx - 32.5*strippitch; //For flight 2018, put the hit in middle of chip 8
+	  }
 
    TVector3 *X = new TVector3(xx,yy,zz);
-	 //allhits->AddAt(X,kk);
-	 //add region of hit
-	 //if(nstrip==-1) {
-      // cout << "Hit " << j << "  , layer" << L << ", index " << kk << "  nstrip =  " << nstrip << "    x=" << xx << "  y=" << yy << "  z=" << zz << endl;
-  //   }
+
    if(nstrip>3) continue;
 
 	 if(L==0||L==4||L==6)//non-bending plane
@@ -128,9 +116,9 @@ for(int j=0;j<nnhits;j++)
      xnonbend->Add(X);
      switch(L)
            {
-            case 0: if (abs(re->get_hits().at(j)->get_x())<4.) {xtoplayer->Add(X);itop.push_back(kk); nstriptop.push_back(nstrip);NL0=true;}break;
-            case 4: if (abs(re->get_hits().at(j)->get_x())<10.) {xmid->Add(X);imid.push_back(kk);  nstripmid.push_back(nstrip);NL4=true;}break;
-            case 6: if (abs(re->get_hits().at(j)->get_x())<10.){xbottomlayer->Add(X);ibottom.push_back(kk); nstripbottom.push_back(nstrip);NL6=true;}
+            case 0: if (abs(re->get_hits().at(j)->get_x())<4.) {xtoplayer->Add(X);itop.push_back(kk); nstriptop.push_back(nstrip);NL0=true;NLPRtmp[L]++;}break;
+            case 4: if (abs(re->get_hits().at(j)->get_x())<10.) {xmid->Add(X);imid.push_back(kk);  nstripmid.push_back(nstrip);NL4=true;NLPRtmp[L]++;}break;
+            case 6: if (abs(re->get_hits().at(j)->get_x())<10.){xbottomlayer->Add(X);ibottom.push_back(kk); nstripbottom.push_back(nstrip);NL6=true;NLPRtmp[L]++;}
                     if (fstripID==575 && nstrip==1) L6S575.push_back(1.);//Hits with single strip L6S575
                     else L6S575.push_back(0.);
                     break;
@@ -141,15 +129,23 @@ for(int j=0;j<nnhits;j++)
         xbend->Add(X);
         switch(L)
            {
-            case 1: if (abs(re->get_hits().at(j)->get_y())<6.) {xbend1->Add(X);ibend1.push_back(kk);nstrip1.push_back(nstrip);NL1=true;}break;
-            case 2: if (abs(re->get_hits().at(j)->get_y())<6.25) {xbend2->Add(X);ibend2.push_back(kk);nstrip2.push_back(nstrip);NL2=true;}break;
-            case 3: if (abs(re->get_hits().at(j)->get_y())<10) {xbend3->Add(X);ibend3.push_back(kk);nstrip3.push_back(nstrip);NL3=true;}break;
-            case 5: if (abs(re->get_hits().at(j)->get_y())<10) {xbend4->Add(X);ibend4.push_back(kk);nstrip4.push_back(nstrip);NL5=true;}break;
+            case 1: if (abs(re->get_hits().at(j)->get_y())<6.) {xbend1->Add(X);ibend1.push_back(kk);nstrip1.push_back(nstrip);NL1=true;NLPRtmp[L]++;}break;
+            case 2: if (abs(re->get_hits().at(j)->get_y())<6.25) {xbend2->Add(X);ibend2.push_back(kk);nstrip2.push_back(nstrip);NL2=true;NLPRtmp[L]++;}break;
+            case 3: if (abs(re->get_hits().at(j)->get_y())<10) {xbend3->Add(X);ibend3.push_back(kk);nstrip3.push_back(nstrip);NL3=true;NLPRtmp[L]++;}break;
+            case 5: if (abs(re->get_hits().at(j)->get_y())<10) {xbend4->Add(X);ibend4.push_back(kk);nstrip4.push_back(nstrip);NL5=true;NLPRtmp[L]++;}break;
            }
         }//else
     // cout << "Hit " << j << "  , L=" << L << ", fstripID " << fstripID << "  nstrip =  " << nstrip << "    x=" << xx << "  y=" << yy << "  z=" << zz << endl;
- 
+
  }  //j
+
+ int TiPRtmp=0;
+ for(int i=0;i<7;i++)
+   {
+    re->set_NLPR(i,NLPRtmp[i]);
+    if(NLPRtmp[i]>0)TiPRtmp+=(int)TMath::Power(2,i);
+   }
+ re->set_TiPR(TiPRtmp);
 
 	//GraphAllPoints(re);
 
@@ -163,18 +159,16 @@ for(int j=0;j<nnhits;j++)
  if((xbend3->GetEntries())!=0) layer3 = xbend3->GetEntries() ;
  if((xbend4->GetEntries())!=0) layer4 = xbend4->GetEntries() ;
  ncomb = layer1*layer2*layer3*layer4;
-// cout << " npointsB = " << npointsB << ", NLB = " << NLB << endl; 
+// cout << " npointsB = " << npointsB << ", NLB = " << NLB << endl;
  // if less then 3 layers with hits in bending plane, can't reconstruct
 	if( NLB <3)
    {
 	 //cout << "NLB < 3, quitting function" << endl;
-  	delete[] LayerWithHit;
 	  return 0;
 	 }
 	if(ncomb<=0||ncomb>MAXB)
    {
     //  cout << " ncomb<=0||ncomb>MAXB " << endl;
-	  delete[] LayerWithHit;
  	  return 0;
    }
 
@@ -330,16 +324,14 @@ for(int j=0;j<nnhits;j++)
  // cout << " npointsNB = " << npointsNB << ", NLNB = " << NLNB << endl;
 
 // if less then 2 hits in non-bending plane, can't reconstruct
-	if (NLNB <2) 
+	if (NLNB <2)
    {
 	//  cout << "here we are" << endl;
-	  delete[] LayerWithHit;
 	  return 0;
 	 }
 
   if(NConf<=0 || NConf>MAXNB)
    {
- 	  delete[] LayerWithHit;
 	  return 0;
    }
 
@@ -412,20 +404,18 @@ for(int j=0;j<nnhits;j++)
 
 
              //Display options
-             gNonBending[NConfig]->SetTitle(Form("Non-bending config %d",  NConfig));
-             gNonBending[NConfig]->SetMarkerStyle(kCircle);
-             gNonBending[NConfig]->SetMarkerColor(kBlue);
-             gNonBending2[NConfig]->SetTitle(Form("Non-bending config %d",  NConfig));
-             gNonBending2[NConfig]->SetMarkerStyle(kCircle);
-             gNonBending2[NConfig]->SetMarkerColor(kBlue);
+             //gNonBending[NConfig]->SetTitle(Form("Non-bending config %d",  NConfig));
+             //gNonBending[NConfig]->SetMarkerStyle(kCircle);
+            // gNonBending[NConfig]->SetMarkerColor(kBlue);
+             //gNonBending2[NConfig]->SetTitle(Form("Non-bending config %d",  NConfig));
+            // gNonBending2[NConfig]->SetMarkerStyle(kCircle);
+             //gNonBending2[NConfig]->SetMarkerColor(kBlue);
 
              //fit function
              line[NConfig] =  new TF1(Form("NBConfig%d",NConfig),"pol1",-20,20);
-             line[NConfig]->SetLineColor(kBlue);
-             line[NConfig]->SetLineWidth(1);
-             line[NConfig]->SetLineStyle(3);
-
-
+             //line[NConfig]->SetLineColor(kBlue);
+             //line[NConfig]->SetLineWidth(1);
+             //line[NConfig]->SetLineStyle(3);
              //FIT
              gNonBending[NConfig]->Fit(line[NConfig],"QSN");
              double chi2=line[NConfig]->GetChisquare();
@@ -469,15 +459,6 @@ for(int j=0;j<nnhits;j++)
     //NON-BENDING
     int index = min_element(chisquare.begin(), chisquare.end()) - chisquare.begin();
 
-  /*  if((int)chisquareB.size()>0)
-     {
-      for(int ijkl=0;ijkl<(int)chisquareB.size();ijkl++)
-        {
-         cout << chisquareB.at(ijkl) <<    " " ;
-        }
-      cout << " , indexB:" << indexB << endl;
-    }*/
-
     Double_t a = invertedparabolas[indexB]->GetParameter(2);
     Double_t b = invertedparabolas[indexB]->GetParameter(1);
     Double_t c = invertedparabolas[indexB]->GetParameter(0);
@@ -490,27 +471,48 @@ for(int j=0;j<nnhits;j++)
 
     //Incoming Straight particle
     float lim=zL[1];//z position of 2nd layer
+    float zT1=33.49968+0.25; //z position of middle of T1
+    float zT3=0.+0.25; //z position of middle of T3
+    float zT4=-25.59012+0.5; //z position of middle of T4
     float diff=2*a*lim+2*a*zz0+b;
+    float aa=invertedparabolas[indexB]->Eval(lim);
+
+    float YT1PR=(zT1-lim)*diff+aa; //PR Y-position in T1
+    float YT3PR=(zT3-lim)*diff+aa; //PR Y-position in T3
+    re->set_thBiPR(TMath::ATan(diff));
+    re->set_YT1PR(YT1PR);
+    re->set_YT3PR(YT3PR);
 
     //Outcoming Straight particle
     float limo=zL[5];//z position of 6th layer
     float diffout=2*a*limo+2*a*zz0+b;
+    aa=invertedparabolas[indexB]->Eval(limo);
+    re->set_thBoPR(TMath::ATan(diffout));
+    float YT4PR=(zT4-limo)*diffout+aa; //PR Y-position in T4
+    re->set_YT4PR(YT4PR);
 
     //Set Deflection
-    double deflection=diffout-diff;
+    double deflection=TMath::ATan(diffout)-TMath::ATan(diff);
     re->set_deflecPR(deflection);
 
     //NON-BENDING
    //   cout << " index of min chisquare in NB plane i = " << index << endl;
     Double_t p0 = line[index]->GetParameter(0);
     Double_t p1 = line[index]->GetParameter(1);						//p1 = 1/tanl
-    TF1*inverseline=new TF1("inverseline","(x-[0])/([1])",-10,10);
-    inverseline->SetParameters(p0,p1);
+    float XT1PR=line[index]->Eval(zT1)+p0;
+    float XT3PR=line[index]->Eval(zT3)+p0;
+    float XT4PR=line[index]->Eval(zT4)+p0;
+    re->set_XT1PR(XT1PR);
+    re->set_XT3PR(XT3PR);
+    re->set_XT4PR(XT4PR);
+
 
     //Fill PR coordinates
     re->set_interPR(p0);
     re->set_slopePR(p1);
     re->set_chi2NBPR(chisquare[index]);
+    float thetaNB = TMath::ATan(p1);
+    re->set_thNBPR(thetaNB);
 
 //Interpolate bending plane hits in the non-bending plane
 
@@ -539,130 +541,77 @@ for(int j=0;j<nnhits;j++)
        //extrapolate the yPR from the fit in the bending plane
        if(NLB>=3)re->get_hits().at(kk)->set_yPR(invertedparabolas[indexB]->Eval(re->get_hits().at(kk)->get_z()));
        //cout << "next one " << endl;
-     }
+      }
 //cout << "Interpolation in B plane done" << endl;
 
-/*
- //For events with <1 hit per layer: create ghost hit
-    int kold = re->get_Nhits();
-    vector<ALTckhit*> Hh;
-	ALTckhit *h = new ALTckhit();
-	for(int l=0;l<7;l++) {
-	 	if(LayerWithHit[l]==0) {		//if there is a layer without a hit
-			double z = zL[l];
-			double x = line[index]->Eval(z);
-			double y = invertedparabolas[indexB]->Eval(z);
-			float coord=0.;
-			float secondcoord=0.;
-			if(l==0 || l==4 || l==6) { coord = (float)x; secondcoord=(float)y;}
- 			if(l==1|| l==2 || l==3 || l==5) { coord = (float)y; secondcoord=(float)x; }
-			int nstrip = CoordtoStrip(coord,secondcoord,OffsetLL[l],OffsetRL[l],true);
-			coord = StriptoCoord(nstrip,OffsetLL[l],OffsetRL[l],true);
-			h = new ALTckhit();
-			if(nstrip==-1) {
-			h->set_xPR(x);
-			h->set_yPR(y);
-			}
-			else {
-			h->set_nstrips(nstrip);
-			if(l==0 || l==4 || l==6) {
-			h->set_xPR(coord);
-			h->set_yPR(y);
-			}
-			else {
-			h->set_xPR(x);
-			h->set_yPR(coord);
-				}
-			}
-			h->set_zPR(z);
-			h->set_fGhost(true);
-			h->set_flagPR(true);
-			h->set_L(l);
-			h->set_k(kold);
-			Hh.push_back(h);
-			kold++;
-		} //end if
-	} //end for
-//add missing hits to event
-    for(int ij=0;ij<(int)Hh.size();ij++) re->add_hit(Hh.at(ij));
-
-	*/
+//Calculate and set directional cosines for each hit
+    for(int j=0;j<re->get_Nhits();j++)
+      {
+		  bool flagPR = re->get_hits().at(j)->get_flagPR();
+		  int k = re->get_hits().at(j)->get_k();
+	    if(flagPR)
+       {
+		    float zPR =  re->get_hits().at(k)->get_zPR();
+        double slopeB = 2*a*zPR;
+		    double thetaB = TMath::ATan(slopeB);
+		    float cxPR = TMath::Cos(TMath::Pi()*0.5+thetaNB);
+		    float cyPR = TMath::Cos(TMath::Pi()*0.5-thetaB);
+		    float czPR = TMath::Cos(TMath::Pi()-thetaNB);
+		    // cout << "cxPR = " << cxPR << " cyPR = " << cyPR << " czPR = " << czPR << endl;
+		    re->get_hits().at(k)->set_cxPR(cxPR);
+		    re->get_hits().at(k)->set_cyPR(cyPR);
+		    re->get_hits().at(k)->set_czPR(czPR);
+		   } //if flag
+	    }	//end for
 
 //Calculate and set momentum and total energy of particle from PR fit
-	   double slopeNB = re->get_slopePR();
-	   double thetaNB = TMath::ATan(slopeNB);
-     double aPR = re->get_aPR();
-	   double bPR = re->get_bPR();
-	   double cPR = re->get_cPR();
-	   //Signed curvature at the 4 points of the bending plane
-	   double zzz[4]={zL[5],zL[3],zL[2],zL[1]};
-	   double curv[4]={0,0,0,0};
-	   TF1* fcurv=new TF1("fcurv","2*[0]/TMath::Power(1+TMath::Power(2*[0]*x+[1],2),3./2.)",-20,20);
-	   fcurv->SetParameter(0,aPR);
-	   fcurv->SetParameter(1,2*a*zz0+bPR);
-	   double CurvMean=0;
-	   for(int ij=0;ij<4;ij++)
-		   {
-        curv[ij]= fcurv->Eval(zzz[ij]);
-	      CurvMean+=	curv[ij]/4;
-		   }
-	   double Rmean=fabs(1./curv[2]);
-	   if(CurvMean!=0)	 Rmean=fabs(1./CurvMean);
-	   //Extract a simple estimation of energy from the average of the 4 curvature a radius
-	   double B=0.3; //in T
-	   double Pt=0.3 * B *	0.01*Rmean; //in GeV
-	   double p0PR= Pt / TMath::Cos(fabs(thetaNB));   //in GeV
-	   double mass=0;
-	   int type;
-	   double deflec = re->get_deflecPR();
-	   double Q =  TMath::Sign(1,deflec);
-	   if (DataType==1)
-      {
-	     if (re->get_T2())
-        {			//if CK fired, electrons or positrons
-	       if (Q>0) type=4;
-	       else type=3;
-	      }
-	     else
-        {			//if CK not fired
-	       if (Q>0) type=10;
-	       else type=11;
-	      }
-	    } //if data
-	  //if MC
-	   else type = re->get_typeMC();	//if MC
-	   if (type==3 || type == 4) mass = kMelectron;	//for electrons in GeV
-	   else if(type==10 || type ==11)  mass = kMuon;	//for muons in GeV
-	   else if(type==1)  mass = kProton;	//for protons in GeV
-	   else if(type==-6)  mass = kAlpha;	//for alphas in GeV
-	   double EkPR=TMath::Sqrt(p0PR*p0PR+mass*mass);			//total energy
-	   re->set_EkPR(EkPR);
-	   re->set_p0PR(p0PR);
 
-//Calculate and set directional cosines for each hit
-	for(int j=0;j<re->get_Nhits();j++)
-    {
-		 bool flagPR = re->get_hits().at(j)->get_flagPR();
-		 int k = re->get_hits().at(j)->get_k();
-	   if(flagPR)
-      {
-		   float zPR =  re->get_hits().at(k)->get_zPR();
-       double slopeB = 2*aPR*zPR;
-		   double thetaB = TMath::ATan(slopeB);
-		   float cxPR = TMath::Cos(TMath::Pi()*0.5+thetaNB);
-		   float cyPR = TMath::Cos(TMath::Pi()*0.5-thetaB);
-		   float czPR = TMath::Cos(TMath::Pi()-thetaNB);
-		   // cout << "cxPR = " << cxPR << " cyPR = " << cyPR << " czPR = " << czPR << endl;
-		   re->get_hits().at(k)->set_cxPR(cxPR);
-		   re->get_hits().at(k)->set_cyPR(cyPR);
-		   re->get_hits().at(k)->set_czPR(czPR);
-		  } //if flag
-	 }	//end for
+	//Signed curvature at the 4 points of the bending plane
+	double zzz[4]={zL[5],zL[3],zL[2],zL[1]};
+	double curv[4]={0,0,0,0};
+	TF1* fcurv=new TF1("fcurv","2*[0]/TMath::Power(1+TMath::Power(2*[0]*x+[1],2),3./2.)",-20,20);
+	fcurv->SetParameter(0,a);
+	fcurv->SetParameter(1,2*a*zz0+b);
+	double CurvMean=0;
+	for(int ij=0;ij<4;ij++)
+	  {
+     curv[ij]= fcurv->Eval(zzz[ij]);
+	   CurvMean+=	curv[ij]/4;
+		}
+	double Rmean=fabs(1./curv[2]);
+	if(CurvMean!=0)	 Rmean=fabs(1./CurvMean);
+	//Extract a simple estimation of energy from the average of the 4 curvature a radius
+	double B=0.3; //in T
+	double Pt=0.3 * B *	0.01*Rmean; //in GeV
+	double p0PR= Pt / TMath::Cos(fabs(thetaNB));   //in GeV
+	double mass=0;
+	int type;
+	double Q =  TMath::Sign(1,deflection);
+	if (DataType==1)
+   {
+	  if (re->get_T2())
+     {			//if CK fired, electrons or positrons
+	    if (Q>0) type=4;
+	    else type=3;
+	   }
+	  else
+     {			//if CK not fired
+	    if (Q>0) type=10;
+	    else type=11;
+	   }
+	 } //if data
+  else type = re->get_typeMC();	//if MC
+  if (type==3 || type == 4) mass = kMelectron;	//for electrons in GeV
+  else if(type==10 || type ==11)  mass = kMuon;	//for muons in GeV
+  else if(type==1)  mass = kProton;	//for protons in GeV
+  else if(type==-6)  mass = kAlpha;	//for alphas in GeV
+  double EkPR=TMath::Sqrt(p0PR*p0PR+mass*mass);			//total energy
+  re->set_EkPR(EkPR);
+  re->set_p0PR(p0PR);
+
 //cout << "end of PR function " << endl;
 
- //delete pointers
-
-
+//delete pointers
 //cout << "bending? " << endl;
 
 for(int z =0; z<ncomb;z++)
@@ -671,15 +620,12 @@ for(int z =0; z<ncomb;z++)
 	 delete indicesB[z];
   }
 
-
 for(int z =0; z<NConf;z++)
   {
    //cout << "nonbending z = " << z << endl;
    delete indicesNB[z];
 	}
 
-
-  delete[] LayerWithHit;
   delete[] parabolas;
   delete[] invertedparabolas;
   delete[] line;
@@ -696,5 +642,3 @@ for(int z =0; z<NConf;z++)
   return 1;
 
 }
-
-
