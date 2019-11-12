@@ -499,9 +499,9 @@ for(int j=0;j<nnhits;j++)
    //   cout << " index of min chisquare in NB plane i = " << index << endl;
     Double_t p0 = line[index]->GetParameter(0);
     Double_t p1 = line[index]->GetParameter(1);						//p1 = 1/tanl
-    float XT1PR=line[index]->Eval(zT1)+p0;
-    float XT3PR=line[index]->Eval(zT3)+p0;
-    float XT4PR=line[index]->Eval(zT4)+p0;
+    float XT1PR=line[index]->Eval(zT1);
+    float XT3PR=line[index]->Eval(zT3);
+    float XT4PR=line[index]->Eval(zT4);
     re->set_XT1PR(XT1PR);
     re->set_XT3PR(XT3PR);
     re->set_XT4PR(XT4PR);
