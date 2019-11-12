@@ -92,7 +92,7 @@ ALEvent::ALEvent()// Default
  thBoPR=-999;//theta outcoming in BP from PR
  thNBPR=-999;//theta  in BP from PR
 
- for(int i=0;i<7;i++) NLPR[i]=0;
+ for(int i=0;i<7;i++) NLPR[i]=0;		//number of hits per layer after PR selections
 
  //Triggers: default is false
  T1=false;
@@ -331,6 +331,12 @@ void ALEvent::Copy(ALEvent* e)
    for(int i=0;i<(int)(e->get_EneShell()).size();i++) EneShell.push_back((e->get_EneShell()).at(i));
    for(int i=0;i<(int)(e->get_timeIsofoam()).size();i++) timeIsofoam.push_back((e->get_timeIsofoam()).at(i));
    for(int i=0;i<(int)(e->get_timeShell()).size();i++) timeShell.push_back((e->get_timeShell()).at(i));
+   for(int i=0;i<(int)(e->get_XT1()).size();i++) XT1.push_back((e->get_XT1()).at(i));
+   for(int i=0;i<(int)(e->get_XT3()).size();i++) XT3.push_back((e->get_XT3()).at(i));
+   for(int i=0;i<(int)(e->get_XT4()).size();i++) XT4.push_back((e->get_XT4()).at(i));
+   for(int i=0;i<(int)(e->get_YT1()).size();i++) YT1.push_back((e->get_YT1()).at(i));
+   for(int i=0;i<(int)(e->get_YT3()).size();i++) YT3.push_back((e->get_YT3()).at(i));
+   for(int i=0;i<(int)(e->get_YT4()).size();i++) YT4.push_back((e->get_YT4()).at(i));	
    //Vectors of ALTckhit
    for(int i=0;i<(int)(e->get_hits()).size();i++) hits.push_back((e->get_hits()).at(i));
   //HOUSEKEEPING FROM COUNTERS 1 AND 3

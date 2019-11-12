@@ -84,7 +84,7 @@ class ALEvent:public TObject
    float thBiPR;//theta incoming in BP from PR
    float thBoPR;//theta outcoming in BP from PR
    float thNBPR;//theta  in BP from PR
-   int NLPR[7];    //Number of hits with max 3 trips that pass geometry cuts fo PR
+   int NLPR[7];    //Number of hits per layer with max 3 strips that pass geometry cuts for PR
    int TiPR;//Same as Ti for hits with a maximum of 3 strips and pass geometry cuts
 
   //Reconstruction information: variables finish with reco
@@ -125,6 +125,13 @@ class ALEvent:public TObject
    std::vector<double> EneT4;
    std::vector<double> Eneg;
    std::vector<double> PHA6; //for data only 6th PHA
+   //For MC, position of particles in the scintillators
+   std::vector<double> XT1
+   std::vector<double> XT3
+   std::vector<double> XT4
+   std::vector<double> YT1
+   std::vector<double> YT3
+   std::vector<double> YT4
    //For MC, energy deposit in insulation and shell
    std::vector<double> EneIsofoam;
    std::vector<double> EneShell;
@@ -401,6 +408,12 @@ class ALEvent:public TObject
    void add_EneT4(double a){EneT4.push_back(a);}
    void add_Eneg(double a){Eneg.push_back(a);}
    void add_PHA6(double a){PHA6.push_back(a);}
+   void add_XT1(double a){XT1.push_back(a);}
+   void add_XT3(double a){XT3.push_back(a);}
+   void add_XT4(double a){XT4.push_back(a);}
+   void add_YT1(double a){YT1.push_back(a);}
+   void add_YT3(double a){YT3.push_back(a);}
+   void add_YT4(double a){YT4.push_back(a);} 
    void add_timeT1(double a){timeT1.push_back(a);}
    void add_timeT2(double a){timeT2.push_back(a);}
    void add_timeT3(double a){timeT3.push_back(a);}
@@ -623,6 +636,14 @@ class ALEvent:public TObject
    std::vector<double>&  get_EneT4(){return EneT4;}
    std::vector<double>&  get_Eneg(){return Eneg;}
    std::vector<double>&  get_PHA6(){return PHA6;}
+   
+   std::vector<double>&  get_XT1(){return XT1;}
+   std::vector<double>&  get_XT3(){return XT3;}
+   std::vector<double>&  get_XT4(){return XT4;}
+   std::vector<double>&  get_YT1(){return YT1;}
+   std::vector<double>&  get_YT3(){return YT3;}
+   std::vector<double>&  get_YT4(){return YT4;}
+   
    std::vector<double>&  get_timeT1(){return timeT1;}
    std::vector<double>&  get_timeT2(){return timeT2;}
    std::vector<double>&  get_timeT3(){return timeT3;}
@@ -714,13 +735,13 @@ class ALEvent:public TObject
 
 
    ////////////////////////////////
-   //Methods to get number of layerS and layer with hits
+   //Methods to get number of layers and layer with hits
    ////////////////////////////////
    int  get_NLayers();
    int get_Layer(int);
    void get_Layers(int*);
    ////////////////////////////////
-   //Methods to get number of layerS and layer with hits (with max of 3 strips per hits )
+   //Methods to get number of layers and layer with hits (with max of 3 strips per hits )
    ////////////////////////////////
    int  get_NLayersc();
    int get_Layerc(int);

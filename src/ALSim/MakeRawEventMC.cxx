@@ -103,6 +103,12 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
  double EneT2=0; 
  double EneT3=0; 
  double EneT4=0; 
+ double XT1=0;
+ double XT3=0; 
+ double XT4=0; 
+ double YT1=0;
+ double YT3=0; 
+ double YT4=0; 
  double Eneg=0; 
  double timeFoam=0;
  double timeShell=0;
@@ -135,7 +141,10 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 //Temporary variable for internal triggers 
  int*Titmp=new int[7];
  for (int i=0;i<7;i++)Titmp[i]=0;
- 
+ //Temporary variable for internal triggers with max 3 strips 
+ int*Tictmp=new int[7];
+ for (int i=0;i<7;i++)Tictmp[i]=0;
+
  int nL=0;
  int iL=0;
  ALTckhit* h=new ALTckhit();
@@ -201,7 +210,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
      {
       if(nT1>0)
        {
-        e->add_EneT1(EneT1); e->add_timeT1(timeT1);
+        e->add_EneT1(EneT1); e->add_timeT1(timeT1); e->add_XT1(XT1); e->add_YT1(YT1);
         if (EneT1 > TrigThresh[0]) e->set_T1(true);
         EneT1=0;timeT1=0;nT1=0;iT1=0;
        }
@@ -221,7 +230,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
      {
       if(nT3>0)
        {
-        e->add_EneT3(EneT3); e->add_timeT3(timeT3);
+        e->add_EneT3(EneT3); e->add_timeT3(timeT3); e->add_XT3(XT3); e->add_YT3(YT3);
         if(EneT3 > TrigThresh[2]) e->set_T3(true);
         EneT3=0;timeT3=0;nT3=0;iT3=0;
        }
@@ -230,7 +239,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
      {
       if(nT4>0)
        {
-        e->add_EneT4(EneT4); e->add_timeT4(timeT4);
+        e->add_EneT4(EneT4); e->add_timeT4(timeT4); e->add_XT4(XT4); e->add_YT4(YT4);
         if (EneT4 > TrigThresh[3]) e->set_T4(true);
         EneT4=0;timeT4=0;nT4=0;iT4=0;
        }
@@ -375,6 +384,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 				 e->add_hit(hLeft);
 				//Check the layer for internal trigger
 				 Titmp[(int)hLeft->get_L()]=1;
+		    	 if(nstripLeft<4)Tictmp[(int)h->get_L()]=1;			
 				 cout << "fstripIDLeft = " << fstripIDLeft << ", coordLeft = " << coordLeft << ", nstripLeft " << nstripLeft << endl;
 
 			 }
@@ -395,7 +405,8 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 				 nh++;
 				 e->add_hit(hRight);
 				//Check the layer for internal trigger
-				 Titmp[(int)hRight->get_L()]=1;					
+				 Titmp[(int)hRight->get_L()]=1;			
+		    	 if(nstripRight<4)Tictmp[(int)h->get_L()]=1;			
 				 cout << "fstripIDRight = " << fstripIDRight << ", coordRight = " << coordRight<< ",  nstripRight " << nstripRight << endl;
 
 				 }
@@ -433,6 +444,8 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 			  hBad->set_L(Lbad);//layer
 			  if(nL>0){hBad->set_cx(h->get_cx()/nL);hBad->set_cy(h->get_cy()/nL);hBad->set_cz(h->get_cz()/nL);}//add the last hit 
 			  hBad->set_k(nh);
+			 if(nstripbad<4)Tictmp[Lbad]=1;			
+
 			  nh++;
 			  e->add_hit(hBad);
 				}
@@ -456,9 +469,9 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 			 e->add_hit(h);
 			//Check the layer for internal trigger
 			 Titmp[(int)h->get_L()]=1;
-	 		}
+			 if(nstrip<4)Titcmp[(int)h->get_L()]=1;			
 
-			
+	 		}
 		}
           if(h->get_x()==-999) cout << "X coord is -999. Event " << i <<endl;
           if(h->get_y()==-999) cout << "Y coord is -999. Event " << i <<endl;
@@ -511,7 +524,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
         e->add_posX(x);
         e->add_posY(y);
         e->add_posZ(z);
-	e->add_posCX(cx);
+    	e->add_posCX(cx);
         e->add_posCY(cy);
         e->add_posCZ(cz);
         e->add_posType(type);
@@ -568,6 +581,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
        // e->set_T2(false);
         //Reset internal trigger
         for (int ij=0;ij<7;ij++)Titmp[ij]=0;
+        for (int ij=0;ij<7;ij++)Tictmp[ij]=0;
        }     //else
      }  //if
     
@@ -592,7 +606,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
     if (mreg == TrigReg[0]&& type!=7 && type !=0 && type!=8 && type!=211)//T1
       {
        if(i==iT1+1){EneT1+=Edep;nT1++;}
-       else{nT1=1;EneT1=Edep;timeT1=age;}
+       else{nT1=1;EneT1=Edep;timeT1=age; XT1=x;YT1=y;}
        iT1=i;
       }
     if (mreg == TrigReg[1]&& type!=7 && type !=0 && type!=8 && type!=211)//T2
@@ -618,13 +632,13 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
     if (mreg == TrigReg[2]&& type!=7 && type !=0 && type!=8 && type!=211)//T3
       {
        if(i==iT3+1){EneT3+=Edep;nT3++;}
-       else{nT3=1;EneT3=Edep;timeT3=age;}
+       else{nT3=1;EneT3=Edep;timeT3=age; XT3=x; YT3=y;}
        iT3=i;
       }
     if (mreg == TrigReg[3]&& type!=7 && type !=0 && type!=8 && type!=211)//T4
       {
        if(i==iT4+1){EneT4+=Edep;nT4++;}
-       else{nT4=1;EneT4=Edep;timeT4=age;}
+       else{nT4=1;EneT4=Edep;timeT4=age;XT4=x; YT4=y;}
        iT4=i;
       }
     if (mreg == GReg[0]&& type!=7 && type !=0 && type!=8 && type!=211)//guard
@@ -712,7 +726,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
      e->add_EneShell(EneShell); e->add_timeShell(timeShell);
        }
  if(nT1>0){
-	 e->add_EneT1(EneT1);e->add_timeT1(timeT1);
+	 e->add_EneT1(EneT1);e->add_timeT1(timeT1); e->add_XT1(XT1); e->add_YT1(YT1);
 	 if (EneT1 > TrigThresh[0]) e->set_T1(true);
  	}
  if(nT2>0){
@@ -722,11 +736,11 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
         }
 
  if(nT3>0){
-	 e->add_EneT3(EneT3);e->add_timeT3(timeT3);
+	 e->add_EneT3(EneT3);e->add_timeT3(timeT3);e->add_XT3(XT3); e->add_YT3(YT3);
 	 if (EneT3 > TrigThresh[2]) e->set_T3(true);
  	}
  if(nT4>0){
-	 e->add_EneT4(EneT4);e->add_timeT4(timeT4);
+	 e->add_EneT4(EneT4);e->add_timeT4(timeT4); e->add_XT4(XT4); e->add_YT4(YT4);
 	 if(EneT4 > TrigThresh[3]) e->set_T4(true);
     }
  if(ng>0){
@@ -854,6 +868,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 				 e->add_hit(hLeft);
 				//Check the layer for internal trigger
 				 Titmp[(int)hLeft->get_L()]=1;
+				 Tictmp[(int)hLeft->get_L()]=1;
 				 cout << "fstripIDLeft = " << fstripIDLeft << ", coordLeft = " << coordLeft << ", nstripLeft " << nstripLeft << endl;
 
 			 }
@@ -875,6 +890,7 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 				 e->add_hit(hRight);
 				//Check the layer for internal trigger
 				 Titmp[(int)hRight->get_L()]=1;					
+				 Tictmp[(int)hRight->get_L()]=1;					
 				 cout << "fstripIDRight = " << fstripIDRight << ", coordRight = " << coordRight<< ",  nstripRight " << nstripRight << endl;
 
 				 }
@@ -914,6 +930,8 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 			  hBad->set_k(nh);
 			  nh++;
 			  e->add_hit(hBad);
+			  Tictmp[Lbad]=1;					
+
 				}
 			 }
 				 
@@ -935,8 +953,10 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 			 e->add_hit(h);
 			//Check the layer for internal trigger
 			 Titmp[(int)h->get_L()]=1;
-	 		}
-	
+	    	 if (nstrip<4)Titcmp[(int)h->get_L()]=1;
+
+		}
+	   
        } 
    X.clear();
    Y.clear();
@@ -952,6 +972,10 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
  int tt=0;
  for (int ij=0;ij<7;ij++) tt+=Titmp[ij]*(int)TMath::Power(2,ij);
  e->set_Ti(tt);	  
+ 
+ int ttc=0;
+ for (int ij=0;ij<7;ij++) ttc+=Tictmp[ij]*(int)TMath::Power(2,ij);
+ e->set_Tic(ttc);	  
  tree->Fill(); 
  delete e; 
  
