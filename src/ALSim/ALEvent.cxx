@@ -88,8 +88,11 @@ ALEvent::ALEvent()// Default
  YT1PR =-999;
  YT3PR =-999;
  YT4PR =-999;
+ thBiPR=-999;//theta incoming in BP from PR
+ thBoPR=-999;//theta outcoming in BP from PR
+ thNBPR=-999;//theta  in BP from PR
 
-
+ for(int i=0;i<7;i++) NLPR[i]=0;
 
  //Triggers: default is false
  T1=false;
@@ -99,6 +102,7 @@ ALEvent::ALEvent()// Default
  guard=false;
  Ti=0;
  Tic=0;
+ TiPR=0;
  NphCK=0;
 
  //HOUSEKEEPING FROM COUNTERS 1 AND 3
@@ -284,6 +288,11 @@ void ALEvent::Copy(ALEvent* e)
    YT3PR =e->get_YT3PR();
    YT4PR =e->get_YT4PR();
 
+   thBiPR=e->get_thBiPR();
+   thBoPR=e->get_thBoPR();
+   thNBPR=e->get_thNBPR();
+   for(int i=0;i<7;i++)NLPR[i]=e->get_NLPR(i);
+
    T1 =e->get_T1();
    T2 =e->get_T2();
    T3 =e->get_T3();
@@ -291,6 +300,7 @@ void ALEvent::Copy(ALEvent* e)
    guard =e->get_guard();
    Ti =e->get_Ti();
    Tic =e->get_Tic();
+   TiPR =e->get_TiPR();
    NphCK=e->get_NphCK();
 
    for(int i=0;i<(int)(e->get_posX()).size();i++) posX.push_back((e->get_posX()).at(i));

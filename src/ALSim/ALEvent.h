@@ -81,6 +81,11 @@ class ALEvent:public TObject
    float YT1PR;
    float YT3PR;
    float YT4PR;
+   float thBiPR;//theta incoming in BP from PR
+   float thBoPR;//theta outcoming in BP from PR
+   float thNBPR;//theta  in BP from PR
+   int NLPR[7];    //Number of hits with max 3 trips that pass geometry cuts fo PR
+   int TiPR;//Same as Ti for hits with a maximum of 3 strips and pass geometry cuts
 
   //Reconstruction information: variables finish with reco
    int typereco;                    		//type of particle
@@ -320,6 +325,10 @@ class ALEvent:public TObject
    void set_YT1PR(float a){YT1PR=a;}
    void set_YT3PR(float a){YT3PR=a;}
    void set_YT4PR(float a){YT4PR=a;}
+   void set_thBiPR(float a){thBiPR=a;}
+   void set_thBoPR(float a){thBoPR=a;}
+   void set_thNBPR(float a){thNBPR=a;}
+   void set_NLPR(int k, int a){if(k<7)NLPR[k]=a;}
 
    ////////////////////////////////
    void set_typereco(int a){typereco=a;}
@@ -399,6 +408,7 @@ class ALEvent:public TObject
    void add_timeg(double a){timeg.push_back(a);}
    void set_Ti(int a){Ti=a;}
    void set_Tic(int a){Tic=a;}
+   void set_TiPR(int a){TiPR=a;}
    void add_EneIsofoam(double a){EneIsofoam.push_back(a);}
    void add_EneShell(double a){EneShell.push_back(a);}
    void add_timeIsofoam(double a){timeIsofoam.push_back(a);}
@@ -558,6 +568,10 @@ class ALEvent:public TObject
    float get_YT1PR(){return YT1PR;}
    float get_YT3PR(){return YT3PR;}
    float get_YT4PR(){return YT4PR;}
+   float get_thBiPR(){return thBiPR;}
+   float get_thBoPR(){return thBoPR;}
+   float get_thNBPR(){return thNBPR;}
+   int get_NLPR(int k){if(k<7)return NLPR[k];else return 0;}
 
    ////////////////////////////////
    int get_typereco(){return typereco;}
@@ -598,9 +612,6 @@ class ALEvent:public TObject
    std::vector<float>&  get_posAge(){return posAge;}
    std::vector<float>&  get_posP(){return posP;}
 
-
-
-
    bool get_T1(){return T1;}
    bool get_T2(){return T2;}
    bool get_T3(){return T3;}
@@ -619,6 +630,7 @@ class ALEvent:public TObject
    std::vector<double>&  get_timeg(){return timeg;}
    int get_Ti(){return Ti;}
    int get_Tic(){return Tic;}
+   int get_TiPR(){return TiPR;}
    std::vector<double>&  get_EneIsofoam(){return EneIsofoam;}
    std::vector<double>&  get_EneShell(){return EneShell;}
    std::vector<double>&  get_timeIsofoam(){return timeIsofoam;}
