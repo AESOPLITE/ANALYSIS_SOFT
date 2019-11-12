@@ -199,16 +199,16 @@ int MakeEventData(string filename,int geoconfig,float* zL,float* OffsetLL,float*
       
     //if not less than 5 layers were touched then don't try pattern recognition
     //cout << "Internal trigger: " << de->get_Ti() <<endl;
-    if(NL<5)
-     {   
+    //if(NL<5)
+     //{   
       /////////////////////    
       //Fill the output file 
       /////////////////////
-      DEtree->Fill();
+      //DEtree->Fill();
       //Free memory    
-      delete de;
-      continue;
-    }
+      //delete de;
+      //continue;
+    //}
     //T1&T3&T4
    /* if(de->get_EneT1().at(0)<0 || de->get_EneT3().at(0)<0 ||de->get_EneT4().at(0)<0)
      {   
