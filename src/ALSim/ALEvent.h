@@ -126,12 +126,12 @@ class ALEvent:public TObject
    std::vector<double> Eneg;
    std::vector<double> PHA6; //for data only 6th PHA
    //For MC, position of particles in the scintillators
-   std::vector<double> XT1
-   std::vector<double> XT3
-   std::vector<double> XT4
-   std::vector<double> YT1
-   std::vector<double> YT3
-   std::vector<double> YT4
+   std::vector<double> XT1;
+   std::vector<double> XT3;
+   std::vector<double> XT4;
+   std::vector<double> YT1;
+   std::vector<double> YT3;
+   std::vector<double> YT4;
    //For MC, energy deposit in insulation and shell
    std::vector<double> EneIsofoam;
    std::vector<double> EneShell;
