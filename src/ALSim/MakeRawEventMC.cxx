@@ -541,7 +541,10 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
         int t=0;
         for (int ij=0;ij<7;ij++) t+=Titmp[ij]*(int)TMath::Power(2,ij);
         e->set_Ti(t);  
-        //Fill the previous event in the output file  
+	int ttc=0;
+        for (int ij=0;ij<7;ij++) ttc+=Tictmp[ij]*(int)TMath::Power(2,ij);
+        e->set_Tic(ttc); 
+       //Fill the previous event in the output file  
         tree->Fill(); 
         delete e;
         e=new ALEvent();
@@ -1003,6 +1006,8 @@ int MakeRawEventMCDisc(int typeT,int Ene,int seed,int cycle,string Inppath,strin
 
  return 1;
 }
+
+
 
 
 
